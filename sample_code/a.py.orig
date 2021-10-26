@@ -1,0 +1,12 @@
+x = a + b
+
+def foo(bar):
+    return a + b + c
+
+for i in range(n*2):
+    print(m[i])
+    y = m[i:2*i]
+# comment
+if g.name == 'Aryaz':
+    g.test.x = 10
+    u = g.test.y
