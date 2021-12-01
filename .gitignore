@@ -1,0 +1,7 @@
+myenv
+*.swp
+*~
+iids.json
+__pycache__
+workspace.code-workspace
+*.egg-info

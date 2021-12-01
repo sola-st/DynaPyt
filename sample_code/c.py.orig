@@ -1,0 +1,12 @@
+# test
+'''
+testing
+'''
+import __future__
+from __future__ import all_feature_names
+import __future__ as ff
+from __future__ import *
+import os
+
+def foo(bar):
+    print(bar)

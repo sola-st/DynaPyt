@@ -1,5 +1,4 @@
 import argparse
-from os import path
 import libcst as cst
 from CodeInstrumenter import CodeInstrumenter
 from IIDs import IIDs
@@ -28,7 +27,7 @@ def gather_files(files_arg):
     return files
 
 
-def instrument_file(file_path, iids):
+def instrument_file(file_path, iids, selected_hooks):
     with open(file_path, 'r') as file:
         src = file.read()
 
@@ -39,7 +38,7 @@ def instrument_file(file_path, iids):
     ast = cst.parse_module(src)
     ast_wrapper = cst.metadata.MetadataWrapper(ast)
 
-    instrumented_code = CodeInstrumenter(file_path, iids)
+    instrumented_code = CodeInstrumenter(file_path, iids, selected_hooks)
     instrumented_ast = ast_wrapper.visit(instrumented_code)
 
     copied_file_path = re.sub(r'\.py$', '.py.orig', file_path)
@@ -48,12 +47,14 @@ def instrument_file(file_path, iids):
     rewritten_code = '# DYNAPYT: DO NOT INSTRUMENT\n\n' + instrumented_ast.code
     with open(file_path, 'w') as file:
         file.write(rewritten_code)
+    print(f'Done with {file_path}')
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
     files = gather_files(args.files)
     iids = IIDs(args.iids)
+    selected_hooks = ['unary_operation', 'binary_operation']
     for file_path in files:
-        instrument_file(file_path, iids)
+        instrument_file(file_path, iids, selected_hooks)
     iids.store()
