@@ -12,15 +12,18 @@ class IIDs:
             file_path = "iids.json"
             self.next_iid = 1
             self.iid_to_location = {}
+            self.iid_to_node = {}
         else:
             with open(file_path, "r") as file:
                 json_object = json.load(file)
             self.next_iid = json_object["next_iid"]
             self.iid_to_location = json_object["iid_to_location"]
+            self.iid_to_node = json_object["iid_to_node"]
         self.file_path = file_path
 
-    def new(self, file, line, column):
+    def new(self, file, line, column, node):
         self.iid_to_location[self.next_iid] = Location(file, line, column)
+        self.iid_to_node[self.next_iid] = node
         self.next_iid += 1
         return self.next_iid
 

@@ -1,7 +1,8 @@
 from typing import Any, List, Optional, Tuple
 import libcst as cst
+from .BaseAnalysis import BaseAnalysis
 
-class TraceAll():
+class TraceAll(BaseAnalysis):
     
     # Literals
     

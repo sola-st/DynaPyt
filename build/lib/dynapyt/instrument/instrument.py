@@ -1,7 +1,8 @@
 import argparse
+import importlib
 import libcst as cst
-from CodeInstrumenter import CodeInstrumenter
-from IIDs import IIDs
+from .CodeInstrumenter import CodeInstrumenter
+from .IIDs import IIDs
 import re
 from shutil import copyfile
 
@@ -11,7 +12,12 @@ parser.add_argument(
     "--files", help="Python files to instrument or .txt file with all file paths", nargs="+")
 parser.add_argument(
     "--iids", help="JSON file with instruction IDs (will create iids.json if nothing given)")
+parser.add_argument(
+    "--analysis", help="Analysis class name")
 
+def get_hooks_from_analysis(method_list):
+    print(method_list)
+    return ['read', 'literal', 'call', 'unary_operation', 'binary_operation']
 
 def gather_files(files_arg):
     if len(files_arg) == 1 and files_arg[0].endswith('.txt'):
@@ -38,7 +44,7 @@ def instrument_file(file_path, iids, selected_hooks):
     ast = cst.parse_module(src)
     ast_wrapper = cst.metadata.MetadataWrapper(ast)
 
-    instrumented_code = CodeInstrumenter(file_path, iids, selected_hooks)
+    instrumented_code = CodeInstrumenter(src, file_path, iids, selected_hooks)
     instrumented_ast = ast_wrapper.visit(instrumented_code)
 
     copied_file_path = re.sub(r'\.py$', '.py.orig', file_path)
@@ -54,7 +60,13 @@ if __name__ == '__main__':
     args = parser.parse_args()
     files = gather_files(args.files)
     iids = IIDs(args.iids)
-    selected_hooks = ['unary_operation', 'binary_operation']
+    
+    module = importlib.import_module('dynapyt.analyses.' + args.analysis)
+    print(module)
+    class_ = getattr(module, args.analysis)
+    instance = class_()
+    method_list = [func for func in dir(instance) if callable(getattr(instance, func)) and not func.startswith("__")]
+    selected_hooks = get_hooks_from_analysis(method_list)
     for file_path in files:
         instrument_file(file_path, iids, selected_hooks)
     iids.store()

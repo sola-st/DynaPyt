@@ -1,0 +1,8 @@
+a = 1
+b = 2
+c = a + b
+
+def foo(x):
+    return x+x
+
+d = foo(c)
