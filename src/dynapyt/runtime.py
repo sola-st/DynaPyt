@@ -6,11 +6,13 @@ def _dynapyt_parse_to_ast_(code):
 def _assign_(iid, left, right):
     return right()
 
-def _binary_op_(iid, left, opr, right, val):
-    return val()
+def _binary_op_(iid, left, opr, right):
+    result = left + right
+    return result
 
-def _unary_op_(iid, opr, right, val):
-    return val()
+def _unary_op_(iid, opr, right):
+    result = -right
+    return result
 
 def _call_(iid, call):
     return call()
@@ -29,3 +31,12 @@ def _catch_(exception):
 
 def _read_var_(iid, var_arg):
     return var_arg()
+
+def _condition_(iid, val):
+    return val
+
+def _func_entry_(iid):
+    return
+
+def _func_exit_(iid, return_val):
+    return return_val

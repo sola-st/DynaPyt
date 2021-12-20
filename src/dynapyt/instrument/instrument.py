@@ -16,8 +16,7 @@ parser.add_argument(
     "--analysis", help="Analysis class name")
 
 def get_hooks_from_analysis(method_list):
-    print(method_list)
-    return ['read', 'literal', 'call', 'unary_operation', 'binary_operation']
+    return ['literal', 'unary_operation', 'binary_operation', 'control_flow', 'function']
 
 def gather_files(files_arg):
     if len(files_arg) == 1 and files_arg[0].endswith('.txt'):
@@ -62,7 +61,6 @@ if __name__ == '__main__':
     iids = IIDs(args.iids)
     
     module = importlib.import_module('dynapyt.analyses.' + args.analysis)
-    print(module)
     class_ = getattr(module, args.analysis)
     instance = class_()
     method_list = [func for func in dir(instance) if callable(getattr(instance, func)) and not func.startswith("__")]

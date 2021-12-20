@@ -18,9 +18,11 @@ class CodeInstrumenter(cst.CSTTransformer):
 
     def __create_iid(self, node):
         location = self.get_metadata(PositionProvider, node)
-        line = location.start.line
-        column = location.start.column
-        iid = self.iids.new(self.file_path, line, column, node)
+        start_line = location.start.line
+        start_column = location.start.column
+        end_line = location.end.line
+        end_column = location.end.column
+        iid = self.iids.new(self.file_path, start_line, start_column, end_line, end_column)
         return iid
 
     def __create_import(self, name):
@@ -32,10 +34,10 @@ class CodeInstrumenter(cst.CSTTransformer):
         return stmt
     
     def __wrap_in_lambda(self, node):
-        used_names = set(map(lambda x: x.value, matchers.findall(node, matchers.Name())))
+        # used_names = set(map(lambda x: x.value, matchers.findall(node, matchers.Name())))
         parameters = []
-        for n in used_names:
-            parameters.append(cst.Param(name=cst.Name(value=n), default=cst.Name(value=n)))
+        # for n in used_names:
+        #     parameters.append(cst.Param(name=cst.Name(value=n), default=cst.Name(value=n)))
         lambda_expr = cst.Lambda(params=cst.Parameters(params=parameters), body=node)
         return lambda_expr
 
@@ -73,6 +75,11 @@ class CodeInstrumenter(cst.CSTTransformer):
             dynapyt_imports.append(self.__create_import("_raise_"))
         if 'read' in self.selected_hooks:
             dynapyt_imports.append(self.__create_import("_read_var_"))
+        if 'control_flow' in self.selected_hooks:
+            dynapyt_imports.append(self.__create_import("_condition_"))
+        if 'function' in self.selected_hooks:
+            dynapyt_imports.append(self.__create_import("_func_entry_"))
+            dynapyt_imports.append(self.__create_import("_func_exit_"))
         dynapyt_imports.append(cst.Newline(value='\n'))
         code_body = list(updated_node.body[imports_index+1:])
         handler_call = cst.Call(func=cst.Name(value='_catch_'), args=[cst.Arg(cst.Name('_dynapyt_exception_'))])
@@ -85,7 +92,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'read' not in self.selected_hooks:
             return updated_node
         context = self.get_metadata(ExpressionContextProvider, original_node)
-        print(original_node, context, context == ExpressionContext.LOAD)
+        # print(original_node, context, context == ExpressionContext.LOAD)
         if context == ExpressionContext.LOAD:
             callee_name = cst.Name(value="_read_var_")
             iid = self.__create_iid(original_node)
@@ -116,12 +123,11 @@ class CodeInstrumenter(cst.CSTTransformer):
         callee_name = cst.Name(value="_assign_")
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        left_arg = cst.Arg(value=cst.SimpleString('\"' + cst.Module([]).code_for_node(updated_node) + '\"'))
-        right_arg = cst.Arg(value=self.__wrap_in_lambda(original_node))
+        left_arg = cst.Arg(value=cst.List(updated_node.targets))
+        right_arg = cst.Arg(value=self.__wrap_in_lambda(updated_node.value))
         call = cst.Call(func=callee_name, args=[iid_arg, left_arg, right_arg])
-        new_node = cst.SimpleStatementLine(body=[cst.Expr(value=call)])
-        print(new_node)
-        return new_node
+        # new_node = cst.SimpleStatementLine(body=[cst.Expr(value=call)])
+        return updated_node.with_changes(value=call)
     
     def leave_Expr(self, original_node, updated_node):
         if 'expression' not in self.selected_hooks:
@@ -134,7 +140,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         return updated_node.with_changes(value=call)
     
     def leave_FunctionDef(self, original_node, updated_node):
-        if 'function_def' not in self.selected_hooks:
+        if 'function' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_func_entry_")
         iid = self.__create_iid(original_node)
@@ -143,6 +149,16 @@ class CodeInstrumenter(cst.CSTTransformer):
         new_body = updated_node.body.with_changes(body=[cst.SimpleStatementLine([entry_stmt])]+list(updated_node.body.body))
         new_node = updated_node
         return new_node.with_changes(body=new_body)
+    
+    def leave_Return(self, original_node, updated_node):
+        if 'function' not in self.selected_hooks:
+            return updated_node
+        callee_name = cst.Name(value="_func_exit_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        val_arg = cst.Arg(value=updated_node.value)
+        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
+        return updated_node.with_changes(value=call)
     
     def leave_UnaryOperation(self, original_node, updated_node):
         if 'unary_operation' not in self.selected_hooks:
@@ -153,9 +169,8 @@ class CodeInstrumenter(cst.CSTTransformer):
         operator_name = type(original_node.operator).__name__
         operator_arg = cst.Arg(cst.SimpleString(value=f'"{operator_name}"'))
         right_arg = cst.Arg(updated_node.expression)
-        val_arg = cst.Arg(self.__wrap_in_lambda(original_node))
         call = cst.Call(func=callee_name, args=[
-                        iid_arg, operator_arg, right_arg, val_arg])
+                        iid_arg, operator_arg, right_arg])
         return call
     
     def leave_Del(self, original_node, updated_node):
@@ -217,4 +232,33 @@ class CodeInstrumenter(cst.CSTTransformer):
         raise_arg = cst.Arg(value=self.__wrap_in_lambda(original_node))
         call = cst.Call(func=callee_name, args=[iid_arg, raise_arg])
         return call
-        
+    
+    def leave_If(self, original_node, updated_node):
+        if 'control_flow' not in self.selected_hooks:
+            return updated_node
+        callee_name = cst.Name(value="_condition_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        val_arg = cst.Arg(value=updated_node.test)
+        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
+        return updated_node.with_changes(test=call)
+
+    def leave_IfExp(self, original_node, updated_node):
+        if 'control_flow' not in self.selected_hooks:
+            return updated_node
+        callee_name = cst.Name(value="_condition_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        val_arg = cst.Arg(value=updated_node.test)
+        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
+        return updated_node.with_changes(test=call)
+
+    def leave_While(self, original_node, updated_node):
+        if 'control_flow' not in self.selected_hooks:
+            return updated_node
+        callee_name = cst.Name(value="_condition_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        val_arg = cst.Arg(value=updated_node.test)
+        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
+        return updated_node.with_changes(test=call)

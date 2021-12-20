@@ -3,7 +3,7 @@ from os import path
 import json
 
 
-Location = namedtuple("Location", ["file", "line", "column"])
+Location = namedtuple("Location", ["file", "start_line", "start_column", "end_line", "end_column"])
 
 
 class IIDs:
@@ -12,18 +12,15 @@ class IIDs:
             file_path = "iids.json"
             self.next_iid = 1
             self.iid_to_location = {}
-            self.iid_to_node = {}
         else:
             with open(file_path, "r") as file:
                 json_object = json.load(file)
             self.next_iid = json_object["next_iid"]
             self.iid_to_location = json_object["iid_to_location"]
-            self.iid_to_node = json_object["iid_to_node"]
         self.file_path = file_path
 
-    def new(self, file, line, column, node):
-        self.iid_to_location[self.next_iid] = Location(file, line, column)
-        self.iid_to_node[self.next_iid] = node
+    def new(self, file, start_line, start_column, end_line, end_column):
+        self.iid_to_location[self.next_iid] = Location(file, start_line, start_column, end_line, end_column)
         self.next_iid += 1
         return self.next_iid
 
