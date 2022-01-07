@@ -1,0 +1,47 @@
+# DYNAPYT: DO NOT INSTRUMENT
+
+
+from dynapyt.runtime import _dynapyt_parse_to_ast_
+from dynapyt.runtime import _catch_
+from dynapyt.runtime import _binary_op_
+from dynapyt.runtime import _unary_op_
+from dynapyt.runtime import _literal_
+from dynapyt.runtime import _read_var_
+from dynapyt.runtime import _condition_
+from dynapyt.runtime import _func_entry_
+from dynapyt.runtime import _func_exit_
+
+_dynapyt_source_code_ = """
+def foo(x):
+    x += 2
+    if x < 2:
+        return x
+    else:
+        return x-2
+
+class X:
+    def bar(x, y):
+        if x < y:
+            return x
+        else:
+            return y
+"""
+_dynapyt_ast_ = _dynapyt_parse_to_ast_(_dynapyt_source_code_)
+try:
+    def foo(x):
+        _func_entry_(12)
+        x += _literal_(2, 2)
+        if _condition_(11, _read_var_(3, lambda: x) < _literal_(4, 2)):
+            return _func_exit_(6, _read_var_(5, lambda: x))
+        else:
+            return _func_exit_(10, _binary_op_(9, _read_var_(7, lambda: x), "Subtract", _literal_(8, 2)))
+
+    class X:
+        def bar(x, y):
+            _func_entry_(20)
+            if _condition_(19, _read_var_(13, lambda: x) < _read_var_(14, lambda: y)):
+                return _func_exit_(16, _read_var_(15, lambda: x))
+            else:
+                return _func_exit_(18, _read_var_(17, lambda: y))
+except Exception as _dynapyt_exception_:
+    _catch_(_dynapyt_exception_)

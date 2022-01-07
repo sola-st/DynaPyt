@@ -8,3 +8,4 @@ workspace.code-workspace
 *.txt
 build/
 dist/
+.pytest_cache/

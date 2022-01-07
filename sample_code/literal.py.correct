@@ -1,0 +1,25 @@
+# DYNAPYT: DO NOT INSTRUMENT
+
+
+from dynapyt.runtime import _dynapyt_parse_to_ast_
+from dynapyt.runtime import _catch_
+from dynapyt.runtime import _binary_op_
+from dynapyt.runtime import _unary_op_
+from dynapyt.runtime import _literal_
+from dynapyt.runtime import _read_var_
+from dynapyt.runtime import _condition_
+from dynapyt.runtime import _func_entry_
+from dynapyt.runtime import _func_exit_
+
+_dynapyt_source_code_ = """
+a = 10
+b = 'test'
+pi = 3.1415
+"""
+_dynapyt_ast_ = _dynapyt_parse_to_ast_(_dynapyt_source_code_)
+try:
+    a = _literal_(2, 10)
+    b = _literal_(3, 'test')
+    pi = _literal_(4, 3.1415)
+except Exception as _dynapyt_exception_:
+    _catch_(_dynapyt_exception_)

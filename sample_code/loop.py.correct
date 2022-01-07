@@ -1,0 +1,32 @@
+# DYNAPYT: DO NOT INSTRUMENT
+
+
+from dynapyt.runtime import _dynapyt_parse_to_ast_
+from dynapyt.runtime import _catch_
+from dynapyt.runtime import _binary_op_
+from dynapyt.runtime import _unary_op_
+from dynapyt.runtime import _literal_
+from dynapyt.runtime import _read_var_
+from dynapyt.runtime import _condition_
+from dynapyt.runtime import _func_entry_
+from dynapyt.runtime import _func_exit_
+
+_dynapyt_source_code_ = """
+a = 1
+while a < 10:
+    a += 1
+    if a > 5:
+        break
+    a += 1
+
+"""
+_dynapyt_ast_ = _dynapyt_parse_to_ast_(_dynapyt_source_code_)
+try:
+    a = _literal_(2, 1)
+    while _condition_(10, _read_var_(3, lambda: a) < _literal_(4, 10)):
+        a += _literal_(5, 1)
+        if _condition_(8, _read_var_(6, lambda: a) > _literal_(7, 5)):
+            break
+        a += _literal_(9, 1)
+except Exception as _dynapyt_exception_:
+    _catch_(_dynapyt_exception_)

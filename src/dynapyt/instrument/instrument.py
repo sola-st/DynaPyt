@@ -16,7 +16,7 @@ parser.add_argument(
     "--analysis", help="Analysis class name")
 
 def get_hooks_from_analysis(method_list):
-    return ['literal', 'unary_operation', 'binary_operation', 'control_flow', 'function']
+    return ['literal', 'unary_operation', 'binary_operation', 'control_flow', 'function', 'condition', 'read']
 
 def gather_files(files_arg):
     if len(files_arg) == 1 and files_arg[0].endswith('.txt'):
@@ -32,13 +32,10 @@ def gather_files(files_arg):
     return files
 
 
-def instrument_file(file_path, iids, selected_hooks):
-    with open(file_path, 'r') as file:
-        src = file.read()
-
+def instrument_code(src, file_path, iids, selected_hooks):
     if 'DYNAPYT: DO NOT INSTRUMENT' in src:
         print(f'{file_path} is already instrumented -- skipping it')
-        return
+        return None
 
     ast = cst.parse_module(src)
     ast_wrapper = cst.metadata.MetadataWrapper(ast)
@@ -46,12 +43,21 @@ def instrument_file(file_path, iids, selected_hooks):
     instrumented_code = CodeInstrumenter(src, file_path, iids, selected_hooks)
     instrumented_ast = ast_wrapper.visit(instrumented_code)
 
+    return '# DYNAPYT: DO NOT INSTRUMENT\n\n' + instrumented_ast.code
+
+def instrument_file(file_path, iids, selected_hooks):
+    with open(file_path, 'r') as file:
+        src = file.read()
+
+    instrumented_code = instrument_code(src, file_path, iids, selected_hooks)
+    if instrument_code is None:
+        return
+
     copied_file_path = re.sub(r'\.py$', '.py.orig', file_path)
     copyfile(file_path, copied_file_path)
 
-    rewritten_code = '# DYNAPYT: DO NOT INSTRUMENT\n\n' + instrumented_ast.code
     with open(file_path, 'w') as file:
-        file.write(rewritten_code)
+        file.write(instrumented_code)
     print(f'Done with {file_path}')
 
 
