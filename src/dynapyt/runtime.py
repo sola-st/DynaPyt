@@ -10,14 +10,57 @@ def _dynapyt_parse_to_ast_(code):
     return cst.parse_module(code)
 
 def _assign_(iid, right):
-    return right
+    result = analysis.assignment(iid, right)
+    return result
 
 def _binary_op_(iid, left, opr, right):
-    result = left + right
+    bin_op = ['Add', 'BitAnd', 'BitOr', 'BitXor', 'Divide', 'FloorDivide',
+        'LeftShift', 'MatrixMultiply', 'Modulo', 'Multiply', 'Power',
+        'RightShift', 'Subtract', 'And', 'Or']
+    if opr == 0:
+        result = left + right
+    elif opr == 1:
+        result = left & right
+    elif opr == 2:
+        result = left | right
+    elif opr == 3:
+        result = left ^ right
+    elif opr == 4:
+        result = left / right
+    elif opr == 5:
+        result = left // right
+    elif opr == 6:
+        result = left << right
+    elif opr == 7:
+        result = left @ right
+    elif opr == 8:
+        result = left % right
+    elif opr == 9:
+        result = left * right
+    elif opr == 10:
+        result = left ** right
+    elif opr == 11:
+        result = left >> right
+    elif opr == 12:
+        result = left - right
+    elif opr == 13:
+        result = left and right
+    elif opr == 14:
+        result = left or right
+    result = analysis.binary_op(iid, bin_op[opr], left, right, result)
     return result
 
 def _unary_op_(iid, opr, right):
-    result = -right
+    un_op = ['BitInvert', 'Minus', 'Not', 'Plus']
+    if opr == 0:
+        result = ~ right
+    elif opr == 1:
+        result = - right
+    elif opr == 2:
+        result = not right
+    elif opr == 3:
+        result = + right
+    result = analysis.unary_op(iid, un_op[opr], right, result)
     return result
 
 def _call_(iid, call):

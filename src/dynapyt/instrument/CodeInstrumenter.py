@@ -168,7 +168,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'boolean_operation' not in self.selected_hooks:
             return updated_node
         bool_op = {'And': 0, 'Or': 1}
-        callee_name = cst.Name(value="_bool_op_")
+        callee_name = cst.Name(value="_binary_op_")
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         left_arg = cst.Arg(updated_node.left)
@@ -202,6 +202,22 @@ class CodeInstrumenter(cst.CSTTransformer):
         val_arg = cst.Arg(value=updated_node.value)
         left_arg = cst.Arg(value=cst.List(elements=[cst.Element(t.target) for t in updated_node.targets]))
         call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
+        return updated_node.with_changes(value=call)
+    
+    def leave_AugAssign(self, original_node, updated_node):
+        if 'assignment' not in self.selected_hooks:
+            return updated_node
+        aug_op = {'AddAssign': 0, 'BitAndAssign': 1, 'BitOrAssign': 2, 'BitXorAssign': 3, 'DivideAssign': 4,
+            'FloorDivideAssign': 5, 'LeftShiftAssign': 6, 'MatrixMultiplyAssign': 7, 'ModuloAssign': 8,
+            'MultiplyAssign': 9, 'PowerAssign': 10, 'RightShiftAssign': 11, 'SubtractAssign': 12}
+        callee_name = cst.Name(value="_assign_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        operator_name = type(original_node.operator).__name__
+        opr_arg = cst.Arg(value=cst.Integer(value=str(aug_op[operator_name])))
+        val_arg = cst.Arg(value=updated_node.value)
+        left_arg = cst.Arg(value=cst.List(elements=[cst.Element(updated_node.target)]))
+        call = cst.Call(func=callee_name, args=[iid_arg, left_arg, val_arg, opr_arg])
         return updated_node.with_changes(value=call)
     
     def leave_Expr(self, original_node, updated_node):
