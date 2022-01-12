@@ -1,13 +1,14 @@
 import libcst as cst
-from libcst.metadata import ParentNodeProvider, PositionProvider, ScopeProvider, ExpressionContextProvider
+from libcst.metadata import ParentNodeProvider, PositionProvider, ScopeProvider, ExpressionContextProvider, QualifiedNameProvider
 import libcst.matchers as matchers
 import libcst.helpers as helpers
 from libcst.metadata.expression_context_provider import ExpressionContext
+from libcst.metadata.scope_provider import QualifiedNameSource
 
 
 class CodeInstrumenter(cst.CSTTransformer):
 
-    METADATA_DEPENDENCIES = (ParentNodeProvider, PositionProvider, ScopeProvider, ExpressionContextProvider,)
+    METADATA_DEPENDENCIES = (ParentNodeProvider, PositionProvider, ScopeProvider, ExpressionContextProvider, QualifiedNameProvider,)
 
     def __init__(self, src, file_path, iids, selected_hooks):
         self.source = src
@@ -25,11 +26,10 @@ class CodeInstrumenter(cst.CSTTransformer):
         iid = self.iids.new(self.file_path, start_line, start_column, end_line, end_column)
         return iid
 
-    def __create_import(self, name):
+    def __create_import(self, names):
         module_name = cst.Attribute(value= cst.Name(value='dynapyt'), attr=cst.Name(value="runtime"))
-        fct_name = cst.Name(value=name)
-        imp_alias = cst.ImportAlias(name=fct_name)
-        imp = cst.ImportFrom(module=module_name, names=[imp_alias])
+        imp_aliases = [cst.ImportAlias(name=cst.Name(value=name)) for name in names]
+        imp = cst.ImportFrom(module=module_name, names=imp_aliases)
         stmt = cst.SimpleStatementLine(body=[imp])
         return stmt
     
@@ -57,29 +57,32 @@ class CodeInstrumenter(cst.CSTTransformer):
             else:
                 break
         dynapyt_imports = [cst.Newline(value='\n')]
-        dynapyt_imports.append(self.__create_import("_dynapyt_parse_to_ast_"))
-        dynapyt_imports.append(self.__create_import("_catch_"))
+        dynapyt_imports.append(self.__create_import(["_dynapyt_parse_to_ast_"]))
+        dynapyt_imports.append(self.__create_import(["_catch_"]))
+        import_names = []
         if 'assignment' in self.selected_hooks:
-            dynapyt_imports.append(self.__create_import("_assign_"))
+            import_names.append("_assign_")
         if 'expression' in self.selected_hooks:
-            dynapyt_imports.append(self.__create_import("_expr_"))
+            import_names.append("_expr_")
         if 'binary_operation' in self.selected_hooks:
-            dynapyt_imports.append(self.__create_import("_binary_op_"))
+            import_names.append("_binary_op_")
         if 'unary_operation' in self.selected_hooks:
-            dynapyt_imports.append(self.__create_import("_unary_op_"))
+            import_names.append("_unary_op_")
         if 'call' in self.selected_hooks:
-            dynapyt_imports.append(self.__create_import("_call_"))
+            import_names.append("_call_")
         if 'literal' in self.selected_hooks:
-            dynapyt_imports.append(self.__create_import("_literal_"))
+            import_names.append("_literal_")
         if 'exception' in self.selected_hooks:
-            dynapyt_imports.append(self.__create_import("_raise_"))
+            import_names.append("_raise_")
         if 'read' in self.selected_hooks:
-            dynapyt_imports.append(self.__create_import("_read_var_"))
+            import_names.append("_read_var_")
         if 'control_flow' in self.selected_hooks:
-            dynapyt_imports.append(self.__create_import("_condition_"))
+            import_names.append("_condition_")
+            import_names.append("_jump_")
         if 'function' in self.selected_hooks:
-            dynapyt_imports.append(self.__create_import("_func_entry_"))
-            dynapyt_imports.append(self.__create_import("_func_exit_"))
+            import_names.append("_func_entry_")
+            import_names.append("_func_exit_")
+        dynapyt_imports.append(self.__create_import(import_names))
         dynapyt_imports.append(cst.Newline(value='\n'))
         code_body = list(updated_node.body[imports_index+1:])
         handler_call = cst.Call(func=cst.Name(value='_catch_'), args=[cst.Arg(cst.Name('_dynapyt_exception_'))])
@@ -89,11 +92,22 @@ class CodeInstrumenter(cst.CSTTransformer):
         return updated_node.with_changes(body=new_body)
 
     def leave_Name(self, original_node, updated_node):
+        if ('literal' in self.selected_hooks) and (updated_node.value in ['True', 'False']):
+            callee_name = cst.Name(value="_literal_")
+            iid = self.__create_iid(original_node)
+            iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+            val_arg = cst.Arg(value=updated_node)
+            call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
+            return call
+
         if 'read' not in self.selected_hooks:
             return updated_node
         context = self.get_metadata(ExpressionContextProvider, original_node)
         # print(original_node, context, context == ExpressionContext.LOAD)
-        if context == ExpressionContext.LOAD:
+        name_source = self.get_metadata(QualifiedNameProvider, original_node)
+        if len(list(name_source)) == 0:
+            return updated_node
+        if (context == ExpressionContext.LOAD) and (list(name_source)[0].source == QualifiedNameSource.LOCAL):
             callee_name = cst.Name(value="_read_var_")
             iid = self.__create_iid(original_node)
             iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
@@ -102,19 +116,81 @@ class CodeInstrumenter(cst.CSTTransformer):
             return call
         else:
             return updated_node
+    
+    def leave_Integer(self, original_node, updated_node):
+        if 'literal' not in self.selected_hooks:
+            return updated_node
+        callee_name = cst.Name(value="_literal_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        val_arg = cst.Arg(value=cst.Integer(value=original_node.value))
+        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
+        return call
+    
+    def leave_Float(self, original_node, updated_node):
+        if 'literal' not in self.selected_hooks:
+            return updated_node
+        callee_name = cst.Name(value="_literal_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        val_arg = cst.Arg(value=cst.Float(value=original_node.value))
+        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
+        return call
+    
+    def leave_SimpleString(self, original_node, updated_node):
+        if 'literal' not in self.selected_hooks:
+            return updated_node
+        callee_name = cst.Name(value="_literal_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        val_arg = cst.Arg(value=cst.SimpleString(value=original_node.value))
+        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
+        return call
 
     def leave_BinaryOperation(self, original_node, updated_node):
         if 'binary_operation' not in self.selected_hooks:
             return updated_node
+        bin_op = {'Add': 0, 'BitAnd': 1, 'BitOr': 2, 'BitXor': 3, 'Divide': 4,
+            'FloorDivide': 5, 'LeftShift': 6, 'MatrixMultiply': 7, 'Modulo': 8,
+            'Multiply': 9, 'Power': 10, 'RightShift': 11, 'Subtract': 12}
         callee_name = cst.Name(value="_binary_op_")
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         left_arg = cst.Arg(updated_node.left)
         operator_name = type(original_node.operator).__name__
-        operator_arg = cst.Arg(cst.SimpleString(value=f'"{operator_name}"'))
+        operator_arg = cst.Arg(cst.Integer(str(bin_op[operator_name])))
         right_arg = cst.Arg(updated_node.right)
         call = cst.Call(func=callee_name, args=[
                         iid_arg, left_arg, operator_arg, right_arg])
+        return call
+
+    def leave_BooleanOperation(self, original_node, updated_node):
+        if 'boolean_operation' not in self.selected_hooks:
+            return updated_node
+        bool_op = {'And': 0, 'Or': 1}
+        callee_name = cst.Name(value="_bool_op_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        left_arg = cst.Arg(updated_node.left)
+        operator_name = type(original_node.operator).__name__
+        operator_arg = cst.Arg(cst.Integer(str(bool_op[operator_name])))
+        right_arg = cst.Arg(updated_node.right)
+        call = cst.Call(func=callee_name, args=[
+                        iid_arg, left_arg, operator_arg, right_arg])
+        return call
+    
+    def leave_UnaryOperation(self, original_node, updated_node):
+        if 'unary_operation' not in self.selected_hooks:
+            return updated_node
+        un_op = {'BitInvert': 0, 'Minus': 1, 'Not': 2, 'Plus': 3}
+        callee_name = cst.Name(value="_unary_op_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        operator_name = type(original_node.operator).__name__
+        operator_arg = cst.Arg(cst.Integer(str(un_op[operator_name])))
+        right_arg = cst.Arg(updated_node.expression)
+        call = cst.Call(func=callee_name, args=[
+                        iid_arg, operator_arg, right_arg])
         return call
     
     def leave_Assign(self, original_node, updated_node):
@@ -123,10 +199,9 @@ class CodeInstrumenter(cst.CSTTransformer):
         callee_name = cst.Name(value="_assign_")
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        left_arg = cst.Arg(value=cst.List(updated_node.targets))
-        right_arg = cst.Arg(value=self.__wrap_in_lambda(updated_node.value))
-        call = cst.Call(func=callee_name, args=[iid_arg, left_arg, right_arg])
-        # new_node = cst.SimpleStatementLine(body=[cst.Expr(value=call)])
+        val_arg = cst.Arg(value=updated_node.value)
+        left_arg = cst.Arg(value=cst.List(elements=[cst.Element(t.target) for t in updated_node.targets]))
+        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
         return updated_node.with_changes(value=call)
     
     def leave_Expr(self, original_node, updated_node):
@@ -160,19 +235,6 @@ class CodeInstrumenter(cst.CSTTransformer):
         call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
         return updated_node.with_changes(value=call)
     
-    def leave_UnaryOperation(self, original_node, updated_node):
-        if 'unary_operation' not in self.selected_hooks:
-            return updated_node
-        callee_name = cst.Name(value="_unary_op_")
-        iid = self.__create_iid(original_node)
-        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        operator_name = type(original_node.operator).__name__
-        operator_arg = cst.Arg(cst.SimpleString(value=f'"{operator_name}"'))
-        right_arg = cst.Arg(updated_node.expression)
-        call = cst.Call(func=callee_name, args=[
-                        iid_arg, operator_arg, right_arg])
-        return call
-    
     def leave_Del(self, original_node, updated_node):
         if 'delete' not in self.selected_hooks:
             return updated_node
@@ -191,36 +253,6 @@ class CodeInstrumenter(cst.CSTTransformer):
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         call_arg = cst.Arg(value=self.__wrap_in_lambda(original_node))
         call = cst.Call(func=callee_name, args=[iid_arg, call_arg])
-        return call
-        
-    def leave_Integer(self, original_node, updated_node):
-        if 'literal' not in self.selected_hooks:
-            return updated_node
-        callee_name = cst.Name(value="_literal_")
-        iid = self.__create_iid(original_node)
-        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        val_arg = cst.Arg(value=cst.Integer(value=original_node.value))
-        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
-        return call
-    
-    def leave_Float(self, original_node, updated_node):
-        if 'literal' not in self.selected_hooks:
-            return updated_node
-        callee_name = cst.Name(value="_literal_")
-        iid = self.__create_iid(original_node)
-        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        val_arg = cst.Arg(value=cst.Float(value=original_node.value))
-        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
-        return call
-    
-    def leave_SimpleString(self, original_node, updated_node):
-        if 'literal' not in self.selected_hooks:
-            return updated_node
-        callee_name = cst.Name(value="_literal_")
-        iid = self.__create_iid(original_node)
-        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        val_arg = cst.Arg(value=cst.SimpleString(value=original_node.value))
-        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
         return call
     
     def leave_Raise(self, original_node, updated_node):
@@ -262,3 +294,29 @@ class CodeInstrumenter(cst.CSTTransformer):
         val_arg = cst.Arg(value=updated_node.test)
         call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
         return updated_node.with_changes(test=call)
+    
+    def leave_IndentedBlock(self, original_node, updated_node):
+        if 'control_flow' not in self.selected_hooks:
+            return updated_node
+        new_body = []
+        for i in updated_node.body:
+            if matchers.matches(i, matchers.SimpleStatementLine(body=[matchers.Break()])):
+                callee_name = cst.Name(value="_jump_")
+                iid = self.__create_iid(original_node)
+                iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+                break_arg = cst.Arg(value=cst.Name(value='True'))
+                call = cst.Call(func=callee_name, args=[iid_arg, break_arg])
+                condition = cst.If(test=call, body=cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[cst.Break()])]))
+                new_body.append(condition)
+            elif matchers.matches(i, matchers.SimpleStatementLine(body=[matchers.Continue()])):
+                callee_name = cst.Name(value="_jump_")
+                iid = self.__create_iid(original_node)
+                iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+                break_arg = cst.Arg(value=cst.Name(value='False'))
+                call = cst.Call(func=callee_name, args=[iid_arg, break_arg])
+                condition = cst.If(test=call, body=cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[cst.Continue()])]))
+                new_body.append(condition)
+            else:
+                new_body.append(i)
+
+        return updated_node.with_changes(body=new_body)

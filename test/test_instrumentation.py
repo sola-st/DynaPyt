@@ -4,7 +4,7 @@ from dynapyt.instrument.IIDs import IIDs
 from shutil import move
 import pytest
 
-all_hooks = ['literal', 'unary_operation', 'binary_operation', 'control_flow', 'function', 'condition', 'read']
+all_hooks = ['literal', 'unary_operation', 'binary_operation', 'control_flow', 'function', 'condition', 'read', 'assignment', 'call']
 
 @pytest.fixture(autouse=True)
 def reset():
