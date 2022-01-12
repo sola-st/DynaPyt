@@ -16,7 +16,7 @@ parser.add_argument(
     "--analysis", help="Analysis class name")
 
 def get_hooks_from_analysis(method_list):
-    return ['literal', 'unary_operation', 'binary_operation', 'control_flow', 'function', 'condition', 'read']
+    return ['literal', 'unary_operation', 'binary_operation', 'control_flow', 'function', 'condition', 'read', 'assignment', 'call']
 
 def gather_files(files_arg):
     if len(files_arg) == 1 and files_arg[0].endswith('.txt'):
@@ -50,7 +50,7 @@ def instrument_file(file_path, iids, selected_hooks):
         src = file.read()
 
     instrumented_code = instrument_code(src, file_path, iids, selected_hooks)
-    if instrument_code is None:
+    if instrumented_code is None:
         return
 
     copied_file_path = re.sub(r'\.py$', '.py.orig', file_path)

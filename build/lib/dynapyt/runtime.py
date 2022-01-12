@@ -1,10 +1,16 @@
 import libcst as cst
 
+analysis = None
+
+def set_analysis(new_analysis):
+    global analysis
+    analysis = new_analysis
+
 def _dynapyt_parse_to_ast_(code):
     return cst.parse_module(code)
 
-def _assign_(iid, left, right):
-    return right()
+def _assign_(iid, right):
+    return right
 
 def _binary_op_(iid, left, opr, right):
     result = left + right
@@ -18,7 +24,8 @@ def _call_(iid, call):
     return call()
 
 def _literal_(iid, val):
-    return val
+    res = analysis.literal(iid, val)
+    return res
 
 def _delete_(iid, del_expr):
     del_expr()
@@ -40,3 +47,6 @@ def _func_entry_(iid):
 
 def _func_exit_(iid, return_val):
     return return_val
+
+def _jump_(iid, is_break):
+    return True
