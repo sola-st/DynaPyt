@@ -11,7 +11,7 @@ def _dynapyt_parse_to_ast_(code):
 
 def _assign_(iid, right):
     result = analysis.assignment(iid, right)
-    return result
+    return result if result != None else right
 
 def _binary_op_(iid, left, opr, right):
     bin_op = ['Add', 'BitAnd', 'BitOr', 'BitXor', 'Divide', 'FloorDivide',
@@ -47,8 +47,8 @@ def _binary_op_(iid, left, opr, right):
         result = left and right
     elif opr == 14:
         result = left or right
-    result = analysis.binary_op(iid, bin_op[opr], left, right, result)
-    return result
+    result_new = analysis.binary_op(iid, bin_op[opr], left, right, result)
+    return result_new if result_new != None else result
 
 def _unary_op_(iid, opr, right):
     un_op = ['BitInvert', 'Minus', 'Not', 'Plus']
@@ -60,15 +60,15 @@ def _unary_op_(iid, opr, right):
         result = not right
     elif opr == 3:
         result = + right
-    result = analysis.unary_op(iid, un_op[opr], right, result)
-    return result
+    result_new = analysis.unary_op(iid, un_op[opr], right, result)
+    return result_new if result_new != None else result
 
 def _call_(iid, call):
     return call()
 
 def _literal_(iid, val):
     res = analysis.literal(iid, val)
-    return res
+    return res if res != None else val
 
 def _delete_(iid, del_expr):
     del_expr()
