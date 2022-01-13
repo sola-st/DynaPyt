@@ -1,3 +1,5 @@
+# inspired by https://www.toptal.com/python/top-10-mistakes-that-python-programmers-make
+
 if __name__ == "__main__":
     '''
     Modifies a list while iterating over it, which is
