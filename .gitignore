@@ -9,3 +9,4 @@ workspace.code-workspace
 build/
 dist/
 .pytest_cache/
+test/targetPrograms/*.orig
