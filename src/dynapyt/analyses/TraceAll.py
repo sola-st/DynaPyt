@@ -1,12 +1,38 @@
-from typing import Any, List, Optional, Tuple
+import numbers
+import string
+import logging
+from typing import Any, List, Optional, Tuple, Union
 import libcst as cst
 from .BaseAnalysis import BaseAnalysis
 
 class TraceAll(BaseAnalysis):
     
+    def __init__(self) -> None:
+        logging.basicConfig(filename='output.log', format='%(message)s', encoding='utf-8', level=logging.INFO)
+    
+    def log(self, *args):
+        res = ''
+        for arg in args:
+            res += ' ' + str(arg)
+        logging.info(res)
+
     # Literals
+
+    def number(self, iid: int, val: Any) -> Any:
+        self.log('    Number', 'value:', val)
+    
+    def string(self, iid: int, val: Any) -> Any:
+        self.log('    String', 'value:', val[:15] + '...')
+    
+    def boolean(self, iid: int, val: Any) -> Any:
+        self.log('    Boolean', 'value:', val)
     
     def literal(self, iid: int, val: Any) -> Any:
+        self.log('Literal   ', 'value:', val)
+        if isinstance(val, numbers.Number):
+            self.number(iid, val)
+        elif isinstance(val, str):
+            self.string(iid, val)
         return val
 
     # Variables
@@ -34,13 +60,13 @@ class TraceAll(BaseAnalysis):
     # Expressions
 
     def binary_op(self, iid: int, op: str, left: Any, right: Any, result: Any) -> Any:
-        pass
+        self.log('Binary Operation', left, op, right, '->', result)
 
     def unary_op(self, iid: int, op: str, arg: Any, result: Any) -> Any:
-        pass
+        self.log('Unary Operation', op, arg, '->', result)
 
-    def compare(self, iid: int, op: str, left: Any, right_list: List[Any], result: Any) -> Any:
-        pass
+    def comparison(self, iid: int, left: Any, right_list: List[Any], result: Any) -> Any:
+        self.log('Comparison', left, right_list, '->', result)
 
     def invoke_func_pre(self, iid: int, f: str, base: Any, args: List[Any], is_constructor: bool, function_iid: int, function_sid: str) -> None:
         pass
@@ -61,6 +87,14 @@ class TraceAll(BaseAnalysis):
     
     def delete_sub(self, iid: int, name: str, val: Any, slices: List[Tuple[int, int]]) -> None:
         pass
+
+    # Function Call
+
+    def pre_call(self, iid: int):
+        self.log('Before function call at', iid)
+    
+    def post_call(self, iid: int):
+        self.log('After function call at', iid)
 
     # Statements
 

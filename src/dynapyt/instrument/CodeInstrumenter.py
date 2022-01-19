@@ -68,6 +68,8 @@ class CodeInstrumenter(cst.CSTTransformer):
             import_names.append("_binary_op_")
         if 'unary_operation' in self.selected_hooks:
             import_names.append("_unary_op_")
+        if 'comparison' in self.selected_hooks:
+            import_names.append("_comp_op_")
         if 'call' in self.selected_hooks:
             import_names.append("_call_")
         if 'literal' in self.selected_hooks:
@@ -78,6 +80,8 @@ class CodeInstrumenter(cst.CSTTransformer):
             import_names.append("_read_var_")
         if 'control_flow' in self.selected_hooks:
             import_names.append("_condition_")
+            import_names.append("_enter_ctrl_flow_")
+            import_names.append("_exit_ctrl_flow_")
             import_names.append("_jump_")
         if 'function' in self.selected_hooks:
             import_names.append("_func_entry_")
@@ -111,8 +115,9 @@ class CodeInstrumenter(cst.CSTTransformer):
             callee_name = cst.Name(value="_read_var_")
             iid = self.__create_iid(original_node)
             iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+            name_arg = cst.Arg(value=cst.SimpleString(value='"'+original_node.value+'"'))
             var_arg = cst.Arg(value=self.__wrap_in_lambda(original_node))
-            call = cst.Call(func=callee_name, args=[iid_arg, var_arg])
+            call = cst.Call(func=callee_name, args=[iid_arg, name_arg, var_arg])
             return call
         else:
             return updated_node
@@ -191,6 +196,24 @@ class CodeInstrumenter(cst.CSTTransformer):
         right_arg = cst.Arg(updated_node.expression)
         call = cst.Call(func=callee_name, args=[
                         iid_arg, operator_arg, right_arg])
+        return call
+    
+    def leave_Comparison(self, original_node, updated_node):
+        if 'comparison' not in self.selected_hooks:
+            return updated_node
+        comp_op = {'Equal': 0, 'GreaterThan': 1, 'GreaterThanEqual': 2, 'In': 3,
+            'Is': 4, 'LessThan': 5, 'LessThanEqual': 6, 'NotEqual': 7,
+            'IsNot': 8, 'NotIn': 9}
+        callee_name = cst.Name(value="_comp_op_")
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        left_arg = cst.Arg(updated_node.left)
+        comparisons = []
+        for i in updated_node.comparisons:
+            operator_name = type(i.operator).__name__
+            comparisons.append(cst.Element(value=cst.Tuple(elements=[cst.Element(cst.Integer(str(comp_op[operator_name]))), cst.Element(i.comparator)])))
+        call = cst.Call(func=callee_name, args=[
+                        iid_arg, left_arg, cst.Arg(cst.List(elements=comparisons))])
         return call
     
     def leave_Assign(self, original_node, updated_node):
@@ -284,12 +307,14 @@ class CodeInstrumenter(cst.CSTTransformer):
     def leave_If(self, original_node, updated_node):
         if 'control_flow' not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_condition_")
+        callee_name = cst.Name(value="_enter_ctrl_flow_")
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node.test)
         call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
-        return updated_node.with_changes(test=call)
+        end_name = cst.Name(value="_exit_ctrl_flow_")
+        end_call = cst.Call(func=end_name, args=[iid_arg])
+        return updated_node.with_changes(test=call, body= cst.IndentedBlock(body=updated_node.body.body + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
 
     def leave_IfExp(self, original_node, updated_node):
         if 'control_flow' not in self.selected_hooks:
@@ -304,12 +329,15 @@ class CodeInstrumenter(cst.CSTTransformer):
     def leave_While(self, original_node, updated_node):
         if 'control_flow' not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_condition_")
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        val_arg = cst.Arg(value=updated_node.test)
-        call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
-        return updated_node.with_changes(test=call)
+        enter_name = cst.Name(value="_enter_ctrl_flow_")
+        enter_arg = cst.Arg(value=updated_node.test)
+        enter_call = cst.Call(func=enter_name, args=[iid_arg, enter_arg])
+        end_name = cst.Name(value="_exit_ctrl_flow_")
+        end_call = cst.Call(func=end_name, args=[iid_arg])
+        else_part = cst.Else(body=cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
+        return updated_node.with_changes(test=enter_call, orelse=else_part)
     
     def leave_IndentedBlock(self, original_node, updated_node):
         if 'control_flow' not in self.selected_hooks:
@@ -336,3 +364,4 @@ class CodeInstrumenter(cst.CSTTransformer):
                 new_body.append(i)
 
         return updated_node.with_changes(body=new_body)
+        

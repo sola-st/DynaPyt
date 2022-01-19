@@ -1,0 +1,8 @@
+ Literal    value: 5
+     Number value: 5
+ Comparison 5 [('LessThan', 5), ('Equal', 5)] -> False
+ Before function call at 13
+ After function call at 13
+ Comparison 5 [('In', range(0, 10))] -> True
+ Before function call at 16
+ After function call at 16
