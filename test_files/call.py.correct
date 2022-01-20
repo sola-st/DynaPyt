@@ -1,0 +1,25 @@
+# DYNAPYT: DO NOT INSTRUMENT
+
+
+from dynapyt.runtime import _dynapyt_parse_to_ast_
+from dynapyt.runtime import _catch_
+from dynapyt.runtime import _call_, _literal_, _assign_, _func_entry_, _read_var_, _binary_op_, _func_exit_
+
+_dynapyt_source_code_ = """
+def foo(x):
+    a = x
+    print(a)
+
+foo(1+2)
+"""
+_dynapyt_ast_ = _dynapyt_parse_to_ast_(_dynapyt_source_code_)
+try:
+    def foo(x):
+        _func_entry_(6)
+        a = _assign_(3, _read_var_(2, "x", lambda: x))
+        _call_(5, lambda: print(_read_var_(4, "a", lambda: a)))
+        _func_exit_(6)
+    
+    _call_(11, lambda: _read_var_(7, "foo", lambda: foo)(_binary_op_(10, _literal_(8, 1), 0, _literal_(9, 2))))
+except Exception as _dynapyt_exception_:
+    _catch_(_dynapyt_exception_)

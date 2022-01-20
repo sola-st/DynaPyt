@@ -5,7 +5,7 @@ from .CodeInstrumenter import CodeInstrumenter
 from .IIDs import IIDs
 import re
 from shutil import copyfile
-
+from dynapyt.utils.hooks import get_hooks_from_analysis
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -14,9 +14,6 @@ parser.add_argument(
     "--iids", help="JSON file with instruction IDs (will create iids.json if nothing given)")
 parser.add_argument(
     "--analysis", help="Analysis class name")
-
-def get_hooks_from_analysis(method_list):
-    return ['literal', 'unary_operation', 'binary_operation', 'control_flow', 'function', 'condition', 'read', 'assignment', 'call', 'comparison']
 
 def gather_files(files_arg):
     if len(files_arg) == 1 and files_arg[0].endswith('.txt'):

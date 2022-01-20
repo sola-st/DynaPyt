@@ -68,13 +68,12 @@ class TraceAll(BaseAnalysis):
     def comparison(self, iid: int, left: Any, right_list: List[Any], result: Any) -> Any:
         self.log('Comparison', left, right_list, '->', result)
 
-    def invoke_func_pre(self, iid: int, f: str, base: Any, args: List[Any], is_constructor: bool, function_iid: int, function_sid: str) -> None:
+    # Instrumented function
+    
+    def func_enter(self, iid: int, f: str, base: Any, args: List[Any], is_constructor: bool, function_iid: int, function_sid: str) -> None:
         pass
 
-    def invoke_func(self, iid: int, f: str, base: Any, args: List[Any], result: Any, is_constructor: bool, function_iid: int, function_sid: str) -> Any:
-        pass
-
-    def conditional_jump(self, iid: int, result: bool, goto_iid: int) -> Optional[bool]:
+    def func_exit(self, iid: int, f: str, base: Any, args: List[Any], result: Any, is_constructor: bool, function_iid: int, function_sid: str) -> Any:
         pass
 
     # Subscripts

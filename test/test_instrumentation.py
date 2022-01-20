@@ -3,12 +3,19 @@ from dynapyt.instrument.instrument import instrument_code
 from dynapyt.instrument.IIDs import IIDs
 from shutil import move
 import pytest
+import importlib
+from dynapyt.utils.hooks import get_hooks_from_analysis
 
+module = importlib.import_module('dynapyt.analyses.TraceAll')
+class_ = getattr(module, 'TraceAll')
+instance = class_()
+method_list = [func for func in dir(instance) if callable(getattr(instance, func)) and not func.startswith("__")]
+selected_hooks = get_hooks_from_analysis(method_list)
 all_hooks = ['literal', 'unary_operation', 'binary_operation', 'control_flow', 'function', 'condition', 'read', 'assignment', 'call']
 
 @pytest.fixture(autouse=True)
 def reset():
-    for (dirpath, dirnames, filenames) in walk(path.normpath(path.join(path.dirname(path.abspath(__file__)), '../sample_code'))):
+    for (dirpath, dirnames, filenames) in walk(path.normpath(path.join(path.dirname(path.abspath(__file__)), '../test_files'))):
         for f in filenames:
             if f.endswith('.py.orig'):
                 move(path.join(dirpath, f), path.join(dirpath, f[:-5]))
@@ -16,7 +23,7 @@ def reset():
 def pytest_generate_tests(metafunc):
     test_f = []
     correct_f = []
-    for (dirpath, dirnames, filenames) in walk(path.normpath(path.join(path.dirname(path.abspath(__file__)), '../sample_code'))):
+    for (dirpath, dirnames, filenames) in walk(path.normpath(path.join(path.dirname(path.abspath(__file__)), '../test_files'))):
         test_f.extend(path.join(dirpath, filename) for filename in filenames if filename.endswith('.py'))
         correct_f.extend(path.join(dirpath, filename+'.correct') for filename in filenames if filename.endswith('.py'))
     metafunc.parametrize("test_file,correct_file", list(zip(test_f, correct_f)), ids=[tf.split('/')[-1][:-3] for tf in test_f])

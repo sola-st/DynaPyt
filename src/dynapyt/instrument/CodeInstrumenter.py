@@ -16,6 +16,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         self.iids = iids
         self.name_stack = []
         self.selected_hooks = selected_hooks
+        self.to_import = set()
 
     def __create_iid(self, node):
         location = self.get_metadata(PositionProvider, node)
@@ -59,33 +60,34 @@ class CodeInstrumenter(cst.CSTTransformer):
         dynapyt_imports = [cst.Newline(value='\n')]
         dynapyt_imports.append(self.__create_import(["_dynapyt_parse_to_ast_"]))
         dynapyt_imports.append(self.__create_import(["_catch_"]))
-        import_names = []
-        if 'assignment' in self.selected_hooks:
-            import_names.append("_assign_")
-        if 'expression' in self.selected_hooks:
-            import_names.append("_expr_")
-        if 'binary_operation' in self.selected_hooks:
-            import_names.append("_binary_op_")
-        if 'unary_operation' in self.selected_hooks:
-            import_names.append("_unary_op_")
-        if 'comparison' in self.selected_hooks:
-            import_names.append("_comp_op_")
-        if 'call' in self.selected_hooks:
-            import_names.append("_call_")
-        if 'literal' in self.selected_hooks:
-            import_names.append("_literal_")
-        if 'exception' in self.selected_hooks:
-            import_names.append("_raise_")
-        if 'read' in self.selected_hooks:
-            import_names.append("_read_var_")
-        if 'control_flow' in self.selected_hooks:
-            import_names.append("_condition_")
-            import_names.append("_enter_ctrl_flow_")
-            import_names.append("_exit_ctrl_flow_")
-            import_names.append("_jump_")
-        if 'function' in self.selected_hooks:
-            import_names.append("_func_entry_")
-            import_names.append("_func_exit_")
+        import_names = list(self.to_import)
+        # if 'assignment' in self.selected_hooks:
+        #     import_names.append("_assign_")
+        # if 'expression' in self.selected_hooks:
+        #     import_names.append("_expr_")
+        # if 'binary_operation' in self.selected_hooks:
+        #     import_names.append("_binary_op_")
+        # if 'unary_operation' in self.selected_hooks:
+        #     import_names.append("_unary_op_")
+        # if 'comparison' in self.selected_hooks:
+        #     import_names.append("_comp_op_")
+        # if 'call' in self.selected_hooks:
+        #     import_names.append("_call_")
+        # if 'literal' in self.selected_hooks:
+        #     import_names.append("_literal_")
+        # if 'exception' in self.selected_hooks:
+        #     import_names.append("_raise_")
+        # if 'read' in self.selected_hooks:
+        #     import_names.append("_read_var_")
+        # if 'control_flow' in self.selected_hooks:
+        #     import_names.append("_condition_")
+        #     import_names.append("_enter_ctrl_flow_")
+        #     import_names.append("_exit_ctrl_flow_")
+        #     import_names.append("_jump_")
+        #     import_names.append("_gen_")
+        # if 'function' in self.selected_hooks:
+        #     import_names.append("_func_entry_")
+        #     import_names.append("_func_exit_")
         dynapyt_imports.append(self.__create_import(import_names))
         dynapyt_imports.append(cst.Newline(value='\n'))
         code_body = list(updated_node.body[imports_index+1:])
@@ -98,6 +100,7 @@ class CodeInstrumenter(cst.CSTTransformer):
     def leave_Name(self, original_node, updated_node):
         if ('literal' in self.selected_hooks) and (updated_node.value in ['True', 'False']):
             callee_name = cst.Name(value="_literal_")
+            self.to_import.add('_literal_')
             iid = self.__create_iid(original_node)
             iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
             val_arg = cst.Arg(value=updated_node)
@@ -113,10 +116,11 @@ class CodeInstrumenter(cst.CSTTransformer):
             return updated_node
         if (context == ExpressionContext.LOAD) and (list(name_source)[0].source == QualifiedNameSource.LOCAL):
             callee_name = cst.Name(value="_read_var_")
+            self.to_import.add('_read_var_')
             iid = self.__create_iid(original_node)
             iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
             name_arg = cst.Arg(value=cst.SimpleString(value='"'+original_node.value+'"'))
-            var_arg = cst.Arg(value=self.__wrap_in_lambda(original_node))
+            var_arg = cst.Arg(value=self.__wrap_in_lambda(updated_node))
             call = cst.Call(func=callee_name, args=[iid_arg, name_arg, var_arg])
             return call
         else:
@@ -126,6 +130,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'literal' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_literal_")
+        self.to_import.add('_literal_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=cst.Integer(value=original_node.value))
@@ -136,6 +141,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'literal' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_literal_")
+        self.to_import.add('_literal_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=cst.Float(value=original_node.value))
@@ -146,6 +152,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'literal' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_literal_")
+        self.to_import.add('_literal_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=cst.SimpleString(value=original_node.value))
@@ -159,6 +166,7 @@ class CodeInstrumenter(cst.CSTTransformer):
             'FloorDivide': 5, 'LeftShift': 6, 'MatrixMultiply': 7, 'Modulo': 8,
             'Multiply': 9, 'Power': 10, 'RightShift': 11, 'Subtract': 12}
         callee_name = cst.Name(value="_binary_op_")
+        self.to_import.add('_binary_op_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         left_arg = cst.Arg(updated_node.left)
@@ -174,6 +182,7 @@ class CodeInstrumenter(cst.CSTTransformer):
             return updated_node
         bool_op = {'And': 0, 'Or': 1}
         callee_name = cst.Name(value="_binary_op_")
+        self.to_import.add('_binary_op_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         left_arg = cst.Arg(updated_node.left)
@@ -189,6 +198,7 @@ class CodeInstrumenter(cst.CSTTransformer):
             return updated_node
         un_op = {'BitInvert': 0, 'Minus': 1, 'Not': 2, 'Plus': 3}
         callee_name = cst.Name(value="_unary_op_")
+        self.to_import.add('_unary_op_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         operator_name = type(original_node.operator).__name__
@@ -205,6 +215,7 @@ class CodeInstrumenter(cst.CSTTransformer):
             'Is': 4, 'LessThan': 5, 'LessThanEqual': 6, 'NotEqual': 7,
             'IsNot': 8, 'NotIn': 9}
         callee_name = cst.Name(value="_comp_op_")
+        self.to_import.add('_comp_op_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         left_arg = cst.Arg(updated_node.left)
@@ -220,6 +231,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'assignment' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_assign_")
+        self.to_import.add('_assign_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node.value)
@@ -234,6 +246,7 @@ class CodeInstrumenter(cst.CSTTransformer):
             'FloorDivideAssign': 5, 'LeftShiftAssign': 6, 'MatrixMultiplyAssign': 7, 'ModuloAssign': 8,
             'MultiplyAssign': 9, 'PowerAssign': 10, 'RightShiftAssign': 11, 'SubtractAssign': 12}
         callee_name = cst.Name(value="_assign_")
+        self.to_import.add('_assign_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         operator_name = type(original_node.operator).__name__
@@ -247,6 +260,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'expression' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_expr_")
+        self.to_import.add('_expr_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(original_node)
@@ -256,11 +270,15 @@ class CodeInstrumenter(cst.CSTTransformer):
     def leave_FunctionDef(self, original_node, updated_node):
         if 'function' not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_func_entry_")
+        enter_name = cst.Name(value="_func_entry_")
+        self.to_import.add('_func_entry_')
+        exit_name = cst.Name(value="_func_exit_")
+        self.to_import.add('_func_exit_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        entry_stmt = cst.Expr(cst.Call(func=callee_name, args=[iid_arg]))
-        new_body = updated_node.body.with_changes(body=[cst.SimpleStatementLine([entry_stmt])]+list(updated_node.body.body))
+        entry_stmt = cst.Expr(cst.Call(func=enter_name, args=[iid_arg]))
+        exit_stmt = cst.Expr(cst.Call(func=exit_name, args=[iid_arg]))
+        new_body = updated_node.body.with_changes(body=[cst.SimpleStatementLine([entry_stmt])]+list(updated_node.body.body)+[cst.SimpleStatementLine([exit_stmt])])
         new_node = updated_node
         return new_node.with_changes(body=new_body)
     
@@ -268,6 +286,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'function' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_func_exit_")
+        self.to_import.add('_func_exit_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node.value)
@@ -278,9 +297,10 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'delete' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_delete_")
+        self.to_import.add('_delete_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        del_arg = cst.Arg(value=self.__wrap_in_lambda(original_node))
+        del_arg = cst.Arg(value=self.__wrap_in_lambda(updated_node))
         call = cst.Call(func=callee_name, args=[iid_arg, del_arg])
         return call
     
@@ -288,9 +308,10 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'call' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_call_")
+        self.to_import.add('_call_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        call_arg = cst.Arg(value=self.__wrap_in_lambda(original_node))
+        call_arg = cst.Arg(value=self.__wrap_in_lambda(updated_node))
         call = cst.Call(func=callee_name, args=[iid_arg, call_arg])
         return call
     
@@ -298,9 +319,10 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'exception' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_raise_")
+        self.to_import.add('_raise_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        raise_arg = cst.Arg(value=self.__wrap_in_lambda(original_node))
+        raise_arg = cst.Arg(value=self.__wrap_in_lambda(updated_node))
         call = cst.Call(func=callee_name, args=[iid_arg, raise_arg])
         return call
     
@@ -308,11 +330,13 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'control_flow' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_enter_ctrl_flow_")
+        self.to_import.add('_enter_ctrl_flow_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node.test)
         call = cst.Call(func=callee_name, args=[iid_arg, val_arg])
         end_name = cst.Name(value="_exit_ctrl_flow_")
+        self.to_import.add('_exit_ctrl_flow_')
         end_call = cst.Call(func=end_name, args=[iid_arg])
         return updated_node.with_changes(test=call, body= cst.IndentedBlock(body=updated_node.body.body + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
 
@@ -320,6 +344,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         if 'control_flow' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_condition_")
+        self.to_import.add('_condition_')
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node.test)
@@ -332,9 +357,11 @@ class CodeInstrumenter(cst.CSTTransformer):
         iid = self.__create_iid(original_node)
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         enter_name = cst.Name(value="_enter_ctrl_flow_")
+        self.to_import.add('_enter_ctrl_flow_')
         enter_arg = cst.Arg(value=updated_node.test)
         enter_call = cst.Call(func=enter_name, args=[iid_arg, enter_arg])
         end_name = cst.Name(value="_exit_ctrl_flow_")
+        self.to_import.add('_exit_ctrl_flow_')
         end_call = cst.Call(func=end_name, args=[iid_arg])
         else_part = cst.Else(body=cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
         return updated_node.with_changes(test=enter_call, orelse=else_part)
@@ -346,6 +373,7 @@ class CodeInstrumenter(cst.CSTTransformer):
         for i in updated_node.body:
             if matchers.matches(i, matchers.SimpleStatementLine(body=[matchers.Break()])):
                 callee_name = cst.Name(value="_jump_")
+                self.to_import.add('_jump_')
                 iid = self.__create_iid(original_node)
                 iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
                 break_arg = cst.Arg(value=cst.Name(value='True'))
@@ -354,6 +382,7 @@ class CodeInstrumenter(cst.CSTTransformer):
                 new_body.append(condition)
             elif matchers.matches(i, matchers.SimpleStatementLine(body=[matchers.Continue()])):
                 callee_name = cst.Name(value="_jump_")
+                self.to_import.add('_jump_')
                 iid = self.__create_iid(original_node)
                 iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
                 break_arg = cst.Arg(value=cst.Name(value='False'))
@@ -364,4 +393,18 @@ class CodeInstrumenter(cst.CSTTransformer):
                 new_body.append(i)
 
         return updated_node.with_changes(body=new_body)
-        
+    
+    def leave_For(self, original_node, updated_node):
+        if 'control_flow' not in self.selected_hooks:
+            return updated_node
+        generator_name = cst.Name(value="_gen_")
+        self.to_import.add('_gen_')
+        end_name = cst.Name(value="_exit_ctrl_flow_")
+        self.to_import.add('_exit_ctrl_flow_')
+        iid = self.__create_iid(original_node)
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        iter_arg = cst.Arg(value=updated_node.iter)
+        generator_call = cst.Call(func=generator_name, args=[iid_arg, iter_arg])
+        end_call = cst.Call(func=end_name, args=[iid_arg])
+        else_part = cst.Else(body=cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
+        return updated_node.with_changes(iter=generator_call, orelse=else_part)

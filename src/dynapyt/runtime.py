@@ -131,15 +131,27 @@ def _condition_(iid, val):
 def _func_entry_(iid):
     return
 
-def _func_exit_(iid, return_val):
+def _func_exit_(iid, return_val=None):
     return return_val
 
 def _jump_(iid, is_break):
     return True
 
 def _enter_ctrl_flow_(iid, condition):
-    call_if_exists('enter_ctrl_flow', iid, condition)
-    return condition
+    result = call_if_exists('enter_ctrl_flow', iid, condition)
+    return result if result != None else condition
 
 def _exit_ctrl_flow_(iid):
     call_if_exists('exit_ctrl_flow', iid)
+
+def _gen_(iid, iterator):
+    new_iter = iterator.__iter__()
+    while True:
+        try:
+            it = next(new_iter)
+            result = _enter_ctrl_flow_(iid, True)
+            if (result != None) and (result == False):
+                return
+            yield it
+        except StopIteration:
+            return
