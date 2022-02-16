@@ -65,7 +65,10 @@ if __name__ == '__main__':
     
     module = importlib.import_module('dynapyt.analyses.' + args.analysis)
     class_ = getattr(module, args.analysis)
-    instance = class_()
+    try:
+        instance = class_(iids)
+    except:
+        instance = class_()
     method_list = [func for func in dir(instance) if callable(getattr(instance, func)) and not func.startswith("__")]
     selected_hooks = get_hooks_from_analysis(method_list)
     for file_path in files:
