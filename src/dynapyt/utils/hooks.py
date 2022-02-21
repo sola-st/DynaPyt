@@ -67,6 +67,7 @@ def get_hooks_from_analysis(method_list):
     if any(snake(x) in method_list for x in comp_op_list):
         res.extend([x for x in comp_op_list if snake(x) in method_list])
     # return res
+    # return ['control_flow']
     return ['boolean', 'integer', 'float', 'string', 'imaginary', 'binary_operation', 'boolean_operation',
         'unary_operation', 'comparison', 'function', 'return', 'yield', 'call', 'exception', 'delete',
         'read', 'subscript', 'attribute', 'lambda', 'control_flow', 'assignment']

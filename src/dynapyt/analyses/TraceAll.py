@@ -1,21 +1,19 @@
-import numbers
-import string
 import logging
 from types import TracebackType
 from typing import Any, List, Optional, Tuple, Union
 import libcst as cst
+import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
+from ..utils.nodeLocator import get_node_by_location
 
 class TraceAll(BaseAnalysis):
     
     def __init__(self) -> None:
+        super().__init__()
         logging.basicConfig(filename='output.log', format='%(message)s', encoding='utf-8', level=logging.INFO)
     
     def log(self, iid: int, *args):
-        res = str(iid) + ':'
-        for arg in args:
-            res += ' ' + str(arg)
-        logging.info(res[:80])
+        self.__log(iid, ':', args)
 
     # Literals
 
@@ -65,9 +63,15 @@ class TraceAll(BaseAnalysis):
     # Instrumented function
 
     def func_enter(self, dyn_ast: str, iid: int, args: List[Any]) -> None:
+        ast = self.__get_ast(dyn_ast)
+        if get_node_by_location(ast, self.iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']:
+            self.danger_of_recursion = True
         self.log(iid, 'Entered function', 'with arguments', args)
 
     def func_exit(self, dyn_ast: str, iid: int, result: Any) -> Any:
+        ast = self.__get_ast(dyn_ast)
+        if get_node_by_location(ast, self.iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']:
+            self.danger_of_recursion = True
         self.log(iid, 'Exiting function', '->', result)
     
     def return_stmt(self, dyn_ast: str, iid: int, value: Any) -> Any:
@@ -89,8 +93,8 @@ class TraceAll(BaseAnalysis):
     def assignment(self, dyn_ast: str, iid: int, left: List[Any], right: Any) -> Any:
         self.log(iid, 'Assignment', left, '->', right)
     
-    def augmented_assignment(self, dyn_ast: str, iid: int, left: Any, op: str, right: Any, result: Any) -> Any:
-        self.log(iid, 'Augmented assignment', left, op, right, '->', result)
+    def augmented_assignment(self, dyn_ast: str, iid: int, left: Any, op: str, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, op, right)
 
     def raise_stmt(self, dyn_ast: str, iid: int, exc: Exception) -> Optional[Exception]:
         self.log(iid, 'Exception raised', exc)

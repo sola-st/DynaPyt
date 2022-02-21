@@ -1,0 +1,139 @@
+{
+    "runtime_event": [
+        {
+            "begin_execution": []
+        },
+        {
+            "end_execution": []
+        },
+        {
+            "literal": [
+                {
+                    "number": [
+                        {
+                            "integer_lit": []
+                        },
+                        {
+                            "float_lit": []
+                        },
+                        {
+                            "imaginary_lit": []
+                        }
+                    ]
+                },
+                {
+                    "boolean_lit": []
+                },
+                {
+                    "string_lit": []
+                }
+            ]
+        },
+        {
+            "operation": [
+                {
+                    "binary_operation": [
+                        {
+                            "augmented_assign": []
+                        }
+                    ]
+                },
+                {
+                    "unary_operation": [
+
+                    ]
+                },
+                {
+                    "comparison": [
+
+                    ]
+                }
+            ]
+        },
+        {
+            "control_flow_event": [
+                {
+                    "conditional_control_flow": [
+                        {
+                            "if_statement": []
+                        },
+                        {
+                            "while_statememt": []
+                        },
+                        {
+                            "for_statement": []
+                        }
+                    ]
+                },
+                {
+                    "raise_statement": []
+                },
+                {
+                    "try_block": [
+                        {
+                            "enter_try": []
+                        },
+                        {
+                            "clean_exit_try": []
+                        }
+                    ]
+                },
+                {
+                    "exception": []
+                },
+                {
+                    "function_call": []
+                },
+                {
+                    "break_statement": []
+                },
+                {
+                    "continue_statement": []
+                }
+            ]
+        },
+        {
+            "memory_access": [
+                {
+                    "read": [
+                        {
+                            "identifier": []
+                        },
+                        {
+                            "subscript": []
+                        },
+                        {
+                            "attribute": []
+                        }
+                    ]
+                },
+                {
+                    "write": [
+                        {
+                            "identifier": []
+                        },
+                        {
+                            "subscript": []
+                        },
+                        {
+                            "attribute": []
+                        }
+                    ]
+                },
+                {
+                    "delete": [
+                        {
+                            "identifier": []
+                        },
+                        {
+                            "subscript": []
+                        },
+                        {
+                            "attribute": []
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}

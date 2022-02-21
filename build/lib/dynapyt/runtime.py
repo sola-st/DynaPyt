@@ -82,35 +82,35 @@ def _binary_op_(dyn_ast, iid, left, opr, right):
         'LeftShift', 'MatrixMultiply', 'Modulo', 'Multiply', 'Power',
         'RightShift', 'Subtract', 'And', 'Or']
     if opr == 0:
-        result = left + right
+        result = left() + right()
     elif opr == 1:
-        result = left & right
+        result = left() & right()
     elif opr == 2:
-        result = left | right
+        result = left() | right()
     elif opr == 3:
-        result = left ^ right
+        result = left() ^ right()
     elif opr == 4:
-        result = left / right
+        result = left() / right()
     elif opr == 5:
-        result = left // right
+        result = left() // right()
     elif opr == 6:
-        result = left << right
+        result = left() << right()
     elif opr == 7:
-        result = left @ right
+        result = left() @ right()
     elif opr == 8:
-        result = left % right
+        result = left() % right()
     elif opr == 9:
-        result = left * right
+        result = left() * right()
     elif opr == 10:
-        result = left ** right
+        result = left() ** right()
     elif opr == 11:
-        result = left >> right
+        result = left() >> right()
     elif opr == 12:
-        result = left - right
+        result = left() - right()
     elif opr == 13:
-        result = left and right
+        result = left() and right()
     elif opr == 14:
-        result = left or right
+        result = left() or right()
     result_high = call_if_exists('binary_op', dyn_ast, iid, bin_op[opr], left, right, result)
     result_low = call_if_exists(snake(bin_op[opr]), dyn_ast, iid, left, right, result)
     if result_low != None:
