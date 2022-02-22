@@ -96,8 +96,8 @@ class TraceAll(BaseAnalysis):
     def augmented_assignment(self, dyn_ast: str, iid: int, left: Any, op: str, right: Any) -> Any:
         self.log(iid, 'Augmented assignment', left, op, right)
 
-    def raise_stmt(self, dyn_ast: str, iid: int, exc: Exception) -> Optional[Exception]:
-        self.log(iid, 'Exception raised', exc)
+    def raise_stmt(self, dyn_ast: str, iid: int, exc: Exception, cause: Any) -> Optional[Exception]:
+        self.log(iid, 'Exception raised', exc, 'because of', cause)
 
     def assert_stmt(self, dyn_ast: str, iid: int, condition: bool, message: str) -> Optional[bool]:
         pass

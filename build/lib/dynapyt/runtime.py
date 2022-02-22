@@ -21,12 +21,13 @@ def _dynapyt_parse_to_ast_(code):
     return cst.parse_module(code)
 
 def _assign_(dyn_ast, iid, right, left):
-    new_left = []
-    for l in left:
-        try:
-            new_left.append(l())
-        except (NameError, AttributeError, KeyError):
-            new_left.append(Dynapyt_Undefined())
+    new_left = left
+    # new_left = []
+    # for l in left:
+    #     try:
+    #         new_left.append(l())
+    #     except (NameError, AttributeError, KeyError):
+    #         new_left.append(Dynapyt_Undefined())
     res = call_if_exists('write', dyn_ast, iid, new_left, right)
     result = call_if_exists('assignment', dyn_ast, iid, new_left, right)
     if result != None:
@@ -243,16 +244,10 @@ def _attr_(dyn_ast, iid, base, attr):
     return result if result != None else val
 
 def _sub_(dyn_ast, iid, base, sl):
-    sub = []
-    for i in sl:
-        if not isinstance(i, tuple):
-            sub.append(i)
-        else:
-            sub.append(slice(i[0], i[1], i[2]))
-    if len(sub) == 1:
-        val = base[sub[0]]
+    if len(sl) == 1:
+        val = base[sl[0]]
     else:
-        val = base[tuple(sub)]
+        val = base[tuple(sl)]
     result = call_if_exists('subscript', dyn_ast, iid, base, sl, val)
     return result if result != None else val
 
@@ -266,7 +261,7 @@ def _exc_(dyn_ast, iid, exc=None, name=None):
     call_if_exists('exception', dyn_ast, iid, exc, name)
 
 def _raise_(dyn_ast, iid, exc=None, cause=None):
-    exc, cause = call_if_exists('raise_stmt', dyn_ast, iid, exc(), cause)
+    exc, cause = call_if_exists('raise_stmt', dyn_ast, iid, exc, cause)
     if exc == None:
         raise
     else:

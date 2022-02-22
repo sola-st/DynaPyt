@@ -305,10 +305,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         slices = []
         for i in updated_node.slice:
             if m.matches(i.slice, m.Slice()):
-                slices.append(cst.Element(cst.Tuple(elements=[
-                    cst.Element(i.slice.lower if i.slice.lower != None else cst.Name('None')),
-                    cst.Element(i.slice.upper if i.slice.upper != None else cst.Name('None')),
-                    cst.Element(i.slice.step if i.slice.step != None else cst.Name('None'))])))
+                slices.append(cst.Element(cst.Call(func=cst.Name('slice'), args=[
+                    cst.Arg(i.slice.lower if i.slice.lower != None else cst.Name('None')),
+                    cst.Arg(i.slice.upper if i.slice.upper != None else cst.Name('None')),
+                    cst.Arg(i.slice.step if i.slice.step != None else cst.Name('None'))])))
             else:
                 slices.append(cst.Element(i.slice.value))
         slice_arg = cst.Arg(cst.List(elements=slices))
