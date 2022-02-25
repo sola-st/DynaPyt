@@ -23,6 +23,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         self.name_stack = []
         self.current_try = []
         self.current_class = []
+        self.current_function = []
         self.selected_hooks = selected_hooks
         self.to_import = set()
 
@@ -45,7 +46,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def __wrap_in_lambda(self, original_node, updated_node):
         if m.matches(updated_node, m.Call(func=m.Name('super'), args=[])):
             class_arg = cst.Arg(value=cst.Name(value=self.current_class[-1]))
-            new_node = updated_node.with_changes(args=[class_arg, cst.Arg(value=cst.Name('self'))])
+            function_arg = cst.Arg(value=cst.Name(value=self.current_function[-1].value))
+            new_node = updated_node.with_changes(args=[class_arg, function_arg])
             return cst.Lambda(params=cst.Parameters(params=[]), body=new_node)
         used_names = list(m.findall(original_node, m.Name()))
         unique_names = set()
@@ -437,7 +439,16 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(value=call, target=original_node.target)
     
     # Function
+    def visit_FunctionDef(self, node):
+        if len(node.params.params) > 0:
+            self.current_function.append(node.params.params[0].name)
+        elif len(node.params.posonly_params) > 0:
+            self.current_function.append(node.params.posonly_params[0].name)
+        else:
+            self.current_function.append(None)
+
     def leave_FunctionDef(self, original_node, updated_node):
+        self.current_function.pop()
         if 'function' not in self.selected_hooks:
             return updated_node
         enter_name = cst.Name(value='_func_entry_')

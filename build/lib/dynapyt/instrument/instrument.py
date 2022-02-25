@@ -1,6 +1,7 @@
 import argparse
 import importlib
 import libcst as cst
+from libcst._exceptions import ParserSyntaxError
 from .CodeInstrumenter import CodeInstrumenter
 from .IIDs import IIDs
 import re
@@ -34,13 +35,17 @@ def instrument_code(src, file_path, iids, selected_hooks):
         print(f'{file_path} is already instrumented -- skipping it')
         return None
 
-    ast = cst.parse_module(src)
-    ast_wrapper = cst.metadata.MetadataWrapper(ast)
+    try:
+        ast = cst.parse_module(src)
+        ast_wrapper = cst.metadata.MetadataWrapper(ast)
 
-    instrumented_code = CodeInstrumenter(src, file_path, iids, selected_hooks)
-    instrumented_ast = ast_wrapper.visit(instrumented_code)
+        instrumented_code = CodeInstrumenter(src, file_path, iids, selected_hooks)
+        instrumented_ast = ast_wrapper.visit(instrumented_code)
 
-    return '# DYNAPYT: DO NOT INSTRUMENT\n\n' + instrumented_ast.code
+        return '# DYNAPYT: DO NOT INSTRUMENT\n\n' + instrumented_ast.code
+    except ParserSyntaxError:
+        print(f'Syntax error in {file_path} -- skipping it')
+        return None
 
 def instrument_file(file_path, iids, selected_hooks):
     with open(file_path, 'r') as file:

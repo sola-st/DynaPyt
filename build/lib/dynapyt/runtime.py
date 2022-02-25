@@ -261,7 +261,9 @@ def _exc_(dyn_ast, iid, exc=None, name=None):
     call_if_exists('exception', dyn_ast, iid, exc, name)
 
 def _raise_(dyn_ast, iid, exc=None, cause=None):
-    exc, cause = call_if_exists('raise_stmt', dyn_ast, iid, exc, cause)
+    res = call_if_exists('raise_stmt', dyn_ast, iid, exc, cause)
+    if res is not None:
+        exc, cause = res
     if exc == None:
         raise
     else:
