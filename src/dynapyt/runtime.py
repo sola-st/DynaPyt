@@ -20,19 +20,10 @@ def call_if_exists(f, *args):
 def _dynapyt_parse_to_ast_(code):
     return cst.parse_module(code)
 
-def _assign_(dyn_ast, iid, right, left):
+def _write_(dyn_ast, iid, right, left):
     new_left = left
-    # new_left = []
-    # for l in left:
-    #     try:
-    #         new_left.append(l())
-    #     except (NameError, AttributeError, KeyError):
-    #         new_left.append(Dynapyt_Undefined())
     res = call_if_exists('write', dyn_ast, iid, new_left, right)
-    result = call_if_exists('assignment', dyn_ast, iid, new_left, right)
-    if result != None:
-        return result
-    elif res != None:
+    if res != None:
         return res
     return right
 
@@ -43,7 +34,6 @@ def _aug_assign_(dyn_ast, iid, left, opr, right):
     call_if_exists(snake(operator[opr][:-6]), dyn_ast, iid, left, right)
     call_if_exists('binary_op', dyn_ast, iid, operator[opr][:-6], left, right, None)
     call_if_exists('write', dyn_ast, iid, [left], right)
-    call_if_exists('assignment', dyn_ast, iid, [left], right)
     result_high = call_if_exists('augmented_assignment', dyn_ast, iid, left, operator[opr], right)
     result_low = call_if_exists(snake(operator[opr]), dyn_ast, iid, left, right)
     if result_low != None:
@@ -51,32 +41,6 @@ def _aug_assign_(dyn_ast, iid, left, opr, right):
     elif result_high != None:
         right = result_high
     return right
-    # if opr == 0:
-    #     left += right
-    # elif opr == 1:
-    #     left &= right
-    # elif opr == 2:
-    #     left |= right
-    # elif opr == 3:
-    #     left ^= right
-    # elif opr == 4:
-    #     left /= right
-    # elif opr == 5:
-    #     left //= right
-    # elif opr == 6:
-    #     left <<= right
-    # elif opr == 7:
-    #     left @= right
-    # elif opr == 8:
-    #     left %= right
-    # elif opr == 9:
-    #     left *= right
-    # elif opr == 10:
-    #     left **= right
-    # elif opr == 11:
-    #     left >>= right
-    # elif opr == 12:
-    #     left -= right
 
 def _binary_op_(dyn_ast, iid, left, opr, right):
     bin_op = ['Add', 'BitAnd', 'BitOr', 'BitXor', 'Divide', 'FloorDivide',
@@ -209,7 +173,7 @@ def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
 
 def _bool_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
-    res_low = call_if_exists('boolean_literal', dyn_ast, iid, val)
+    res_low = call_if_exists('boolean', dyn_ast, iid, val)
     if res_low != None:
         return res_low
     elif res_high != None:
@@ -218,7 +182,7 @@ def _bool_(dyn_ast, iid, val):
 
 def _int_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
-    res_low = call_if_exists('integer_literal', dyn_ast, iid, val)
+    res_low = call_if_exists('integer', dyn_ast, iid, val)
     if res_low != None:
         return res_low
     elif res_high != None:
@@ -227,7 +191,7 @@ def _int_(dyn_ast, iid, val):
 
 def _float_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
-    res_low = call_if_exists('float_literal', dyn_ast, iid, val)
+    res_low = call_if_exists('float', dyn_ast, iid, val)
     if res_low != None:
         return res_low
     elif res_high != None:
@@ -236,7 +200,7 @@ def _float_(dyn_ast, iid, val):
 
 def _str_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
-    res_low = call_if_exists('string_literal', dyn_ast, iid, val)
+    res_low = call_if_exists('string', dyn_ast, iid, val)
     if res_low != None:
         return res_low
     elif res_high != None:
@@ -245,7 +209,7 @@ def _str_(dyn_ast, iid, val):
 
 def _img_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
-    res_low = call_if_exists('imaginary_literal', dyn_ast, iid, val)
+    res_low = call_if_exists('imaginary', dyn_ast, iid, val)
     if res_low != None:
         return res_low
     elif res_high != None:
@@ -318,7 +282,7 @@ def _exc_(dyn_ast, iid, exc=None, name=None):
     call_if_exists('exception', dyn_ast, iid, exc, name)
 
 def _raise_(dyn_ast, iid, exc=None, cause=None):
-    res = call_if_exists('raise_stmt', dyn_ast, iid, exc, cause)
+    res = call_if_exists('_raise', dyn_ast, iid, exc, cause)
     if res is not None:
         exc, cause = res
     if exc == None:
@@ -353,7 +317,7 @@ def _func_exit_(dyn_ast, iid):
 
 def _return_(dyn_ast, iid, return_val=None):
     result_high = call_if_exists('func_exit', dyn_ast, iid, return_val)
-    result_low = call_if_exists('return_stmt', dyn_ast, iid, return_val)
+    result_low = call_if_exists('_return', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
     elif result_high != None:
@@ -362,7 +326,7 @@ def _return_(dyn_ast, iid, return_val=None):
 
 def _yield_(dyn_ast, iid, return_val=None):
     result_high = call_if_exists('func_exit', dyn_ast, iid, return_val)
-    result_low = call_if_exists('yield_stmt', dyn_ast, iid, return_val)
+    result_low = call_if_exists('_yield', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
     elif result_high != None:
@@ -370,7 +334,7 @@ def _yield_(dyn_ast, iid, return_val=None):
     return return_val
 
 def _assert_(dyn_ast, iid, test, msg):
-    result = call_if_exists('assert_stmt', dyn_ast, iid, test, msg)
+    result = call_if_exists('_assert', dyn_ast, iid, test, msg)
     return result if result is not None else test
 
 def _lambda_(dyn_ast, iid, args, expr):
@@ -379,11 +343,11 @@ def _lambda_(dyn_ast, iid, args, expr):
     return _return_(dyn_ast, iid, res)
 
 def _break_(dyn_ast, iid):
-    result = call_if_exists('break_stmt', dyn_ast, iid)
+    result = call_if_exists('_break', dyn_ast, iid)
     return result if result != None else True
 
 def _continue_(dyn_ast, iid):
-    result = call_if_exists('continue_stmt', dyn_ast, iid)
+    result = call_if_exists('_continue', dyn_ast, iid)
     return result if result != None else True
 
 def _enter_ctrl_flow_(dyn_ast, iid, condition):

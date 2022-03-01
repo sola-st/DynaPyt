@@ -86,45 +86,15 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_Module(self, original_node, updated_node):
         imports_index = -1
-        # '\"\"\"' + self.source.replace('\"', '\\"') + '\"\"\"'
-        # source_code = cst.SimpleStatementLine(body=[cst.Assign(targets=[cst.AssignTarget(cst.Name('_dynapyt_source_code_'))], value=cst.SimpleString(value=repr(self.source)))])
-        # parse_to_ast = cst.Call(func=cst.Name('_dynapyt_parse_to_ast_'), args=[cst.Arg(cst.Name('_dynapyt_source_code_'))])
         parse_to_ast = cst.BinaryOperation(left=cst.Name(value='__file__'), operator=cst.Add(), right=cst.SimpleString('".orig"'))
         get_ast = cst.SimpleStatementLine(body=[cst.Assign(targets=[cst.AssignTarget(cst.Name('_dynapyt_ast_'))], value=parse_to_ast)])
         dynapyt_imports = [cst.Newline(value='\n')]
-        # dynapyt_imports.append(self.__create_import(["_dynapyt_parse_to_ast_"]))
         dynapyt_imports.append(self.__create_import(["_catch_"]))
         import_names = list(self.to_import)
         for i in range(len(updated_node.body)):
             if m.matches(updated_node.body[i], m.SimpleStatementLine()) and m.matches(updated_node.body[i].body[0], m.ImportFrom(module=m.Name(value='__future__'))):
                 imports_index = i
-        # if 'assignment' in self.selected_hooks:
-        #     import_names.append("_assign_")
-        # if 'expression' in self.selected_hooks:
-        #     import_names.append("_expr_")
-        # if 'binary_operation' in self.selected_hooks:
-        #     import_names.append("_binary_op_")
-        # if 'unary_operation' in self.selected_hooks:
-        #     import_names.append("_unary_op_")
-        # if 'comparison' in self.selected_hooks:
-        #     import_names.append("_comp_op_")
-        # if 'call' in self.selected_hooks:
-        #     import_names.append("_call_")
-        # if 'literal' in self.selected_hooks:
-        #     import_names.append("_literal_")
-        # if 'exception' in self.selected_hooks:
-        #     import_names.append("_raise_")
-        # if 'read' in self.selected_hooks:
-        #     import_names.append("_read_var_")
-        # if 'control_flow' in self.selected_hooks:
-        #     import_names.append("_condition_")
-        #     import_names.append("_enter_ctrl_flow_")
-        #     import_names.append("_exit_ctrl_flow_")
-        #     import_names.append("_jump_")
-        #     import_names.append("_gen_")
-        # if 'function' in self.selected_hooks:
-        #     import_names.append("_func_entry_")
-        #     import_names.append("_func_exit_")
+        
         if len(import_names) > 0:
             dynapyt_imports.append(self.__create_import(import_names))
             dynapyt_imports.append(cst.Newline(value='\n'))
@@ -132,7 +102,6 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         handler_call = cst.Call(func=cst.Name(value='_catch_'), args=[cst.Arg(cst.Name('_dynapyt_exception_'))])
         handler_body = cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[cst.Expr(value=handler_call)])])
         try_body = cst.Try(body=cst.IndentedBlock(body=code_body), handlers=[cst.ExceptHandler(body=handler_body, type=cst.Name(value='Exception'), name=cst.AsName(cst.Name(value='_dynapyt_exception_')))])
-        # new_body = list(updated_node.body[:imports_index+1]) + dynapyt_imports + [source_code, get_ast] + [try_body]
         new_body = list(updated_node.body[:imports_index+1]) + dynapyt_imports + [get_ast] + [try_body]
         return updated_node.with_changes(body=new_body)
     
@@ -168,7 +137,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
             return call
 
-        if 'read' not in self.selected_hooks:
+        if 'read_identifier' not in self.selected_hooks:
             return updated_node
         try:
             context = self.get_metadata(ExpressionContextProvider, original_node)
@@ -230,7 +199,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return False
 
     def leave_ConcatenatedString(self, original_node, updated_node):
-        if ('string' not in self.selected_hooks) and ('literal' not in self.selected_hooks):
+        if 'string' not in self.selected_hooks:
             return updated_node
 
         callee_name = cst.Name(value='_str_')
@@ -277,7 +246,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
     
     def leave_Dict(self, original_node, updated_node):
-        if 'dict' not in self.selected_hooks:
+        if 'dictionary' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value='_dict_')
         self.to_import.add('_dict_')
@@ -290,7 +259,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
     
     def leave_DictComp(self, original_node, updated_node):
-        if 'dict' not in self.selected_hooks:
+        if 'dictionary' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value='_dict_')
         self.to_import.add('_dict_')
@@ -381,7 +350,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     # Operations
     def leave_BinaryOperation(self, original_node, updated_node):
-        if ('binary_operation' not in self.selected_hooks) and (type(original_node.operator).__name__ not in self.selected_hooks):
+        if type(original_node.operator).__name__ not in self.selected_hooks:
             return updated_node
         bin_op = {'Add': 0, 'BitAnd': 1, 'BitOr': 2, 'BitXor': 3, 'Divide': 4,
             'FloorDivide': 5, 'LeftShift': 6, 'MatrixMultiply': 7, 'Modulo': 8,
@@ -400,7 +369,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
 
     def leave_BooleanOperation(self, original_node, updated_node):
-        if ('boolean_operation' not in self.selected_hooks) and (type(original_node.operator).__name__ not in self.selected_hooks):
+        if type(original_node.operator).__name__ not in self.selected_hooks:
             return updated_node
         bool_op = {'And': 13, 'Or': 14}
         callee_name = cst.Name(value='_binary_op_')
@@ -417,7 +386,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
     
     def leave_UnaryOperation(self, original_node, updated_node):
-        if ('unary_operation' not in self.selected_hooks) and (type(original_node.operator).__name__ not in self.selected_hooks):
+        if type(original_node.operator).__name__ not in self.selected_hooks:
             return updated_node
         un_op = {'BitInvert': 0, 'Minus': 1, 'Not': 2, 'Plus': 3}
         callee_name = cst.Name(value='_unary_op_')
@@ -433,7 +402,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
     
     def leave_Comparison(self, original_node, updated_node):
-        if ('comparison' not in self.selected_hooks) and (not any(type(i.operator).__name__ in self.selected_hooks for i in updated_node.comparisons)):
+        if not any(type(i.operator).__name__ in self.selected_hooks for i in updated_node.comparisons):
             return updated_node
         comp_op = {'Equal': 0, 'GreaterThan': 1, 'GreaterThanEqual': 2, 'In': 3,
             'Is': 4, 'LessThan': 5, 'LessThanEqual': 6, 'NotEqual': 7,
@@ -453,10 +422,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
     
     def leave_Assign(self, original_node, updated_node):
-        if 'assignment' not in self.selected_hooks:
+        if 'write' not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value='_assign_')
-        self.to_import.add('_assign_')
+        callee_name = cst.Name(value='_write_')
+        self.to_import.add('_write_')
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
