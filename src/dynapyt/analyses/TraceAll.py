@@ -1,6 +1,6 @@
 import logging
 from types import TracebackType
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 import libcst as cst
 import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
@@ -28,6 +28,15 @@ class TraceAll(BaseAnalysis):
     
     def literal(self, dyn_ast: str, iid: int, val: Any) -> Any:
         self.log(iid, 'Literal   ', 'value:', val)
+    
+    def dictionary(self, dyn_ast: str, iid: int, items: List[Any], value: Dict) -> Dict:
+        self.log(iid, 'Dictionary', 'items:', items)
+    
+    def _list(self, dyn_ast: str, iid: int, value: List) -> List:
+        self.log(iid, 'List', value)
+    
+    def _tuple(self, dyn_ast: str, iid: int, items: List[Any], value: tuple) -> tuple:
+        self.log(iid, 'Tuple', 'items:', items)
 
     # Memory access
 
@@ -46,8 +55,8 @@ class TraceAll(BaseAnalysis):
     def attribute(self, dyn_ast: str, iid: int, base: Any, name: str, val: Any) -> Any:
         self.log(iid, 'Attribute', name, 'of', base, '->', val)
     
-    def subscript(self, dyn_ast: str, iid: int, base: Any, slice: List[Union[int, Tuple]], val: Any) -> Any:
-        self.log(iid, 'Slice', slice, 'of', base, '->', val)
+    def subscript(self, dyn_ast: str, iid: int, base: Any, sl: List[Union[int, Tuple]], val: Any) -> Any:
+        self.log(iid, 'Slice', sl, 'of', base, '->', val)
 
     # Expressions
 
@@ -82,10 +91,10 @@ class TraceAll(BaseAnalysis):
 
     # Function Call
 
-    def pre_call(self, dyn_ast: str, iid: int):
+    def pre_call(self, dyn_ast: str, iid: int, pos_args: Tuple, kw_args: Dict):
         self.log(iid, 'Before function call')
     
-    def post_call(self, dyn_ast: str, iid: int):
+    def post_call(self, dyn_ast: str, iid: int, val: Any, pos_args: Tuple, kw_args: Dict):
         self.log(iid, 'After function call')
 
     # Statements
@@ -100,7 +109,7 @@ class TraceAll(BaseAnalysis):
         self.log(iid, 'Exception raised', exc, 'because of', cause)
 
     def assert_stmt(self, dyn_ast: str, iid: int, condition: bool, message: str) -> Optional[bool]:
-        pass
+        self.log(iid, 'Asserting', condition, 'with message', message)
 
     # Imports
 

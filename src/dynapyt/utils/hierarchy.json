@@ -1,139 +1,115 @@
 {
-    "runtime_event": [
-        {
-            "begin_execution": []
+    "runtime_event": {
+        "begin_execution": { },
+        "end_execution": { },
+        "literal": {
+            "number": {
+                "integer": { },
+                "float": { },
+                "imaginary": { }
+            },
+            "boolean": { },
+            "string": { },
+            "dictionary": { },
+            "list": { },
+            "tuple": { }
         },
-        {
-            "end_execution": []
+        "operation": {
+            "binary_operation": {
+                "augmented_assign": {
+                    "add_assign": { },
+                    "bit_and_assign": { },
+                    "bit_or_assign": { },
+                    "bit_xor_assign": { },
+                    "divide_assign": { },
+                    "floor_divide_assign": { },
+                    "left_shift_assign": { },
+                    "matrix_multiply_assign": { },
+                    "modulo_assign": { },
+                    "multiply_assign": { },
+                    "power_assign": { },
+                    "right_shift_assign": { },
+                    "subtract_assign": { }
+                },
+                "add": { },
+                "bit_and": { },
+                "bit_or": { },
+                "bit_xor": { },
+                "divide": { },
+                "floor_divide": { },
+                "left_shift": { },
+                "matrix_multiply": { },
+                "modulo": { },
+                "multiply": { },
+                "power": { },
+                "right_shift": { },
+                "subtract": { },
+                "and": { },
+                "or": { }
+            },
+            "unary_operation": {
+                "bit_invert": { },
+                "minus": { },
+                "not": { },
+                "plus": { }
+            },
+            "comparison": {
+                "equal": { },
+                "greater_than": { },
+                "greater_than_equal": { },
+                "in": { },
+                "is": { },
+                "less_than": { },
+                "less_than_equal": { },
+                "not_equal": { },
+                "is_not": { },
+                "not_in": { }
+            }
         },
-        {
-            "literal": [
-                {
-                    "number": [
-                        {
-                            "integer_lit": []
-                        },
-                        {
-                            "float_lit": []
-                        },
-                        {
-                            "imaginary_lit": []
-                        }
-                    ]
+        "control_flow_event": {
+            "conditional_control_flow": {
+                "if": {
+                    "enter_if": { },
+                    "exit_if": { }
                 },
-                {
-                    "boolean_lit": []
+                "while": {
+                    "enter_while": { },
+                    "exit_while": { }
                 },
-                {
-                    "string_lit": []
+                "for": {
+                    "enter_for": { },
+                    "exit_for": { }
                 }
-            ]
+            },
+            "raise": { },
+            "try_block": {
+                "enter_try": { },
+                "clean_exit_try": { }
+            },
+            "exception": { },
+            "function_call": {
+                "pre_call": { },
+                "post_call": { }
+            },
+            "break": { },
+            "continue": { }
         },
-        {
-            "operation": [
-                {
-                    "binary_operation": [
-                        {
-                            "augmented_assign": []
-                        }
-                    ]
-                },
-                {
-                    "unary_operation": [
-
-                    ]
-                },
-                {
-                    "comparison": [
-
-                    ]
-                }
-            ]
-        },
-        {
-            "control_flow_event": [
-                {
-                    "conditional_control_flow": [
-                        {
-                            "if_statement": []
-                        },
-                        {
-                            "while_statememt": []
-                        },
-                        {
-                            "for_statement": []
-                        }
-                    ]
-                },
-                {
-                    "raise_statement": []
-                },
-                {
-                    "try_block": [
-                        {
-                            "enter_try": []
-                        },
-                        {
-                            "clean_exit_try": []
-                        }
-                    ]
-                },
-                {
-                    "exception": []
-                },
-                {
-                    "function_call": []
-                },
-                {
-                    "break_statement": []
-                },
-                {
-                    "continue_statement": []
-                }
-            ]
-        },
-        {
-            "memory_access": [
-                {
-                    "read": [
-                        {
-                            "identifier": []
-                        },
-                        {
-                            "subscript": []
-                        },
-                        {
-                            "attribute": []
-                        }
-                    ]
-                },
-                {
-                    "write": [
-                        {
-                            "identifier": []
-                        },
-                        {
-                            "subscript": []
-                        },
-                        {
-                            "attribute": []
-                        }
-                    ]
-                },
-                {
-                    "delete": [
-                        {
-                            "identifier": []
-                        },
-                        {
-                            "subscript": []
-                        },
-                        {
-                            "attribute": []
-                        }
-                    ]
-                }
-            ]
+        "memory_access": {
+            "read": {
+                "read_identifier": { },
+                "read_subscript": { },
+                "read_attribute": { }
+            },
+            "write": {
+                "write_identifier": { },
+                "write_subscript": { },
+                "write_attribute": { }
+            },
+            "delete": {
+                "delete_identifier": { },
+                "delete_subscript": { },
+                "delete_attribute": { }
+            }
         }
-    ]
+    }
 }

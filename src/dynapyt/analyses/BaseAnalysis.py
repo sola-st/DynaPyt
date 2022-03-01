@@ -1,23 +1,26 @@
 import logging
 import libcst as cst
+import os.path as path
 
 class BaseAnalysis:
 
     def __init__(self) -> None:
         self.asts = {}
-        self.danger_of_recursion = False
-        logging.basicConfig(filename='output.log', format='%(message)s', encoding='utf-8', level=logging.INFO)
+        # self.danger_of_recursion = False
+        # logging.basicConfig(filename='output.log', format='%(message)s', encoding='utf-8', level=logging.INFO)
     
-    def __log(self, *args):
-        res = ''
-        for arg in args:
-            if self.danger_of_recursion:
-                res += ' ' + str(hex(id(arg)))
-            else:
-                res += ' ' + str(arg)
-        logging.info(res[:80])
+    # def __log(self, *args):
+    #     res = ''
+    #     for arg in args:
+    #         if self.danger_of_recursion:
+    #             res += ' ' + str(hex(id(arg)))
+    #         else:
+    #             res += ' ' + str(arg)
+    #     logging.info(res[:80])
     
-    def __get_ast(self, filepath: str) -> cst.CSTNodeT:
+    def _get_ast(self, filepath: str) -> cst.CSTNodeT:
+        if not path.isfile(filepath):
+            return None
         if filepath not in self.asts:
             src = ''
             with open(filepath, 'r') as file:

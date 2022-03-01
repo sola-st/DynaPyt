@@ -2,6 +2,7 @@ import argparse
 import importlib
 from subprocess import run
 from os.path import abspath
+import sys
 from .instrument.IIDs import IIDs
 
 parser = argparse.ArgumentParser()
@@ -31,6 +32,7 @@ if __name__ == '__main__':
     except AttributeError:
         pass
     if args.entry.endswith('.py'):
+        sys.argv = [args.entry]
         exec(open(abspath(args.entry)).read())
     else:
         importlib.import_module(args.entry, '*')

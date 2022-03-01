@@ -174,11 +174,25 @@ def _comp_op_(dyn_ast, iid, left, comparisons):
         l = r
     return result
 
-def _call_(dyn_ast, iid, call):
-    call_if_exists('pre_call', dyn_ast, iid)
-    result = call()
-    call_if_exists('post_call', dyn_ast, iid)
-    return result
+def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
+    if only_post:
+        result = call
+        new_res = call_if_exists('post_call', dyn_ast, iid, result, pos_args, kw_args)
+        return new_res if new_res is not None else result
+    else:
+        tmp = []
+        for star, a in pos_args:
+            if star == '':
+                tmp.append(a)
+            elif star == '*':
+                tmp.extend(*a)
+            else:
+                raise Exception('Should not have happened')
+        pos_args = tuple(tmp)
+        call_if_exists('pre_call', dyn_ast, iid, pos_args, kw_args)
+        result = call(*pos_args, **kw_args)
+        new_res = call_if_exists('post_call', dyn_ast, iid, result, pos_args, kw_args)
+        return new_res if new_res is not None else result
 
 def _bool_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
@@ -239,7 +253,23 @@ def _delete_(dyn_ast, iid, del_target):
         del target
 
 def _attr_(dyn_ast, iid, base, attr):
-    val = getattr(base, attr)
+    if (attr.startswith('__')) and (not attr.endswith('__')):
+        parents = [type(base)]
+        found = True
+        while len(parents) > 0:
+            found = True
+            cur_par = parents.pop()
+            try:
+                val = getattr(base, '_'+cur_par.__name__+attr)
+            except AttributeError:
+                found = False
+                parents.extend(list(cur_par.__bases__))
+                continue
+            break
+        if not found:
+            raise AttributeError()
+    else:
+        val = getattr(base, attr)
     result = call_if_exists('attribute', dyn_ast, iid, base, attr, val)
     return result if result != None else val
 
@@ -311,6 +341,10 @@ def _yield_(dyn_ast, iid, return_val=None):
     elif result_high != None:
         return result_high
     return return_val
+
+def _assert_(dyn_ast, iid, test, msg):
+    result = call_if_exists('assert_stmt', dyn_ast, iid, test, msg)
+    return result if result is not None else test
 
 def _lambda_(dyn_ast, iid, args, expr):
     _func_entry_(dyn_ast, iid, args)

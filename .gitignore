@@ -6,6 +6,7 @@ __pycache__
 workspace.code-workspace
 *.egg-info
 *.txt
+*.xml
 build/
 dist/
 .pytest_cache/

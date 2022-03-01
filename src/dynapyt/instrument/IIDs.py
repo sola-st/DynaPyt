@@ -18,6 +18,7 @@ class IIDs:
                 json_object = json.load(file)
             self.next_iid = json_object["next_iid"]
             self.iid_to_location = {int(k): v for k, v in json_object["iid_to_location"].items()}
+            self.location_to_iid = {Location(*v): k for k, v in self.iid_to_location.items()}
         self.file_path = file_path
 
     def new(self, file, start_line, start_column, end_line, end_column):

@@ -82,36 +82,49 @@ def _binary_op_(dyn_ast, iid, left, opr, right):
     bin_op = ['Add', 'BitAnd', 'BitOr', 'BitXor', 'Divide', 'FloorDivide',
         'LeftShift', 'MatrixMultiply', 'Modulo', 'Multiply', 'Power',
         'RightShift', 'Subtract', 'And', 'Or']
+    if opr < 13:
+        left = left()
+        right = right()
     if opr == 0:
-        result = left() + right()
+        result = left + right
     elif opr == 1:
-        result = left() & right()
+        result = left & right
     elif opr == 2:
-        result = left() | right()
+        result = left | right
     elif opr == 3:
-        result = left() ^ right()
+        result = left ^ right
     elif opr == 4:
-        result = left() / right()
+        result = left / right
     elif opr == 5:
-        result = left() // right()
+        result = left // right
     elif opr == 6:
-        result = left() << right()
+        result = left << right
     elif opr == 7:
-        result = left() @ right()
+        result = left @ right
     elif opr == 8:
-        result = left() % right()
+        result = left % right
     elif opr == 9:
-        result = left() * right()
+        result = left * right
     elif opr == 10:
-        result = left() ** right()
+        result = left ** right
     elif opr == 11:
-        result = left() >> right()
+        result = left >> right
     elif opr == 12:
-        result = left() - right()
+        result = left - right
     elif opr == 13:
-        result = left() and right()
+        left = left()
+        if left:
+            right = right()
+            result = left and right
+        else:
+            result = left
     elif opr == 14:
-        result = left() or right()
+        left = left()
+        if left:
+            result = left
+        else:
+            right = right()
+            result = left or right
     result_high = call_if_exists('binary_op', dyn_ast, iid, bin_op[opr], left, right, result)
     result_low = call_if_exists(snake(bin_op[opr]), dyn_ast, iid, left, right, result)
     if result_low != None:
@@ -174,11 +187,25 @@ def _comp_op_(dyn_ast, iid, left, comparisons):
         l = r
     return result
 
-def _call_(dyn_ast, iid, call):
-    call_if_exists('pre_call', dyn_ast, iid)
-    result = call()
-    call_if_exists('post_call', dyn_ast, iid)
-    return result
+def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
+    if only_post:
+        result = call
+        new_res = call_if_exists('post_call', dyn_ast, iid, result, pos_args, kw_args)
+        return new_res if new_res is not None else result
+    else:
+        tmp = []
+        for star, a in pos_args:
+            if star == '':
+                tmp.append(a)
+            elif star == '*':
+                tmp.extend(list(a))
+            else:
+                kw_args = dict(kw_args, **a)
+        pos_args = tuple(tmp)
+        call_if_exists('pre_call', dyn_ast, iid, pos_args, kw_args)
+        result = call(*pos_args, **kw_args)
+        new_res = call_if_exists('post_call', dyn_ast, iid, result, pos_args, kw_args)
+        return new_res if new_res is not None else result
 
 def _bool_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
@@ -229,6 +256,20 @@ def _literal_(dyn_ast, iid, val):
     res = call_if_exists('literal', dyn_ast, iid, val)
     return res if res != None else val
 
+def _dict_(dyn_ast, iid, val):
+    value = dict(val)
+    call_if_exists('dictionary', dyn_ast, iid, val, value)
+    return value
+
+def _list_(dyn_ast, iid, val):
+    call_if_exists('_list', dyn_ast, iid, val)
+    return val
+
+def _tuple_(dyn_ast, iid, val):
+    value = tuple(val)
+    call_if_exists('_tuple', dyn_ast, iid, val, value)
+    return value
+
 def _delete_(dyn_ast, iid, del_target):
     target = del_target()
     call_if_exists('mem_access', dyn_ast, iid, target)
@@ -239,7 +280,23 @@ def _delete_(dyn_ast, iid, del_target):
         del target
 
 def _attr_(dyn_ast, iid, base, attr):
-    val = getattr(base, attr)
+    if (attr.startswith('__')) and (not attr.endswith('__')):
+        parents = [type(base)]
+        found = True
+        while len(parents) > 0:
+            found = True
+            cur_par = parents.pop()
+            try:
+                val = getattr(base, '_'+cur_par.__name__+attr)
+            except AttributeError:
+                found = False
+                parents.extend(list(cur_par.__bases__))
+                continue
+            break
+        if not found:
+            raise AttributeError()
+    else:
+        val = getattr(base, attr)
     result = call_if_exists('attribute', dyn_ast, iid, base, attr, val)
     return result if result != None else val
 
@@ -311,6 +368,10 @@ def _yield_(dyn_ast, iid, return_val=None):
     elif result_high != None:
         return result_high
     return return_val
+
+def _assert_(dyn_ast, iid, test, msg):
+    result = call_if_exists('assert_stmt', dyn_ast, iid, test, msg)
+    return result if result is not None else test
 
 def _lambda_(dyn_ast, iid, args, expr):
     _func_entry_(dyn_ast, iid, args)

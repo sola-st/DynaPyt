@@ -8,7 +8,7 @@ class CallGraph(BaseAnalysis):
         self.iids = iids
 
     def pre_call(self, dyn_ast: str, iid: int):
-        ast = self.__get_ast(dyn_ast)
+        ast = self._get_ast(dyn_ast)
         caller = get_parent_by_type(ast, self.iids.iid_to_location[iid], m.FunctionDef())
         callee = get_node_by_location(ast, self.iids.iid_to_location[iid], m.Call())
         if caller is None:

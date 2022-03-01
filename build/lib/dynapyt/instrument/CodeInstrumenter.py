@@ -516,6 +516,26 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             return updated_node.with_changes(value=cst.From(item=call), whitespace_after_yield=cst.SimpleWhitespace(' '))
         else:
             return updated_node.with_changes(value=call, whitespace_after_yield=cst.SimpleWhitespace(' '))
+
+    def visit_Assert(self, node):
+        return False
+
+    def leave_Assert(self, original_node, updated_node):
+        if 'assert' not in self.selected_hooks:
+            return updated_node
+        callee_name = cst.Name(value='_assert_')
+        self.to_import.add('_assert_')
+        iid = self.__create_iid(original_node)
+        ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        val_arg = cst.Arg(value=updated_node.test)
+        arg_list = [ast_arg, iid_arg, val_arg]
+        if updated_node.msg is not None:
+            arg_list.append(cst.Arg(value=updated_node.msg))
+        else:
+            arg_list.append(cst.Arg(value=cst.Name('None')))
+        call = cst.Call(func=callee_name, args=arg_list)
+        return updated_node.with_changes(test=call, whitespace_after_assert=cst.SimpleWhitespace(' '))
     
     def leave_Call(self, original_node, updated_node):
         if 'call' not in self.selected_hooks:
@@ -525,8 +545,21 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        call_arg = cst.Arg(value=self.__wrap_in_lambda(original_node, updated_node))
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, call_arg])
+        positional_args = cst.Arg(value=cst.List(elements=[cst.Element(value=cst.Tuple(elements=[cst.Element(value=cst.SimpleString(value='"'+a.star+'"')),
+            cst.Element(value=a.with_changes(comma=cst.MaybeSentinel.DEFAULT, star=''))])) for a in updated_node.args if a.keyword is None]))
+        keyword_args = cst.Arg(value=cst.Dict(elements=[cst.DictElement(key=cst.SimpleString(value='"'+a.keyword.value+'"'), value=a.value) for a in updated_node.args if a.keyword is not None]))
+        try:
+            name_source = self.get_metadata(QualifiedNameProvider, original_node)
+        except KeyError:
+            name_source = []
+        if (len(list(name_source)) > 0) and (list(name_source)[0].source == QualifiedNameSource.BUILTIN):
+            call_arg = cst.Arg(value=updated_node)
+            only_post = cst.Arg(value=cst.Name('True'))
+            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, call_arg, only_post, cst.Arg(value=cst.Name('None')), cst.Arg(value=cst.Name('None'))])
+        else:
+            call_arg = cst.Arg(value=updated_node.func)
+            only_post = cst.Arg(value=cst.Name('False'))
+            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, call_arg, only_post, positional_args, keyword_args])
         return call
     
     # Exception
@@ -642,7 +675,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         end_name = cst.Name(value='_exit_ctrl_flow_')
         self.to_import.add('_exit_ctrl_flow_')
         end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
-        return updated_node.with_changes(test=call, body=cst.IndentedBlock(body=updated_node.body.body + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
+        return updated_node.with_changes(test=call, whitespace_before_test=cst.SimpleWhitespace(' '), body=cst.IndentedBlock(body=updated_node.body.body + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
 
     def leave_IfExp(self, original_node, updated_node):
         if 'control_flow' not in self.selected_hooks:
@@ -674,7 +707,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         else:
             old_else = []
         else_part = cst.Else(body=cst.IndentedBlock(body=old_else + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
-        return updated_node.with_changes(test=enter_call, orelse=else_part)
+        return updated_node.with_changes(test=enter_call, whitespace_after_while=cst.SimpleWhitespace(' '), orelse=else_part)
     
     def leave_For(self, original_node, updated_node):
         if 'control_flow' not in self.selected_hooks:
