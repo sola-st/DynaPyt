@@ -79,10 +79,20 @@
                 "for": {
                     "enter_for": { },
                     "exit_for": { }
+                },
+                "enter_control_flow": {
+                    "enter_if": { },
+                    "enter_for": { },
+                    "enter_while": { }
+                },
+                "exit_control_flow": {
+                    "exit_if": { },
+                    "exit_for": { },
+                    "exit_while": { }
                 }
             },
             "raise": { },
-            "try_block": {
+            "try": {
                 "enter_try": { },
                 "clean_exit_try": { }
             },
@@ -92,7 +102,12 @@
                 "post_call": { }
             },
             "break": { },
-            "continue": { }
+            "continue": { },
+            "function": {
+                "function_enter": { },
+                "function_exit": { }
+            },
+            "lambda": { }
         },
         "memory_access": {
             "read": {
@@ -100,16 +115,8 @@
                 "read_subscript": { },
                 "read_attribute": { }
             },
-            "write": {
-                "write_identifier": { },
-                "write_subscript": { },
-                "write_attribute": { }
-            },
-            "delete": {
-                "delete_identifier": { },
-                "delete_subscript": { },
-                "delete_attribute": { }
-            }
+            "write": { },
+            "delete": { }
         }
     }
 }

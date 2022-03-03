@@ -2,7 +2,7 @@ from sys import exc_info
 import libcst as cst
 from copy import copy
 from dynapyt.utils.Dynapyt_Unidefined import Dynapyt_Undefined
-from dynapyt.utils.hooks import snake
+from dynapyt.utils.hooks import snake, get_name
 
 analysis = None
 
@@ -35,7 +35,7 @@ def _aug_assign_(dyn_ast, iid, left, opr, right):
     call_if_exists('binary_op', dyn_ast, iid, operator[opr][:-6], left, right, None)
     call_if_exists('write', dyn_ast, iid, [left], right)
     result_high = call_if_exists('augmented_assignment', dyn_ast, iid, left, operator[opr], right)
-    result_low = call_if_exists(snake(operator[opr]), dyn_ast, iid, left, right)
+    result_low = call_if_exists(get_name(snake(operator[opr])), dyn_ast, iid, left, right)
     if result_low != None:
         right = result_low
     elif result_high != None:
@@ -90,7 +90,7 @@ def _binary_op_(dyn_ast, iid, left, opr, right):
             right = right()
             result = left or right
     result_high = call_if_exists('binary_op', dyn_ast, iid, bin_op[opr], left, right, result)
-    result_low = call_if_exists(snake(bin_op[opr]), dyn_ast, iid, left, right, result)
+    result_low = call_if_exists(get_name(snake(bin_op[opr])), dyn_ast, iid, left, right, result)
     if result_low != None:
         return result_low
     elif result_high != None:
@@ -108,7 +108,7 @@ def _unary_op_(dyn_ast, iid, opr, right):
     elif opr == 3:
         result = + right
     result_high = call_if_exists('unary_op', dyn_ast, iid, un_op[opr], right, result)
-    result_low = call_if_exists(snake(un_op[opr]), dyn_ast, iid, right, result)
+    result_low = call_if_exists(get_name(snake(un_op[opr])), dyn_ast, iid, right, result)
     if result_low != None:
         return result_low
     elif result_high != None:
@@ -142,7 +142,7 @@ def _comp_op_(dyn_ast, iid, left, comparisons):
         elif op == 9:
             tmp = l not in r
         result_high = call_if_exists('comparison', dyn_ast, iid, l, comp_op[op], r, tmp)
-        result_low = call_if_exists(snake(comp_op[op]), dyn_ast, iid, l, r, tmp)
+        result_low = call_if_exists(get_name(snake(comp_op[op])), dyn_ast, iid, l, r, tmp)
         if result_low != None:
             tmp = result_low
         elif result_high != None:
@@ -236,7 +236,7 @@ def _tuple_(dyn_ast, iid, val):
 
 def _delete_(dyn_ast, iid, del_target):
     target = del_target()
-    call_if_exists('mem_access', dyn_ast, iid, target)
+    call_if_exists('memory_access', dyn_ast, iid, target)
     cancel = call_if_exists('delete', dyn_ast, iid, target)
     if cancel:
         pass
@@ -261,7 +261,7 @@ def _attr_(dyn_ast, iid, base, attr):
             raise AttributeError()
     else:
         val = getattr(base, attr)
-    result = call_if_exists('attribute', dyn_ast, iid, base, attr, val)
+    result = call_if_exists('read_attribute', dyn_ast, iid, base, attr, val)
     return result if result != None else val
 
 def _sub_(dyn_ast, iid, base, sl):
@@ -269,7 +269,7 @@ def _sub_(dyn_ast, iid, base, sl):
         val = base[sl[0]]
     else:
         val = base[tuple(sl)]
-    result = call_if_exists('subscript', dyn_ast, iid, base, sl, val)
+    result = call_if_exists('read_subscript', dyn_ast, iid, base, sl, val)
     return result if result != None else val
 
 def _try_(dyn_ast, iid):
@@ -300,23 +300,23 @@ def _catch_(exception):
 
 def _read_(dyn_ast, iid, var_arg):
     value = var_arg()
-    call_if_exists('mem_access', dyn_ast, iid, value)
-    result = call_if_exists('read', dyn_ast, iid, value)
+    call_if_exists('memory_access', dyn_ast, iid, value)
+    result = call_if_exists('read_identifier', dyn_ast, iid, value)
     return result if result != None else value
 
-def _condition_(dyn_ast, iid, val):
-    result = call_if_exists('condition', dyn_ast, iid, val)
+def _if_(dyn_ast, iid, val):
+    result = call_if_exists('_if', dyn_ast, iid, val)
     return result if result != None else val
 
 def _func_entry_(dyn_ast, iid, args):
-    call_if_exists('func_enter', dyn_ast, iid, args)
+    call_if_exists('function_enter', dyn_ast, iid, args)
 
 def _func_exit_(dyn_ast, iid):
-    call_if_exists('func_exit', dyn_ast, iid, None)
+    call_if_exists('function_exit', dyn_ast, iid, None)
     return
 
 def _return_(dyn_ast, iid, return_val=None):
-    result_high = call_if_exists('func_exit', dyn_ast, iid, return_val)
+    result_high = call_if_exists('function_exit', dyn_ast, iid, return_val)
     result_low = call_if_exists('_return', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
@@ -325,7 +325,7 @@ def _return_(dyn_ast, iid, return_val=None):
     return return_val
 
 def _yield_(dyn_ast, iid, return_val=None):
-    result_high = call_if_exists('func_exit', dyn_ast, iid, return_val)
+    result_high = call_if_exists('function_exit', dyn_ast, iid, return_val)
     result_low = call_if_exists('_yield', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
@@ -350,27 +350,56 @@ def _continue_(dyn_ast, iid):
     result = call_if_exists('_continue', dyn_ast, iid)
     return result if result != None else True
 
-def _enter_ctrl_flow_(dyn_ast, iid, condition):
-    result = call_if_exists('enter_ctrl_flow', dyn_ast, iid, condition)
-    return result if result != None else condition
+def _enter_if_(dyn_ast, iid, condition):
+    result_high = call_if_exists('enter_control_flow', dyn_ast, iid, condition)
+    result_low = call_if_exists('enter_if', dyn_ast, iid, condition)
+    if result_low is not None:
+        return result_low
+    elif result_high is not None:
+        return result_high
+    return condition
 
-def _exit_ctrl_flow_(dyn_ast, iid):
-    call_if_exists('exit_ctrl_flow', dyn_ast, iid)
+def _exit_if_(dyn_ast, iid):
+    call_if_exists('exit_control_flow', dyn_ast, iid)
+    call_if_exists('exit_if', dyn_ast, iid)
+
+def _enter_while_(dyn_ast, iid, condition):
+    result_high = call_if_exists('enter_control_flow', dyn_ast, iid, condition)
+    result_low = call_if_exists('enter_while', dyn_ast, iid, condition)
+    if result_low is not None:
+        return result_low
+    elif result_high is not None:
+        return result_high
+    return condition
+
+def _exit_while_(dyn_ast, iid):
+    call_if_exists('exit_control_flow', dyn_ast, iid)
+    call_if_exists('exit_while', dyn_ast, iid)
+
+def _enter_for_(dyn_ast, iid, next_val):
+    result_high = call_if_exists('enter_control_flow', dyn_ast, iid, not isinstance(next_val, StopIteration))
+    result_low = call_if_exists('enter_for', dyn_ast, iid, next_val)
+    if result_low is not None:
+        return result_low
+    elif result_high is not None:
+        if result_high:
+            return next_val
+        raise StopIteration()
+    return next_val
+
+def _exit_for_(dyn_ast, iid):
+    call_if_exists('exit_control_flow', dyn_ast, iid)
+    call_if_exists('exit_for', dyn_ast, iid)
 
 def _gen_(dyn_ast, iid, iterator):
     new_iter = iterator.__iter__()
     while True:
         try:
             it = next(new_iter)
-            result = _enter_ctrl_flow_(dyn_ast, iid, True)
+            result = _enter_for_(dyn_ast, iid, it)
             if (result != None) and (result == False):
                 return
             yield it
         except StopIteration:
+            _enter_for_(dyn_ast, iid, StopIteration())
             return
-
-def _expr_(dyn_ast, iid, expr):
-    call_if_exists('pre_expression', dyn_ast, iid)
-    result = expr()
-    new_result = call_if_exists('post_expression', dyn_ast, iid, result)
-    return new_result if new_result != None else result

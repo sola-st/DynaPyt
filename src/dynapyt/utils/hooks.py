@@ -8,7 +8,7 @@ def snake(x):
         if ('a' <= x[i] <= 'z') and ('A' <= x[i+1] <= 'Z'):
             res += '_'
     res += x[-1]
-    return '_' + res.lower() + '_'
+    return res.lower()
 
 def get_name(s):
     if s in dir(builtins):
@@ -39,9 +39,6 @@ def get_used_leaves(root, method_list):
     return res
 
 def get_hooks_from_analysis(method_list):
-    with open('hierarchy.json') as f:
+    with open('src/dynapyt/utils/hierarchy.json') as f:
         hierarchy = json.load(f)
     return get_used_leaves(hierarchy, method_list)
-    # return ['boolean', 'integer', 'float', 'string', 'imaginary', 'binary_operation', 'boolean_operation',
-    #     'unary_operation', 'comparison', 'function', 'return', 'yield', 'call', 'exception', 'delete',
-    #     'read', 'subscript', 'attribute', 'lambda', 'control_flow', 'assignment', 'assert', 'dict', 'list', 'tuple']

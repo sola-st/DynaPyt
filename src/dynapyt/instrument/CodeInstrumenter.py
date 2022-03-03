@@ -1,13 +1,10 @@
-from operator import mod
-from string import whitespace
 import libcst as cst
 from libcst.metadata import ParentNodeProvider, PositionProvider, ScopeProvider, ExpressionContextProvider, QualifiedNameProvider
 import libcst.matchers as m
 from libcst.matchers import call_if_not_inside, call_if_inside
-import libcst.helpers as helpers
 from libcst.metadata.expression_context_provider import ExpressionContext
 from libcst.metadata.scope_provider import QualifiedNameSource, ClassScope
-from numpy import isin
+from ..utils.hooks import snake
 
 
 class CodeInstrumenter(m.MatcherDecoratableTransformer):
@@ -111,18 +108,6 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_ClassDef(self, original_node, updated_node):
         self.current_class.pop()
         return updated_node
-
-    def leave_Expr(self, original_node, updated_node):
-        if 'expression' not in self.selected_hooks:
-            return updated_node
-        callee_name = cst.Name(value='_expr_')
-        self.to_import.add('_expr_')
-        iid = self.__create_iid(original_node)
-        ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
-        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        val_arg = cst.Arg(self.__wrap_in_lambda(original_node, updated_node))
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
-        return updated_node.with_changes(value=call)
 
     # Lowest level
     @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.AnnAssign())
@@ -350,7 +335,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     # Operations
     def leave_BinaryOperation(self, original_node, updated_node):
-        if type(original_node.operator).__name__ not in self.selected_hooks:
+        if snake(type(original_node.operator).__name__) not in self.selected_hooks:
             return updated_node
         bin_op = {'Add': 0, 'BitAnd': 1, 'BitOr': 2, 'BitXor': 3, 'Divide': 4,
             'FloorDivide': 5, 'LeftShift': 6, 'MatrixMultiply': 7, 'Modulo': 8,
@@ -369,7 +354,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
 
     def leave_BooleanOperation(self, original_node, updated_node):
-        if type(original_node.operator).__name__ not in self.selected_hooks:
+        if snake(type(original_node.operator).__name__) not in self.selected_hooks:
             return updated_node
         bool_op = {'And': 13, 'Or': 14}
         callee_name = cst.Name(value='_binary_op_')
@@ -386,7 +371,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
     
     def leave_UnaryOperation(self, original_node, updated_node):
-        if type(original_node.operator).__name__ not in self.selected_hooks:
+        if snake(type(original_node.operator).__name__) not in self.selected_hooks:
             return updated_node
         un_op = {'BitInvert': 0, 'Minus': 1, 'Not': 2, 'Plus': 3}
         callee_name = cst.Name(value='_unary_op_')
@@ -402,7 +387,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
     
     def leave_Comparison(self, original_node, updated_node):
-        if not any(type(i.operator).__name__ in self.selected_hooks for i in updated_node.comparisons):
+        if not any(snake(type(i.operator).__name__) in self.selected_hooks for i in updated_node.comparisons):
             return updated_node
         comp_op = {'Equal': 0, 'GreaterThan': 1, 'GreaterThanEqual': 2, 'In': 3,
             'Is': 4, 'LessThan': 5, 'LessThanEqual': 6, 'NotEqual': 7,
@@ -432,15 +417,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         val_arg = cst.Arg(value=updated_node.value)
         left_arg = cst.Arg(value=cst.List(elements=[cst.Element(self.__wrap_in_lambda(tu.target, tu.target)) for to, tu in zip(original_node.targets, updated_node.targets)]))
         call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg, left_arg])
-        # new_targets = [t for t in original_node.targets if m.matches(t, m.AssignTarget(target=m.Name()))]
-        # old_targets = []
-        # for i in range(len(original_node.targets)):
-        #     if not m.matches(original_node.targets[i], m.AssignTarget(target=m.Name())):
-        #         old_targets.append(updated_node.targets[i])
         return updated_node.with_changes(value=call)
     
     def leave_AugAssign(self, original_node, updated_node):
-        if ('assignment' not in self.selected_hooks) and (type(original_node.operator).__name__ not in self.selected_hooks):
+        if ('write' not in self.selected_hooks) and (snake(type(original_node.operator).__name__) not in self.selected_hooks):
             return updated_node
         aug_op = {'AddAssign': 0, 'BitAndAssign': 1, 'BitOrAssign': 2, 'BitXorAssign': 3, 'DivideAssign': 4,
             'FloorDivideAssign': 5, 'LeftShiftAssign': 6, 'MatrixMultiplyAssign': 7, 'ModuloAssign': 8,
@@ -557,7 +537,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(test=call, whitespace_after_assert=cst.SimpleWhitespace(' '))
     
     def leave_Call(self, original_node, updated_node):
-        if 'call' not in self.selected_hooks:
+        if ('pre_call' not in self.selected_hooks) and ('post_call' not in self.selected_hooks):
             return updated_node
         callee_name = cst.Name(value='_call_')
         self.to_import.add('_call_')
@@ -583,7 +563,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     
     # Exception
     def leave_Raise(self, original_node, updated_node):
-        if 'exception' not in self.selected_hooks:
+        if 'raise' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value='_raise_')
         self.to_import.add('_raise_')
@@ -606,7 +586,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_Try(self, original_node, updated_node):
         self.current_try.pop()
-        if 'exception' not in self.selected_hooks:
+        if 'try' not in self.selected_hooks:
             return updated_node
         enter_name = cst.Name(value='_try_')
         self.to_import.add('_try_')
@@ -654,11 +634,11 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     
     # Control flow
     def leave_IndentedBlock(self, original_node, updated_node):
-        if 'control_flow' not in self.selected_hooks:
+        if ('break' not in self.selected_hooks) and ('continue' not in self.selected_hooks):
             return updated_node
         new_body = []
         for i in updated_node.body:
-            if m.matches(i, m.SimpleStatementLine(body=[m.Break()])):
+            if ('break' in self.selected_hooks) and (m.matches(i, m.SimpleStatementLine(body=[m.Break()]))):
                 callee_name = cst.Name(value='_break_')
                 self.to_import.add('_break_')
                 iid = self.__create_iid(original_node)
@@ -667,7 +647,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 call = cst.Call(func=callee_name, args=[ast_arg, iid_arg])
                 condition = cst.If(test=call, body=cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[cst.Break()])]))
                 new_body.append(condition)
-            elif m.matches(i, m.SimpleStatementLine(body=[m.Continue()])):
+            if ('continue' in self.selected_hooks) and (m.matches(i, m.SimpleStatementLine(body=[m.Continue()]))):
                 callee_name = cst.Name(value='_continue_')
                 self.to_import.add('_continue_')
                 iid = self.__create_iid(original_node)
@@ -682,25 +662,32 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(body=new_body)
     
     def leave_If(self, original_node, updated_node):
-        if 'control_flow' not in self.selected_hooks:
+        if ('enter_if' not in self.selected_hooks) and ('exit_if' not in self.selected_hooks):
             return updated_node
-        callee_name = cst.Name(value='_enter_ctrl_flow_')
-        self.to_import.add('_enter_ctrl_flow_')
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        val_arg = cst.Arg(value=updated_node.test)
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
-        end_name = cst.Name(value='_exit_ctrl_flow_')
-        self.to_import.add('_exit_ctrl_flow_')
-        end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
-        return updated_node.with_changes(test=call, whitespace_before_test=cst.SimpleWhitespace(' '), body=cst.IndentedBlock(body=updated_node.body.body + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
+        if ('enter_if' in self.selected_hooks):
+            callee_name = cst.Name(value='_enter_if_')
+            self.to_import.add('_enter_if_')
+            val_arg = cst.Arg(value=updated_node.test)
+            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        else:
+            call = updated_node.test
+        if ('exit_if' in self.selected_hooks):
+            end_name = cst.Name(value='_exit_if_')
+            self.to_import.add('_exit_if_')
+            end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
+            new_body = cst.IndentedBlock(body=updated_node.body.body + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])])
+        else:
+            new_body = updated_node.body
+        return updated_node.with_changes(test=call, whitespace_before_test=cst.SimpleWhitespace(' '), body=new_body)
 
     def leave_IfExp(self, original_node, updated_node):
-        if 'control_flow' not in self.selected_hooks:
+        if 'if' not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value='_condition_')
-        self.to_import.add('_condition_')
+        callee_name = cst.Name(value='_if_')
+        self.to_import.add('_if_')
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
@@ -709,47 +696,59 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(test=call)
 
     def leave_While(self, original_node, updated_node):
-        if 'control_flow' not in self.selected_hooks:
+        if ('enter_while' not in self.selected_hooks) and ('exit_while' not in self.selected_hooks):
             return updated_node
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        enter_name = cst.Name(value='_enter_ctrl_flow_')
-        self.to_import.add('_enter_ctrl_flow_')
-        enter_arg = cst.Arg(value=updated_node.test)
-        enter_call = cst.Call(func=enter_name, args=[ast_arg, iid_arg, enter_arg])
-        end_name = cst.Name(value='_exit_ctrl_flow_')
-        self.to_import.add('_exit_ctrl_flow_')
-        end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
-        if updated_node.orelse != None:
-            old_else = updated_node.orelse.body.body
+        if 'enter_while' in self.selected_hooks:
+            enter_name = cst.Name(value='_enter_while_')
+            self.to_import.add('_enter_while_')
+            enter_arg = cst.Arg(value=updated_node.test)
+            enter_call = cst.Call(func=enter_name, args=[ast_arg, iid_arg, enter_arg])
         else:
-            old_else = []
-        else_part = cst.Else(body=cst.IndentedBlock(body=old_else + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
+            enter_call = updated_node.test
+        if 'exit_while' in self.selected_hooks:
+            end_name = cst.Name(value='_exit_while_')
+            self.to_import.add('_exit_while_')
+            end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
+            if updated_node.orelse != None:
+                old_else = updated_node.orelse.body.body
+            else:
+                old_else = []
+            else_part = cst.Else(body=cst.IndentedBlock(body=old_else + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
+        else:
+            else_part = updated_node.orelse
         return updated_node.with_changes(test=enter_call, whitespace_after_while=cst.SimpleWhitespace(' '), orelse=else_part)
     
     def leave_For(self, original_node, updated_node):
-        if 'control_flow' not in self.selected_hooks:
+        if ('enter_for' not in self.selected_hooks) and ('exit_for' not in self.selected_hooks):
             return updated_node
-        generator_name = cst.Name(value='_gen_')
-        self.to_import.add('_gen_')
-        end_name = cst.Name(value='_exit_ctrl_flow_')
-        self.to_import.add('_exit_ctrl_flow_')
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        iter_arg = cst.Arg(value=updated_node.iter)
-        generator_call = cst.Call(func=generator_name, args=[ast_arg, iid_arg, iter_arg])
-        end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
-        if updated_node.orelse != None:
-            old_else = updated_node.orelse.body.body
+        if 'enter_for' in self.selected_hooks:
+            generator_name = cst.Name(value='_gen_')
+            self.to_import.add('_gen_')
+            iter_arg = cst.Arg(value=updated_node.iter)
+            generator_call = cst.Call(func=generator_name, args=[ast_arg, iid_arg, iter_arg])
         else:
-            old_else = []
-        else_part = cst.Else(body=cst.IndentedBlock(body=old_else + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
+            generator_call = updated_node.iter
+        if 'exit_for' in self.selected_hooks:
+            end_name = cst.Name(value='_exit_for_')
+            self.to_import.add('_exit_for_')
+            end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
+            if updated_node.orelse != None:
+                old_else = updated_node.orelse.body.body
+            else:
+                old_else = []
+            else_part = cst.Else(body=cst.IndentedBlock(body=old_else + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
+        else:
+            else_part = updated_node.orelse
         return updated_node.with_changes(iter=generator_call, orelse=else_part, target=original_node.target)
     
     def leave_CompFor(self, original_node, updated_node):
-        if 'control_flow' not in self.selected_hooks:
+        if 'for' not in self.selected_hooks:
             return updated_node
         generator_name = cst.Name(value='_gen_')
         self.to_import.add('_gen_')
