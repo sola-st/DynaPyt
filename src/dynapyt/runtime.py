@@ -32,7 +32,7 @@ def _aug_assign_(dyn_ast, iid, left, opr, right):
             'FloorDivideAssign', 'LeftShiftAssign', 'MatrixMultiplyAssign', 'ModuloAssign',
             'MultiplyAssign', 'PowerAssign', 'RightShiftAssign', 'SubtractAssign']
     call_if_exists(snake(operator[opr][:-6]), dyn_ast, iid, left, right)
-    call_if_exists('binary_op', dyn_ast, iid, operator[opr][:-6], left, right, None)
+    call_if_exists('binary_operation', dyn_ast, iid, operator[opr][:-6], left, right, None)
     call_if_exists('write', dyn_ast, iid, [left], right)
     result_high = call_if_exists('augmented_assignment', dyn_ast, iid, left, operator[opr], right)
     result_low = call_if_exists(get_name(snake(operator[opr])), dyn_ast, iid, left, right)
@@ -89,7 +89,7 @@ def _binary_op_(dyn_ast, iid, left, opr, right):
         else:
             right = right()
             result = left or right
-    result_high = call_if_exists('binary_op', dyn_ast, iid, bin_op[opr], left, right, result)
+    result_high = call_if_exists('binary_operation', dyn_ast, iid, bin_op[opr], left, right, result)
     result_low = call_if_exists(get_name(snake(bin_op[opr])), dyn_ast, iid, left, right, result)
     if result_low != None:
         return result_low
@@ -107,7 +107,7 @@ def _unary_op_(dyn_ast, iid, opr, right):
         result = not right
     elif opr == 3:
         result = + right
-    result_high = call_if_exists('unary_op', dyn_ast, iid, un_op[opr], right, result)
+    result_high = call_if_exists('unary_operation', dyn_ast, iid, un_op[opr], right, result)
     result_low = call_if_exists(get_name(snake(un_op[opr])), dyn_ast, iid, right, result)
     if result_low != None:
         return result_low
@@ -221,7 +221,12 @@ def _literal_(dyn_ast, iid, val):
     return res if res != None else val
 
 def _dict_(dyn_ast, iid, val):
-    value = dict(val)
+    value = dict()
+    for v in val:
+        if not isinstance(v, tuple):
+            value.update(**v)
+        else:
+            value.update({v[0]: v[1]})
     call_if_exists('dictionary', dyn_ast, iid, val, value)
     return value
 
@@ -397,7 +402,7 @@ def _gen_(dyn_ast, iid, iterator):
         try:
             it = next(new_iter)
             result = _enter_for_(dyn_ast, iid, it)
-            if (result != None) and (result == False):
+            if (result is not None) and (isinstance(result, bool) and (result == False)):
                 return
             yield it
         except StopIteration:

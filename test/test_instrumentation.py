@@ -31,7 +31,8 @@ def test_instrumentation(test_file, correct_file):
     with open(test_file) as tf, open(correct_file) as cf:
         test_code = tf.read()
         correct_code = cf.read()
-    instrumented_code = instrument_code(test_code, test_file, IIDs(None), selected_hooks)
+    iids = IIDs(test_file)
+    instrumented_code = instrument_code(test_code, test_file, iids, selected_hooks)
     if instrumented_code is None:
         instrumented_code = test_code
     l_ins_code = instrumented_code.split('\n')

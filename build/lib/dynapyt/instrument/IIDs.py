@@ -8,9 +8,11 @@ Location = namedtuple("Location", ["file", "start_line", "start_column", "end_li
 
 class IIDs:
     def __init__(self, file_path):
-        if file_path is None:
-            file_path = "iids.json"
-            self.next_iid = 1
+        file_path = file_path[:-3] + '.json'
+        if not path.exists(file_path):
+            with open(file_path, 'w') as f:
+                json.dump({'next_iid': 0, 'iid_to_location': {}}, f)
+            self.next_iid = 0
             self.iid_to_location = {}
             self.location_to_iid = {}
         else:
@@ -18,6 +20,7 @@ class IIDs:
                 json_object = json.load(file)
             self.next_iid = json_object["next_iid"]
             self.iid_to_location = {int(k): v for k, v in json_object["iid_to_location"].items()}
+            self.location_to_iid = {Location(*v): k for k, v in self.iid_to_location.items()}
         self.file_path = file_path
 
     def new(self, file, start_line, start_column, end_line, end_column):

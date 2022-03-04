@@ -2,7 +2,7 @@ from sys import exc_info
 import libcst as cst
 from copy import copy
 from dynapyt.utils.Dynapyt_Unidefined import Dynapyt_Undefined
-from dynapyt.utils.hooks import snake
+from dynapyt.utils.hooks import snake, get_name
 
 analysis = None
 
@@ -20,19 +20,10 @@ def call_if_exists(f, *args):
 def _dynapyt_parse_to_ast_(code):
     return cst.parse_module(code)
 
-def _assign_(dyn_ast, iid, right, left):
+def _write_(dyn_ast, iid, right, left):
     new_left = left
-    # new_left = []
-    # for l in left:
-    #     try:
-    #         new_left.append(l())
-    #     except (NameError, AttributeError, KeyError):
-    #         new_left.append(Dynapyt_Undefined())
     res = call_if_exists('write', dyn_ast, iid, new_left, right)
-    result = call_if_exists('assignment', dyn_ast, iid, new_left, right)
-    if result != None:
-        return result
-    elif res != None:
+    if res != None:
         return res
     return right
 
@@ -41,79 +32,65 @@ def _aug_assign_(dyn_ast, iid, left, opr, right):
             'FloorDivideAssign', 'LeftShiftAssign', 'MatrixMultiplyAssign', 'ModuloAssign',
             'MultiplyAssign', 'PowerAssign', 'RightShiftAssign', 'SubtractAssign']
     call_if_exists(snake(operator[opr][:-6]), dyn_ast, iid, left, right)
-    call_if_exists('binary_op', dyn_ast, iid, operator[opr][:-6], left, right, None)
+    call_if_exists('binary_operation', dyn_ast, iid, operator[opr][:-6], left, right, None)
     call_if_exists('write', dyn_ast, iid, [left], right)
-    call_if_exists('assignment', dyn_ast, iid, [left], right)
     result_high = call_if_exists('augmented_assignment', dyn_ast, iid, left, operator[opr], right)
-    result_low = call_if_exists(snake(operator[opr]), dyn_ast, iid, left, right)
+    result_low = call_if_exists(get_name(snake(operator[opr])), dyn_ast, iid, left, right)
     if result_low != None:
         right = result_low
     elif result_high != None:
         right = result_high
     return right
-    # if opr == 0:
-    #     left += right
-    # elif opr == 1:
-    #     left &= right
-    # elif opr == 2:
-    #     left |= right
-    # elif opr == 3:
-    #     left ^= right
-    # elif opr == 4:
-    #     left /= right
-    # elif opr == 5:
-    #     left //= right
-    # elif opr == 6:
-    #     left <<= right
-    # elif opr == 7:
-    #     left @= right
-    # elif opr == 8:
-    #     left %= right
-    # elif opr == 9:
-    #     left *= right
-    # elif opr == 10:
-    #     left **= right
-    # elif opr == 11:
-    #     left >>= right
-    # elif opr == 12:
-    #     left -= right
 
 def _binary_op_(dyn_ast, iid, left, opr, right):
     bin_op = ['Add', 'BitAnd', 'BitOr', 'BitXor', 'Divide', 'FloorDivide',
         'LeftShift', 'MatrixMultiply', 'Modulo', 'Multiply', 'Power',
         'RightShift', 'Subtract', 'And', 'Or']
+    if opr < 13:
+        left = left()
+        right = right()
     if opr == 0:
-        result = left() + right()
+        result = left + right
     elif opr == 1:
-        result = left() & right()
+        result = left & right
     elif opr == 2:
-        result = left() | right()
+        result = left | right
     elif opr == 3:
-        result = left() ^ right()
+        result = left ^ right
     elif opr == 4:
-        result = left() / right()
+        result = left / right
     elif opr == 5:
-        result = left() // right()
+        result = left // right
     elif opr == 6:
-        result = left() << right()
+        result = left << right
     elif opr == 7:
-        result = left() @ right()
+        result = left @ right
     elif opr == 8:
-        result = left() % right()
+        result = left % right
     elif opr == 9:
-        result = left() * right()
+        result = left * right
     elif opr == 10:
-        result = left() ** right()
+        result = left ** right
     elif opr == 11:
-        result = left() >> right()
+        result = left >> right
     elif opr == 12:
-        result = left() - right()
+        result = left - right
     elif opr == 13:
-        result = left() and right()
+        left = left()
+        if left:
+            right = right()
+            result = left and right
+        else:
+            result = left
     elif opr == 14:
-        result = left() or right()
-    result_high = call_if_exists('binary_op', dyn_ast, iid, bin_op[opr], left, right, result)
-    result_low = call_if_exists(snake(bin_op[opr]), dyn_ast, iid, left, right, result)
+        left = left()
+        if left:
+            result = left
+        else:
+            right = right()
+            result = left or right
+    result_high = call_if_exists('binary_operation', dyn_ast, iid, bin_op[opr], left, right, result)
+    result_low = call_if_exists(get_name(snake(bin_op[opr])), dyn_ast, iid, left, right, result)
     if result_low != None:
         return result_low
     elif result_high != None:
@@ -130,8 +107,8 @@ def _unary_op_(dyn_ast, iid, opr, right):
         result = not right
     elif opr == 3:
         result = + right
-    result_high = call_if_exists('unary_op', dyn_ast, iid, un_op[opr], right, result)
-    result_low = call_if_exists(snake(un_op[opr]), dyn_ast, iid, right, result)
+    result_high = call_if_exists('unary_operation', dyn_ast, iid, un_op[opr], right, result)
+    result_low = call_if_exists(get_name(snake(un_op[opr])), dyn_ast, iid, right, result)
     if result_low != None:
         return result_low
     elif result_high != None:
@@ -165,7 +142,7 @@ def _comp_op_(dyn_ast, iid, left, comparisons):
         elif op == 9:
             tmp = l not in r
         result_high = call_if_exists('comparison', dyn_ast, iid, l, comp_op[op], r, tmp)
-        result_low = call_if_exists(snake(comp_op[op]), dyn_ast, iid, l, r, tmp)
+        result_low = call_if_exists(get_name(snake(comp_op[op])), dyn_ast, iid, l, r, tmp)
         if result_low != None:
             tmp = result_low
         elif result_high != None:
@@ -185,9 +162,9 @@ def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
             if star == '':
                 tmp.append(a)
             elif star == '*':
-                tmp.extend(*a)
+                tmp.extend(list(a))
             else:
-                raise Exception('Should not have happened')
+                kw_args = dict(kw_args, **a)
         pos_args = tuple(tmp)
         call_if_exists('pre_call', dyn_ast, iid, pos_args, kw_args)
         result = call(*pos_args, **kw_args)
@@ -196,7 +173,7 @@ def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
 
 def _bool_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
-    res_low = call_if_exists('boolean_literal', dyn_ast, iid, val)
+    res_low = call_if_exists('boolean', dyn_ast, iid, val)
     if res_low != None:
         return res_low
     elif res_high != None:
@@ -205,7 +182,7 @@ def _bool_(dyn_ast, iid, val):
 
 def _int_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
-    res_low = call_if_exists('integer_literal', dyn_ast, iid, val)
+    res_low = call_if_exists('integer', dyn_ast, iid, val)
     if res_low != None:
         return res_low
     elif res_high != None:
@@ -214,7 +191,7 @@ def _int_(dyn_ast, iid, val):
 
 def _float_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
-    res_low = call_if_exists('float_literal', dyn_ast, iid, val)
+    res_low = call_if_exists('float', dyn_ast, iid, val)
     if res_low != None:
         return res_low
     elif res_high != None:
@@ -223,7 +200,7 @@ def _float_(dyn_ast, iid, val):
 
 def _str_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
-    res_low = call_if_exists('string_literal', dyn_ast, iid, val)
+    res_low = call_if_exists('string', dyn_ast, iid, val)
     if res_low != None:
         return res_low
     elif res_high != None:
@@ -232,7 +209,7 @@ def _str_(dyn_ast, iid, val):
 
 def _img_(dyn_ast, iid, val):
     res_high = call_if_exists('literal', dyn_ast, iid, val)
-    res_low = call_if_exists('imaginary_literal', dyn_ast, iid, val)
+    res_low = call_if_exists('imaginary', dyn_ast, iid, val)
     if res_low != None:
         return res_low
     elif res_high != None:
@@ -243,9 +220,28 @@ def _literal_(dyn_ast, iid, val):
     res = call_if_exists('literal', dyn_ast, iid, val)
     return res if res != None else val
 
+def _dict_(dyn_ast, iid, val):
+    value = dict()
+    for v in val:
+        if not isinstance(v, tuple):
+            value.update(**v)
+        else:
+            value.update({v[0]: v[1]})
+    call_if_exists('dictionary', dyn_ast, iid, val, value)
+    return value
+
+def _list_(dyn_ast, iid, val):
+    call_if_exists('_list', dyn_ast, iid, val)
+    return val
+
+def _tuple_(dyn_ast, iid, val):
+    value = tuple(val)
+    call_if_exists('_tuple', dyn_ast, iid, val, value)
+    return value
+
 def _delete_(dyn_ast, iid, del_target):
     target = del_target()
-    call_if_exists('mem_access', dyn_ast, iid, target)
+    call_if_exists('memory_access', dyn_ast, iid, target)
     cancel = call_if_exists('delete', dyn_ast, iid, target)
     if cancel:
         pass
@@ -270,7 +266,7 @@ def _attr_(dyn_ast, iid, base, attr):
             raise AttributeError()
     else:
         val = getattr(base, attr)
-    result = call_if_exists('attribute', dyn_ast, iid, base, attr, val)
+    result = call_if_exists('read_attribute', dyn_ast, iid, base, attr, val)
     return result if result != None else val
 
 def _sub_(dyn_ast, iid, base, sl):
@@ -278,7 +274,7 @@ def _sub_(dyn_ast, iid, base, sl):
         val = base[sl[0]]
     else:
         val = base[tuple(sl)]
-    result = call_if_exists('subscript', dyn_ast, iid, base, sl, val)
+    result = call_if_exists('read_subscript', dyn_ast, iid, base, sl, val)
     return result if result != None else val
 
 def _try_(dyn_ast, iid):
@@ -291,7 +287,7 @@ def _exc_(dyn_ast, iid, exc=None, name=None):
     call_if_exists('exception', dyn_ast, iid, exc, name)
 
 def _raise_(dyn_ast, iid, exc=None, cause=None):
-    res = call_if_exists('raise_stmt', dyn_ast, iid, exc, cause)
+    res = call_if_exists('_raise', dyn_ast, iid, exc, cause)
     if res is not None:
         exc, cause = res
     if exc == None:
@@ -309,24 +305,24 @@ def _catch_(exception):
 
 def _read_(dyn_ast, iid, var_arg):
     value = var_arg()
-    call_if_exists('mem_access', dyn_ast, iid, value)
-    result = call_if_exists('read', dyn_ast, iid, value)
+    call_if_exists('memory_access', dyn_ast, iid, value)
+    result = call_if_exists('read_identifier', dyn_ast, iid, value)
     return result if result != None else value
 
-def _condition_(dyn_ast, iid, val):
-    result = call_if_exists('condition', dyn_ast, iid, val)
+def _if_(dyn_ast, iid, val):
+    result = call_if_exists('_if', dyn_ast, iid, val)
     return result if result != None else val
 
 def _func_entry_(dyn_ast, iid, args):
-    call_if_exists('func_enter', dyn_ast, iid, args)
+    call_if_exists('function_enter', dyn_ast, iid, args)
 
 def _func_exit_(dyn_ast, iid):
-    call_if_exists('func_exit', dyn_ast, iid, None)
+    call_if_exists('function_exit', dyn_ast, iid, None)
     return
 
 def _return_(dyn_ast, iid, return_val=None):
-    result_high = call_if_exists('func_exit', dyn_ast, iid, return_val)
-    result_low = call_if_exists('return_stmt', dyn_ast, iid, return_val)
+    result_high = call_if_exists('function_exit', dyn_ast, iid, return_val)
+    result_low = call_if_exists('_return', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
     elif result_high != None:
@@ -334,8 +330,8 @@ def _return_(dyn_ast, iid, return_val=None):
     return return_val
 
 def _yield_(dyn_ast, iid, return_val=None):
-    result_high = call_if_exists('func_exit', dyn_ast, iid, return_val)
-    result_low = call_if_exists('yield_stmt', dyn_ast, iid, return_val)
+    result_high = call_if_exists('function_exit', dyn_ast, iid, return_val)
+    result_low = call_if_exists('_yield', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
     elif result_high != None:
@@ -343,7 +339,7 @@ def _yield_(dyn_ast, iid, return_val=None):
     return return_val
 
 def _assert_(dyn_ast, iid, test, msg):
-    result = call_if_exists('assert_stmt', dyn_ast, iid, test, msg)
+    result = call_if_exists('_assert', dyn_ast, iid, test, msg)
     return result if result is not None else test
 
 def _lambda_(dyn_ast, iid, args, expr):
@@ -352,34 +348,63 @@ def _lambda_(dyn_ast, iid, args, expr):
     return _return_(dyn_ast, iid, res)
 
 def _break_(dyn_ast, iid):
-    result = call_if_exists('break_stmt', dyn_ast, iid)
+    result = call_if_exists('_break', dyn_ast, iid)
     return result if result != None else True
 
 def _continue_(dyn_ast, iid):
-    result = call_if_exists('continue_stmt', dyn_ast, iid)
+    result = call_if_exists('_continue', dyn_ast, iid)
     return result if result != None else True
 
-def _enter_ctrl_flow_(dyn_ast, iid, condition):
-    result = call_if_exists('enter_ctrl_flow', dyn_ast, iid, condition)
-    return result if result != None else condition
+def _enter_if_(dyn_ast, iid, condition):
+    result_high = call_if_exists('enter_control_flow', dyn_ast, iid, condition)
+    result_low = call_if_exists('enter_if', dyn_ast, iid, condition)
+    if result_low is not None:
+        return result_low
+    elif result_high is not None:
+        return result_high
+    return condition
 
-def _exit_ctrl_flow_(dyn_ast, iid):
-    call_if_exists('exit_ctrl_flow', dyn_ast, iid)
+def _exit_if_(dyn_ast, iid):
+    call_if_exists('exit_control_flow', dyn_ast, iid)
+    call_if_exists('exit_if', dyn_ast, iid)
+
+def _enter_while_(dyn_ast, iid, condition):
+    result_high = call_if_exists('enter_control_flow', dyn_ast, iid, condition)
+    result_low = call_if_exists('enter_while', dyn_ast, iid, condition)
+    if result_low is not None:
+        return result_low
+    elif result_high is not None:
+        return result_high
+    return condition
+
+def _exit_while_(dyn_ast, iid):
+    call_if_exists('exit_control_flow', dyn_ast, iid)
+    call_if_exists('exit_while', dyn_ast, iid)
+
+def _enter_for_(dyn_ast, iid, next_val):
+    result_high = call_if_exists('enter_control_flow', dyn_ast, iid, not isinstance(next_val, StopIteration))
+    result_low = call_if_exists('enter_for', dyn_ast, iid, next_val)
+    if result_low is not None:
+        return result_low
+    elif result_high is not None:
+        if result_high:
+            return next_val
+        raise StopIteration()
+    return next_val
+
+def _exit_for_(dyn_ast, iid):
+    call_if_exists('exit_control_flow', dyn_ast, iid)
+    call_if_exists('exit_for', dyn_ast, iid)
 
 def _gen_(dyn_ast, iid, iterator):
     new_iter = iterator.__iter__()
     while True:
         try:
             it = next(new_iter)
-            result = _enter_ctrl_flow_(dyn_ast, iid, True)
-            if (result != None) and (result == False):
+            result = _enter_for_(dyn_ast, iid, it)
+            if (result is not None) and (isinstance(result, bool) and (result == False)):
                 return
             yield it
         except StopIteration:
+            _enter_for_(dyn_ast, iid, StopIteration())
             return
-
-def _expr_(dyn_ast, iid, expr):
-    call_if_exists('pre_expression', dyn_ast, iid)
-    result = expr()
-    new_result = call_if_exists('post_expression', dyn_ast, iid, result)
-    return new_result if new_result != None else result

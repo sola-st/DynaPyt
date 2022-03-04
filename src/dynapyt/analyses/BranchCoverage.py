@@ -2,11 +2,10 @@ from typing import Optional
 from .BaseAnalysis import BaseAnalysis
 
 class BranchCoverage(BaseAnalysis):
-    def __init__(self, iids):
+    def __init__(self):
         self.branches = dict()
-        self.iids = iids
 
-    def enter_ctrl_flow(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
+    def enter_control_flow(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
         self.branches[(iid, cond_value)] = self.branches.get((iid, cond_value), 0) + 1
     
     

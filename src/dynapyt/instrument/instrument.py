@@ -1,5 +1,6 @@
 import argparse
 import importlib
+from multiprocessing import Pool
 import libcst as cst
 from libcst._exceptions import ParserSyntaxError
 from .CodeInstrumenter import CodeInstrumenter
@@ -11,8 +12,6 @@ from dynapyt.utils.hooks import get_hooks_from_analysis
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--files", help="Python files to instrument or .txt file with all file paths", nargs="+")
-parser.add_argument(
-    "--iids", help="JSON file with instruction IDs (will create iids.json if nothing given)")
 parser.add_argument(
     "--analysis", help="Analysis class name")
 
@@ -47,9 +46,10 @@ def instrument_code(src, file_path, iids, selected_hooks):
         print(f'Syntax error in {file_path} -- skipping it')
         return None
 
-def instrument_file(file_path, iids, selected_hooks):
+def instrument_file(file_path, selected_hooks):
     with open(file_path, 'r') as file:
         src = file.read()
+    iids = IIDs(file_path)
 
     instrumented_code = instrument_code(src, file_path, iids, selected_hooks)
     if instrumented_code is None:
@@ -60,22 +60,25 @@ def instrument_file(file_path, iids, selected_hooks):
 
     with open(file_path, 'w') as file:
         file.write(instrumented_code)
+    iids.store()
     print(f'Done with {file_path}')
 
 
 if __name__ == '__main__':
     args = parser.parse_args()
     files = gather_files(args.files)
-    iids = IIDs(args.iids)
     
     module = importlib.import_module('dynapyt.analyses.' + args.analysis)
     class_ = getattr(module, args.analysis)
-    try:
-        instance = class_(iids)
-    except:
-        instance = class_()
+    instance = class_()
     method_list = [func for func in dir(instance) if callable(getattr(instance, func)) and not func.startswith("__")]
-    selected_hooks = get_hooks_from_analysis(method_list)
-    for file_path in files:
-        instrument_file(file_path, iids, selected_hooks)
-    iids.store()
+    selected_hooks = get_hooks_from_analysis(set(method_list))
+    if len(files) < 2:
+        for file_path in files:
+            instrument_file(file_path, selected_hooks)
+    else:
+        arg_list = []
+        for file_path in files:
+            arg_list.append((file_path, selected_hooks))
+        with Pool() as p:
+            p.starmap(instrument_file, arg_list)

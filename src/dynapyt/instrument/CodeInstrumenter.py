@@ -64,7 +64,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 if (n.value not in unique_names) and (my_scope == n_scope) and (len(list(name_source)) > 0) and (list(name_source)[0].source == QualifiedNameSource.LOCAL):
                     parameters.append(cst.Param(name=cst.Name(value=n.value), default=cst.Name(value=n.value)))
                     unique_names.add(n.value)
-        lambda_expr = cst.Lambda(params=cst.Parameters(params=parameters), body=updated_node)
+        if m.matches(updated_node, m.Tuple()) and (len(updated_node.lpar) == 0):
+            lambda_expr = cst.Lambda(params=cst.Parameters(params=parameters), body=updated_node.with_changes(lpar=[cst.LeftParen()], rpar=[cst.RightParen()]))
+        else:
+            lambda_expr = cst.Lambda(params=cst.Parameters(params=parameters), body=updated_node)
         return lambda_expr
     
     def __as_string(self, s):
@@ -238,7 +241,12 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        elements_arg = [cst.Element(value=cst.Tuple(elements=[cst.Element(value=e.key), cst.Element(value=e.value)])) for e in updated_node.elements]
+        elements_arg = []
+        for e in updated_node.elements:
+            if m.matches(e, m.StarredDictElement()):
+                elements_arg.append(cst.Element(e.value))
+            else:
+                elements_arg.append(cst.Element(value=cst.Tuple(elements=[cst.Element(value=e.key), cst.Element(value=e.value)])))
         val_arg = cst.Arg(value=cst.List(elements=elements_arg))
         call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
         return call
@@ -275,6 +283,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             if len(updated_node.lpar) == 0:
                 return updated_node.with_changes(lpar=[cst.LeftParen()], rpar=[cst.RightParen()])
             return updated_node
+        par = self.get_metadata(ParentNodeProvider, original_node)
+        if m.matches(par, m.CompFor()) and (par.target is original_node):
+            return original_node
         callee_name = cst.Name(value='_tuple_')
         self.to_import.add('_tuple_')
         iid = self.__create_iid(original_node)
@@ -300,7 +311,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     
     @call_if_not_inside(m.AssignTarget() | m.AnnAssign())
     def leave_Subscript(self, original_node, updated_node):
-        if 'subscript' not in self.selected_hooks:
+        if 'read_subscript' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value='_sub_')
         self.to_import.add('_sub_')
@@ -322,7 +333,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     
     @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.AnnAssign())
     def leave_Attribute(self, original_node, updated_node):
-        if 'attribute' not in self.selected_hooks:
+        if 'read_attribute' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value='_attr_')
         self.to_import.add('_attr_')
@@ -544,14 +555,15 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        positional_args = cst.Arg(value=cst.List(elements=[cst.Element(value=cst.Tuple(elements=[cst.Element(value=cst.SimpleString(value='"'+a.star+'"')),
+        positional_args = cst.Arg(value=cst.List(elements=[cst.Element(value=cst.Tuple(elements=[cst.Element(value=cst.SimpleString(value=self.__as_string(a.star))),
             cst.Element(value=a.with_changes(comma=cst.MaybeSentinel.DEFAULT, star=''))])) for a in updated_node.args if a.keyword is None]))
-        keyword_args = cst.Arg(value=cst.Dict(elements=[cst.DictElement(key=cst.SimpleString(value='"'+a.keyword.value+'"'), value=a.value) for a in updated_node.args if a.keyword is not None]))
+        keyword_args = cst.Arg(value=cst.Dict(elements=[cst.DictElement(key=cst.SimpleString(value=self.__as_string(a.keyword.value)), value=a.value) for a in updated_node.args if a.keyword is not None]))
         try:
             name_source = self.get_metadata(QualifiedNameProvider, original_node)
         except KeyError:
             name_source = []
-        if (len(list(name_source)) > 0) and (list(name_source)[0].source == QualifiedNameSource.BUILTIN):
+        if (((len(list(name_source)) > 0) and (list(name_source)[0].source == QualifiedNameSource.BUILTIN)) or 
+            (any(a for a in updated_node.args if m.matches(a.value, m.GeneratorExp())))):
             call_arg = cst.Arg(value=updated_node)
             only_post = cst.Arg(value=cst.Name('True'))
             call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, call_arg, only_post, cst.Arg(value=cst.Name('None')), cst.Arg(value=cst.Name('None'))])
@@ -748,7 +760,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(iter=generator_call, orelse=else_part, target=original_node.target)
     
     def leave_CompFor(self, original_node, updated_node):
-        if 'for' not in self.selected_hooks:
+        if 'enter_for' not in self.selected_hooks:
             return updated_node
         generator_name = cst.Name(value='_gen_')
         self.to_import.add('_gen_')

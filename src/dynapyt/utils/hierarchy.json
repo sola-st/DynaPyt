@@ -2,6 +2,7 @@
     "runtime_event": {
         "begin_execution": { },
         "end_execution": { },
+        "uncaught_exception": { },
         "literal": {
             "number": {
                 "integer": { },

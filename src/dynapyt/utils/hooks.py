@@ -33,7 +33,10 @@ def get_used_leaves(root, method_list):
     res = []
     for k, v in root.items():
         if get_name(k) in method_list:
-            res.extend(all_leaves(v))
+            if len(v.items()) > 0:
+                res.extend(all_leaves(v))
+            else:
+                res.append(k)
         else:
             res.extend(get_used_leaves(v, method_list))
     return res
@@ -41,4 +44,4 @@ def get_used_leaves(root, method_list):
 def get_hooks_from_analysis(method_list):
     with open('src/dynapyt/utils/hierarchy.json') as f:
         hierarchy = json.load(f)
-    return get_used_leaves(hierarchy, method_list)
+    return set(get_used_leaves(hierarchy, method_list))
