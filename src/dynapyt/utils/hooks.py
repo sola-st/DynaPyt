@@ -1,5 +1,6 @@
 import json
 import builtins
+import keyword
 
 def snake(x):
     res = ''
@@ -11,7 +12,7 @@ def snake(x):
     return res.lower()
 
 def get_name(s):
-    if s in dir(builtins):
+    if (s in dir(builtins)) or (keyword.iskeyword(s)):
         return '_' + s
     return s
 

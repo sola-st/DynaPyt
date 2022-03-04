@@ -8,7 +8,7 @@ from dynapyt.runtime import _comp_op_
 
 _dynapyt_ast_ = __file__ + ".orig"
 try:
-    l = [-i for i in range(1000)]
+    l = set([-i for i in range(1000)])
     
     res = 0
     
