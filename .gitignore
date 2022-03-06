@@ -2,6 +2,7 @@ myenv
 *.swp
 *~
 *.json
+!src/dynapyt/utils/hierarchy.json
 __pycache__
 workspace.code-workspace
 *.egg-info

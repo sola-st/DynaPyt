@@ -8,7 +8,7 @@ class BaseAnalysis:
         self.asts = {}
     
     def _get_ast(self, filepath: str) -> cst.CSTNodeT:
-        if not (path.exists(filepath) and path.isfile(filepath)):
+        if not path.exists(filepath):
             return None
         if filepath not in self.asts:
             src = ''

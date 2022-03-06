@@ -8,7 +8,10 @@ Location = namedtuple("Location", ["file", "start_line", "start_column", "end_li
 
 class IIDs:
     def __init__(self, file_path):
-        file_path = file_path[:-3] + '.json'
+        if file_path.endswith('.py.orig'):
+            file_path = file_path[:-8] + '.json'
+        else:
+            file_path = file_path[:-3] + '.json'
         if not path.exists(file_path):
             with open(file_path, 'w') as f:
                 json.dump({'next_iid': 0, 'iid_to_location': {}}, f)

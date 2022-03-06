@@ -41,6 +41,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return stmt
     
     def __wrap_in_lambda(self, original_node, updated_node):
+        if len(m.findall(original_node, m.Await())) > 0:
+            return updated_node
         if m.matches(updated_node, m.Call(func=m.Name('super'), args=[])):
             class_arg = cst.Arg(value=cst.Name(value=self.current_class[-1]))
             function_arg = cst.Arg(value=cst.Name(value=self.current_function[-1].value))

@@ -10,10 +10,17 @@ class TraceAll(BaseAnalysis):
     
     def __init__(self) -> None:
         super().__init__()
+        self.danger_of_recursion = False
         logging.basicConfig(filename='output.log', format='%(message)s', encoding='utf-8', level=logging.INFO)
     
     def log(self, iid: int, *args):
-        self.__log(iid, ':', args)
+        res = ''
+        for arg in args:
+            if self.danger_of_recursion:
+                res += ' ' + str(hex(id(arg)))
+            else:
+                res += ' ' + str(arg)
+        logging.info(str(iid) + ': ' + res[:80])
 
     # Literals
 
@@ -84,14 +91,14 @@ class TraceAll(BaseAnalysis):
     # Instrumented function
 
     def function_enter(self, dyn_ast: str, iid: int, args: List[Any]) -> None:
-        ast = self.__get_ast(dyn_ast)
-        if get_node_by_location(ast, self.iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']:
+        ast, iids = self._get_ast(dyn_ast)
+        if get_node_by_location(ast, iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']:
             self.danger_of_recursion = True
         self.log(iid, 'Entered function', 'with arguments', args)
 
     def function_exit(self, dyn_ast: str, iid: int, result: Any) -> Any:
-        ast = self.__get_ast(dyn_ast)
-        if get_node_by_location(ast, self.iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']:
+        ast, iids = self._get_ast(dyn_ast)
+        if get_node_by_location(ast, iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']:
             self.danger_of_recursion = True
         self.log(iid, 'Exiting function', '->', result)
     
