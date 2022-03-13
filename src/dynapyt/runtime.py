@@ -280,13 +280,20 @@ def _tuple_(dyn_ast, iid, val):
 
 def _delete_(dyn_ast, iid, del_target):
     call_if_exists('runtime_event', dyn_ast, iid)
-    target = del_target()
-    call_if_exists('memory_access', dyn_ast, iid, target)
-    cancel = call_if_exists('delete', dyn_ast, iid, target)
-    if cancel:
+    call_if_exists('memory_access', dyn_ast, iid, del_target)
+    cancel = call_if_exists('delete', dyn_ast, iid, del_target)
+    if (cancel is not None) and (cancel == True):
         pass
     else:
-        del target
+        for dt in del_target:
+            base, offset, is_sub = dt
+            if is_sub:
+                if len(offset) == 1:
+                    base.__delitem__(offset[0])
+                else:
+                    base.__delitem__(slice(offset))
+            else:
+                delattr(base, offset)
 
 def _attr_(dyn_ast, iid, base, attr):
     call_if_exists('runtime_event', dyn_ast, iid)
@@ -301,8 +308,7 @@ def _attr_(dyn_ast, iid, base, attr):
             cur_par = parents.pop()
             try:
                 cur_name = cur_par.__name__
-                while cur_name.startswith('_'):
-                    cur_name = cur_name[1:]
+                cur_name = cur_name.lstrip('_')
                 val = getattr(base, '_'+cur_name+attr)
             except AttributeError:
                 found = False
@@ -472,9 +478,10 @@ def _gen_(dyn_ast, iid, iterator):
         try:
             it = next(new_iter)
             result = _enter_for_(dyn_ast, iid, it)
-            if (result is not None) and (isinstance(result, bool) and (result == False)):
-                return
-            yield it
+            if result is not None:
+                yield result
+            else:
+                yield it
         except StopIteration:
             _enter_for_(dyn_ast, iid, StopIteration())
             return

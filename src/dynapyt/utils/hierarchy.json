@@ -90,7 +90,8 @@
                     "exit_if": { },
                     "exit_for": { },
                     "exit_while": { }
-                }
+                },
+                "assert" : { }
             },
             "raise": { },
             "try": {
@@ -106,7 +107,10 @@
             "continue": { },
             "function": {
                 "function_enter": { },
-                "function_exit": { }
+                "function_exit": {
+                    "return": { },
+                    "yield": { }
+                }
             },
             "lambda": { }
         },

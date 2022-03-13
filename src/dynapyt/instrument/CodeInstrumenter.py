@@ -83,6 +83,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     
     def visit_Decorator(self, node):
         return False
+    
+    def visit_AsName(self, node):
+        return False
 
     # Top level
 
@@ -113,6 +116,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_ClassDef(self, original_node, updated_node):
         self.current_class.pop()
         return updated_node
+    
+    def leave_SimpleStatementSuite(self, original_node, updated_node):
+        new_node = cst.IndentedBlock(body=[cst.SimpleStatementLine(body=updated_node.body)])
+        return new_node
 
     # Lowest level
     @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.AnnAssign())
@@ -124,7 +131,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
             iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
             val_arg = cst.Arg(value=updated_node)
-            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
             return call
 
         if 'read_identifier' not in self.selected_hooks:
@@ -144,7 +151,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
             iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
             var_arg = cst.Arg(value=self.__wrap_in_lambda(original_node, updated_node))
-            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, var_arg])
+            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, var_arg], lpar=original_node.lpar, rpar=original_node.rpar)
             return call
         else:
             return updated_node
@@ -158,7 +165,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node)
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
     def leave_Float(self, original_node, updated_node):
@@ -170,7 +177,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node)
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
     def leave_Imaginary(self, original_node, updated_node):
@@ -182,7 +189,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node)
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
 
     def visit_ConcatenatedString(self, node):
@@ -198,7 +205,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node)
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
 
         return call
 
@@ -218,7 +225,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node)
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
     @call_if_not_inside(m.ConcatenatedString())
@@ -232,9 +239,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         val_arg = cst.Arg(value=updated_node)
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
+    @call_if_not_inside(m.AssignTarget() | m.AnnAssign())
     def leave_Dict(self, original_node, updated_node):
         if 'dictionary' not in self.selected_hooks:
             return updated_node
@@ -250,7 +258,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             else:
                 elements_arg.append(cst.Element(value=cst.Tuple(elements=[cst.Element(value=e.key), cst.Element(value=e.value)])))
         val_arg = cst.Arg(value=cst.List(elements=elements_arg))
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
     def leave_DictComp(self, original_node, updated_node):
@@ -263,9 +271,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         elements_arg = cst.Element(value=cst.Tuple(elements=[cst.Element(value=updated_node.key), cst.Element(value=updated_node.value)]))
         val_arg = cst.Arg(value=cst.ListComp(elt=elements_arg, for_in=updated_node.for_in))
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
+    @call_if_not_inside(m.AssignTarget() | m.AnnAssign())
     def leave_List(self, original_node, updated_node):
         if 'list' not in self.selected_hooks:
             return updated_node
@@ -276,10 +285,22 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         elements_arg = updated_node.elements
         val_arg = cst.Arg(value=cst.List(elements=elements_arg))
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
-    @call_if_not_inside(m.AssignTarget())
+    def leave_ListComp(self, original_node, updated_node):
+        if 'list' not in self.selected_hooks:
+            return updated_node
+        callee_name = cst.Name(value='_list_')
+        self.to_import.add('_list_')
+        iid = self.__create_iid(original_node)
+        ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        val_arg = cst.Arg(value=updated_node)
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
+        return call
+    
+    @call_if_not_inside(m.AssignTarget() | m.AnnAssign())
     def leave_Tuple(self, original_node, updated_node):
         if 'tuple' not in self.selected_hooks:
             if len(updated_node.lpar) == 0:
@@ -295,10 +316,11 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         elements_arg = [cst.Element(e.value) for e in updated_node.elements]
         val_arg = cst.Arg(value=cst.List(elements=elements_arg))
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
 
     # Memory access
+
     def leave_Del(self, original_node, updated_node):
         if 'delete' not in self.selected_hooks:
             return updated_node
@@ -307,7 +329,46 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        target_arg = cst.Arg(value=self.__wrap_in_lambda(original_node.target, updated_node.target))
+        targets = []
+        if m.matches(original_node.target, m.Tuple()):
+            org_targets = [e.value for e in original_node.target.elements]
+            if m.matches(updated_node.target, m.Call()):
+                all_targets = [e.value for e in updated_node.target.args[2].value.elements]
+            else:
+                all_targets = [e.value for e in updated_node.target.elements]
+        else:
+            all_targets = [updated_node.target]
+            org_targets = [original_node.target]
+        for t, t_o in zip(all_targets, org_targets):
+            if m.matches(t_o, m.Subscript()):
+                if m.matches(t, m.Call()):
+                    # triplets of (base, offset, is_subscript)
+                    targets.append(cst.Element(value=cst.Tuple(elements=[cst.Element(value=t.args[2].value), cst.Element(value=t.args[3].value), cst.Element(value=cst.Name('True'))])))
+                else:
+                    name_arg = t.value
+                    slices = []
+                    for i in t.slice:
+                        if m.matches(i.slice, m.Slice()):
+                            slices.append(cst.Element(cst.Call(func=cst.Name('slice'), args=[
+                                cst.Arg(i.slice.lower if i.slice.lower != None else cst.Name('None')),
+                                cst.Arg(i.slice.upper if i.slice.upper != None else cst.Name('None')),
+                                cst.Arg(i.slice.step if i.slice.step != None else cst.Name('None'))])))
+                        else:
+                            slices.append(cst.Element(i.slice.value))
+                    slice_arg = cst.List(elements=slices)
+                    targets.append(cst.Element(value=cst.Tuple(elements=[cst.Element(value=name_arg), cst.Element(value=slice_arg), cst.Element(value=cst.Name('True'))])))
+            elif m.matches(t_o, m.Attribute()):
+                if m.matches(t, m.Call()):
+                    targets.append(cst.Element(value=cst.Tuple(elements=[cst.Element(value=t.args[2].value), cst.Element(value=t.args[3].value), cst.Element(value=cst.Name('False'))])))
+                else:
+                    base_arg = t.value
+                    attr_arg = cst.SimpleString(value=self.__as_string(str(t.attr.value)))
+                    targets.append(cst.Element(value=cst.Tuple(elements=[cst.Element(value=base_arg), cst.Element(value=attr_arg), cst.Element(value=cst.Name('False'))])))
+            elif m.matches(t_o, m.Name()):
+                condition = cst.Comparison(left=cst.SimpleString(value='"'+t_o.value+'"'), comparisons=[cst.ComparisonTarget(operator=cst.In(), comparator=cst.Call(func=cst.Name('locals')))])
+                base = cst.IfExp(test=condition, body=cst.Call(func=cst.Name('locals')), orelse=cst.Call(func=cst.Name('globals')))
+                targets.append(cst.Element(value=cst.Tuple(elements=[cst.Element(value=base), cst.Element(value=cst.List(elements=[cst.Element(value=cst.SimpleString(value='"'+t_o.value+'"'))])), cst.Element(value=cst.Name('True'))])))
+        target_arg = cst.Arg(cst.List(elements=targets))
         call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, target_arg])
         return cst.Expr(value=call)
     
@@ -331,7 +392,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             else:
                 slices.append(cst.Element(i.slice.value))
         slice_arg = cst.Arg(cst.List(elements=slices))
-        return cst.Call(func=callee_name, args=[ast_arg, iid_arg, name_arg, slice_arg])
+        return cst.Call(func=callee_name, args=[ast_arg, iid_arg, name_arg, slice_arg], lpar=original_node.lpar, rpar=original_node.rpar)
     
     @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.AnnAssign())
     def leave_Attribute(self, original_node, updated_node):
@@ -344,7 +405,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         base_arg = cst.Arg(updated_node.value)
         attr_arg = cst.Arg(cst.SimpleString(value=self.__as_string(str(updated_node.attr.value))))
-        return cst.Call(func=callee_name, args=[ast_arg, iid_arg, base_arg, attr_arg])
+        return cst.Call(func=callee_name, args=[ast_arg, iid_arg, base_arg, attr_arg], lpar=original_node.lpar, rpar=original_node.rpar)
 
     # Operations
     def leave_BinaryOperation(self, original_node, updated_node):
@@ -363,7 +424,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         operator_arg = cst.Arg(cst.Integer(str(bin_op[operator_name])))
         right_arg = cst.Arg(self.__wrap_in_lambda(original_node.right, updated_node.right))
         call = cst.Call(func=callee_name, args=[
-                        ast_arg, iid_arg, left_arg, operator_arg, right_arg])
+                        ast_arg, iid_arg, left_arg, operator_arg, right_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
 
     def leave_BooleanOperation(self, original_node, updated_node):
@@ -380,7 +441,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         operator_arg = cst.Arg(cst.Integer(str(bool_op[operator_name])))
         right_arg = cst.Arg(self.__wrap_in_lambda(original_node.right, updated_node.right))
         call = cst.Call(func=callee_name, args=[
-                        ast_arg, iid_arg, left_arg, operator_arg, right_arg])
+                        ast_arg, iid_arg, left_arg, operator_arg, right_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
     def leave_UnaryOperation(self, original_node, updated_node):
@@ -396,7 +457,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         operator_arg = cst.Arg(cst.Integer(str(un_op[operator_name])))
         right_arg = cst.Arg(updated_node.expression)
         call = cst.Call(func=callee_name, args=[
-                        ast_arg, iid_arg, operator_arg, right_arg])
+                        ast_arg, iid_arg, operator_arg, right_arg], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
     def leave_Comparison(self, original_node, updated_node):
@@ -416,7 +477,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             operator_name = type(i.operator).__name__
             comparisons.append(cst.Element(value=cst.Tuple(elements=[cst.Element(cst.Integer(str(comp_op[operator_name]))), cst.Element(i.comparator)])))
         call = cst.Call(func=callee_name, args=[
-                        ast_arg, iid_arg, left_arg, cst.Arg(cst.List(elements=comparisons))])
+                        ast_arg, iid_arg, left_arg, cst.Arg(cst.List(elements=comparisons))], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
     def leave_Assign(self, original_node, updated_node):
@@ -427,10 +488,16 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        val_arg = cst.Arg(value=updated_node.value)
+        if m.matches(updated_node.value, m.Yield()):
+            val_arg = cst.Arg(value=updated_node.value.value)
+        else:
+            val_arg = cst.Arg(value=updated_node.value)
         left_arg = cst.Arg(value=cst.List(elements=[cst.Element(self.__wrap_in_lambda(tu.target, tu.target)) for to, tu in zip(original_node.targets, updated_node.targets)]))
         call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg, left_arg])
-        return updated_node.with_changes(value=call)
+        if m.matches(updated_node.value, m.Yield()):
+            return updated_node.with_changes(value=updated_node.value.with_changes(value=call))
+        else:
+            return updated_node.with_changes(value=call)
     
     def leave_AugAssign(self, original_node, updated_node):
         if ('write' not in self.selected_hooks) and (snake(type(original_node.operator).__name__) not in self.selected_hooks):
@@ -529,8 +596,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         else:
             return updated_node.with_changes(value=call, whitespace_after_yield=cst.SimpleWhitespace(' '))
 
-    def visit_Assert(self, node):
-        return False
+    # def visit_Assert(self, node):
+    #     return False
 
     def leave_Assert(self, original_node, updated_node):
         if 'assert' not in self.selected_hooks:
@@ -568,11 +635,11 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             (any(a for a in updated_node.args if m.matches(a.value, m.GeneratorExp())))):
             call_arg = cst.Arg(value=updated_node)
             only_post = cst.Arg(value=cst.Name('True'))
-            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, call_arg, only_post, cst.Arg(value=cst.Name('None')), cst.Arg(value=cst.Name('None'))])
+            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, call_arg, only_post, cst.Arg(value=cst.Name('None')), cst.Arg(value=cst.Name('None'))], lpar=original_node.lpar, rpar=original_node.rpar)
         else:
             call_arg = cst.Arg(value=updated_node.func)
             only_post = cst.Arg(value=cst.Name('False'))
-            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, call_arg, only_post, positional_args, keyword_args])
+            call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, call_arg, only_post, positional_args, keyword_args], lpar=original_node.lpar, rpar=original_node.rpar)
         return call
     
     # Exception
@@ -661,7 +728,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 call = cst.Call(func=callee_name, args=[ast_arg, iid_arg])
                 condition = cst.If(test=call, body=cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[cst.Break()])]))
                 new_body.append(condition)
-            if ('continue' in self.selected_hooks) and (m.matches(i, m.SimpleStatementLine(body=[m.Continue()]))):
+            elif ('continue' in self.selected_hooks) and (m.matches(i, m.SimpleStatementLine(body=[m.Continue()]))):
                 callee_name = cst.Name(value='_continue_')
                 self.to_import.add('_continue_')
                 iid = self.__create_iid(original_node)
@@ -692,7 +759,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             end_name = cst.Name(value='_exit_if_')
             self.to_import.add('_exit_if_')
             end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
-            new_body = cst.IndentedBlock(body=updated_node.body.body + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])])
+            if m.matches(updated_node.body, m.SimpleStatementSuite()):
+                new_body = cst.IndentedBlock(body=[cst.SimpleStatementLine(body=updated_node.body.body), cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])])
+            else:
+                new_body = cst.IndentedBlock(body=list(updated_node.body.body) + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])])
         else:
             new_body = updated_node.body
         return updated_node.with_changes(test=call, whitespace_before_test=cst.SimpleWhitespace(' '), body=new_body)

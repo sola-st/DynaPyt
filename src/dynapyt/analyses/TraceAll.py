@@ -71,22 +71,22 @@ class TraceAll(BaseAnalysis):
     # Memory access
 
     def memory_access(self, dyn_ast: str, iid: int, val: Any) -> Any:
-        self.log(iid, 'Accessing', '->', val)
+        self.log(iid, 'Accessing')
     
     def read_identifier(self, dyn_ast: str, iid: int, val: Any) -> Any:
-        self.log(iid, '    Reading', '->', val)
+        self.log(iid, '    Reading')
 
     def write(self, dyn_ast: str, iid: int, old_val: Any, new_val: Any) -> Any:
-        self.log(iid, '    Writing', '->', new_val, '(old:', old_val, ')')
+        self.log(iid, '    Writing')
 
     def delete(self, dyn_ast: str, iid: int, val: Any) -> Optional[bool]:
-        self.log(iid, '    Deleting', '->', val)
+        self.log(iid, '    Deleting')
 
     def read_attribute(self, dyn_ast: str, iid: int, base: Any, name: str, val: Any) -> Any:
-        self.log(iid, 'Attribute', name, 'of', base, '->', val)
+        self.log(iid, 'Attribute', name)
     
     def read_subscript(self, dyn_ast: str, iid: int, base: Any, sl: List[Union[int, Tuple]], val: Any) -> Any:
-        self.log(iid, 'Slice', sl, 'of', base, '->', val)
+        self.log(iid, 'Slice', sl)
 
     # Instrumented function
 

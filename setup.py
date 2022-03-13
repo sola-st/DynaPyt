@@ -22,5 +22,9 @@ setuptools.setup(
     ],
     package_dir={"": "src", "test": "test"},
     packages=setuptools.find_packages(where="src"),
+    package_data={
+        'dynapyt': ['utils/hierarchy.json'],
+    },
+    include_package_data=True,
     python_requires=">=3.6",
 )

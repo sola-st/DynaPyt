@@ -22,6 +22,7 @@ def _dynapyt_parse_to_ast_(code):
 
 def _write_(dyn_ast, iid, right, left):
     call_if_exists('runtime_event', dyn_ast, iid)
+    call_if_exists('memory_access', dyn_ast, iid, right)
     new_left = left
     res = call_if_exists('write', dyn_ast, iid, new_left, right)
     if res != None:
@@ -33,8 +34,10 @@ def _aug_assign_(dyn_ast, iid, left, opr, right):
     operator = ['AddAssign', 'BitAndAssign', 'BitOrAssign', 'BitXorAssign', 'DivideAssign',
             'FloorDivideAssign', 'LeftShiftAssign', 'MatrixMultiplyAssign', 'ModuloAssign',
             'MultiplyAssign', 'PowerAssign', 'RightShiftAssign', 'SubtractAssign']
-    call_if_exists(snake(operator[opr][:-6]), dyn_ast, iid, left, right)
+    call_if_exists('operation', dyn_ast, iid, operator[opr][:-6], [left, right], None)
     call_if_exists('binary_operation', dyn_ast, iid, operator[opr][:-6], left, right, None)
+    call_if_exists(snake(operator[opr][:-6]), dyn_ast, iid, left, right)
+    call_if_exists('memory_access', dyn_ast, iid, right)
     call_if_exists('write', dyn_ast, iid, [left], right)
     result_high = call_if_exists('augmented_assignment', dyn_ast, iid, left, operator[opr], right)
     result_low = call_if_exists(get_name(snake(operator[opr])), dyn_ast, iid, left, right)
@@ -107,6 +110,7 @@ def _binary_op_(dyn_ast, iid, left, opr, right):
             except TypeError:
                 pass
             result = left or right
+    call_if_exists('operation', dyn_ast, iid, bin_op[opr], [left, right], result)
     result_high = call_if_exists('binary_operation', dyn_ast, iid, bin_op[opr], left, right, result)
     result_low = call_if_exists(get_name(snake(bin_op[opr])), dyn_ast, iid, left, right, result)
     if result_low != None:
@@ -126,6 +130,7 @@ def _unary_op_(dyn_ast, iid, opr, right):
         result = not right
     elif opr == 3:
         result = + right
+    call_if_exists('operation', dyn_ast, iid, un_op[opr], [right], result)
     result_high = call_if_exists('unary_operation', dyn_ast, iid, un_op[opr], right, result)
     result_low = call_if_exists(get_name(snake(un_op[opr])), dyn_ast, iid, right, result)
     if result_low != None:
@@ -161,6 +166,7 @@ def _comp_op_(dyn_ast, iid, left, comparisons):
             tmp = l is not r
         elif op == 9:
             tmp = l not in r
+        call_if_exists('operation', dyn_ast, iid, comp_op[op], [left, r], tmp)
         result_high = call_if_exists('comparison', dyn_ast, iid, l, comp_op[op], r, tmp)
         result_low = call_if_exists(get_name(snake(comp_op[op])), dyn_ast, iid, l, r, tmp)
         if result_low != None:
@@ -255,29 +261,39 @@ def _dict_(dyn_ast, iid, val):
             value.update(v)
         else:
             value.update({v[0]: v[1]})
+    call_if_exists('literal', dyn_ast, iid, value)
     call_if_exists('dictionary', dyn_ast, iid, val, value)
     return value
 
 def _list_(dyn_ast, iid, val):
     call_if_exists('runtime_event', dyn_ast, iid)
+    call_if_exists('literal', dyn_ast, iid, val)
     call_if_exists('_list', dyn_ast, iid, val)
     return val
 
 def _tuple_(dyn_ast, iid, val):
     call_if_exists('runtime_event', dyn_ast, iid)
     value = tuple(val)
+    call_if_exists('literal', dyn_ast, iid, value)
     call_if_exists('_tuple', dyn_ast, iid, val, value)
     return value
 
 def _delete_(dyn_ast, iid, del_target):
     call_if_exists('runtime_event', dyn_ast, iid)
-    target = del_target()
-    call_if_exists('memory_access', dyn_ast, iid, target)
-    cancel = call_if_exists('delete', dyn_ast, iid, target)
-    if cancel:
+    call_if_exists('memory_access', dyn_ast, iid, del_target)
+    cancel = call_if_exists('delete', dyn_ast, iid, del_target)
+    if (cancel is not None) and (cancel == True):
         pass
     else:
-        del target
+        for dt in del_target:
+            base, offset, is_sub = dt
+            if is_sub:
+                if len(offset) == 1:
+                    base.__delitem__(offset[0])
+                else:
+                    base.__delitem__(slice(offset))
+            else:
+                delattr(base, offset)
 
 def _attr_(dyn_ast, iid, base, attr):
     call_if_exists('runtime_event', dyn_ast, iid)
@@ -292,8 +308,7 @@ def _attr_(dyn_ast, iid, base, attr):
             cur_par = parents.pop()
             try:
                 cur_name = cur_par.__name__
-                while cur_name.startswith('_'):
-                    cur_name = cur_name[1:]
+                cur_name = cur_name.lstrip('_')
                 val = getattr(base, '_'+cur_name+attr)
             except AttributeError:
                 found = False
@@ -304,6 +319,7 @@ def _attr_(dyn_ast, iid, base, attr):
             raise AttributeError()
     else:
         val = getattr(base, attr)
+    call_if_exists('memory_access', dyn_ast, iid, val)
     result = call_if_exists('read_attribute', dyn_ast, iid, base, attr, val)
     return result if result != None else val
 
@@ -313,6 +329,7 @@ def _sub_(dyn_ast, iid, base, sl):
         val = base[sl[0]]
     else:
         val = base[tuple(sl)]
+    call_if_exists('memory_access', dyn_ast, iid, val)
     result = call_if_exists('read_subscript', dyn_ast, iid, base, sl, val)
     return result if result != None else val
 
@@ -461,9 +478,10 @@ def _gen_(dyn_ast, iid, iterator):
         try:
             it = next(new_iter)
             result = _enter_for_(dyn_ast, iid, it)
-            if (result is not None) and (isinstance(result, bool) and (result == False)):
-                return
-            yield it
+            if result is not None:
+                yield result
+            else:
+                yield it
         except StopIteration:
             _enter_for_(dyn_ast, iid, StopIteration())
             return
