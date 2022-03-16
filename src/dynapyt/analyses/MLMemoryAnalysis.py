@@ -6,25 +6,18 @@ class MLMemoryAnalysis(BaseAnalysis):
     def __init__(self) -> None:
         super().__init__()
         self.in_ctrl_flow = []
+        self.threshold = 3
         self.memory_leak = defaultdict(lambda: 0)
         self.last_opr = None
     
-    def runtime_event(self, dyn_ast, iid):
-        self.last_opr = None
-    
     def enter_control_flow(self, dyn_ast, iid, condition):
-        self.in_ctrl_flow.append(iid)
+        self.last_opr = None
+        if (len(self.in_ctrl_flow) > 0) and (self.in_ctrl_flow[-1] != iid):
+            self.in_ctrl_flow.append(iid)
     
     def exit_control_flow(self, dyn_ast, iid):
+        self.last_opr = None
         self.in_ctrl_flow.pop()
-    
-    def augmented_assignment(self, dyn_ast, iid, left, opr, right):
-        if (len(self.in_ctrl_flow) > 0) and right.requires_grad:
-            cur = (iid, self.in_ctrl_flow[-1])
-            self.memory_leak[cur] += 1
-            if self.memory_leak[cur] > 3:
-                print('Memory issue detected')
-                exit(0)
     
     def binary_operation(self, dyn_ast, iid, opr, left, right, res):
         if (len(self.in_ctrl_flow) > 0) and right.requires_grad:
@@ -38,4 +31,5 @@ class MLMemoryAnalysis(BaseAnalysis):
             self.memory_leak[cur] += 1
             if self.memory_leak[cur] > 3:
                 print('Memory issue detected')
-                exit(0)
+                exit(1)
+        self.last_opr = None

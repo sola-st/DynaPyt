@@ -376,9 +376,9 @@ def _if_(dyn_ast, iid, val):
     result = call_if_exists('_if', dyn_ast, iid, val)
     return result if result != None else val
 
-def _func_entry_(dyn_ast, iid, args):
+def _func_entry_(dyn_ast, iid, args, is_lambda=False):
     call_if_exists('runtime_event', dyn_ast, iid)
-    call_if_exists('function_enter', dyn_ast, iid, args)
+    call_if_exists('function_enter', dyn_ast, iid, args, is_lambda)
 
 def _func_exit_(dyn_ast, iid):
     call_if_exists('runtime_event', dyn_ast, iid)
@@ -411,7 +411,7 @@ def _assert_(dyn_ast, iid, test, msg):
     return result if result is not None else test
 
 def _lambda_(dyn_ast, iid, args, expr):
-    _func_entry_(dyn_ast, iid, args)
+    _func_entry_(dyn_ast, iid, args, True)
     res = expr()
     return _return_(dyn_ast, iid, res)
 
@@ -473,7 +473,7 @@ def _exit_for_(dyn_ast, iid):
     call_if_exists('exit_for', dyn_ast, iid)
 
 def _gen_(dyn_ast, iid, iterator):
-    new_iter = iterator.__iter__()
+    new_iter = iter(iterator)
     while True:
         try:
             it = next(new_iter)

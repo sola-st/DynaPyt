@@ -10,16 +10,15 @@ class TraceAll(BaseAnalysis):
     
     def __init__(self) -> None:
         super().__init__()
-        self.danger_of_recursion = False
         logging.basicConfig(filename='output.log', format='%(message)s', encoding='utf-8', level=logging.INFO)
     
-    def log(self, iid: int, *args):
+    def log(self, iid: int, *args, **kwargs):
         res = ''
-        for arg in args:
-            if self.danger_of_recursion:
-                res += ' ' + str(hex(id(arg)))
-            else:
-                res += ' ' + str(arg)
+        # for arg in args:
+        #     if 'danger_of_recursion' in kwargs:
+        #         res += ' ' + str(hex(id(arg)))
+        #     else:
+        #         res += ' ' + str(arg)
         logging.info(str(iid) + ': ' + res[:80])
 
     # Literals
@@ -90,17 +89,17 @@ class TraceAll(BaseAnalysis):
 
     # Instrumented function
 
-    def function_enter(self, dyn_ast: str, iid: int, args: List[Any]) -> None:
-        ast, iids = self._get_ast(dyn_ast)
-        if get_node_by_location(ast, iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']:
-            self.danger_of_recursion = True
-        self.log(iid, 'Entered function', 'with arguments', args)
+    def function_enter(self, dyn_ast: str, iid: int, args: List[Any], is_lambda: bool) -> None:
+        tmp = self._get_ast(dyn_ast)
+        if tmp is not None:
+            ast, iids = tmp
+        else:
+            return
+        if (not is_lambda) and (get_node_by_location(ast, iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']):
+            self.log(iid, 'Entered function', danger_of_recursion=True)
 
     def function_exit(self, dyn_ast: str, iid: int, result: Any) -> Any:
-        ast, iids = self._get_ast(dyn_ast)
-        if get_node_by_location(ast, iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']:
-            self.danger_of_recursion = True
-        self.log(iid, 'Exiting function', '->', result)
+        self.log(iid, 'Exiting function')
     
     def _return(self, dyn_ast: str, iid: int, value: Any) -> Any:
         self.log(iid, '   Returning', value)

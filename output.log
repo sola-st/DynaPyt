@@ -2679,3 +2679,119 @@ eEOPlILoK9    0.271973
 13:  Accessing -> [({'__name__': '__main__', '__doc__': None, '__package__': 'dynapy
 13:      Deleting -> [({'__name__': '__main__', '__doc__': None, '__package__': 'dyn
 -1:  Uncaught exception name 'a' is not defined <traceback object at 0x7f5c4afae640>
+-1:  Execution started
+4:  Accessing
+4:      Reading
+5:  Literal    value: 1
+5:      Integer value: 1
+6:  Literal    value: 2
+6:      Integer value: 2
+7:  Literal    value: 3
+7:      Integer value: 3
+8:  Before function call
+0:  Accessing
+0:      Reading
+1:  After function call
+2:  Accessing
+2:      Reading
+3:  After function call
+8:  After function call
+9:  Accessing
+9:      Reading
+10:  Literal    value: 1
+10:      Integer value: 1
+11:  Literal    value: 2
+11:      Integer value: 2
+12:  Literal    value: 3
+12:      Integer value: 3
+13:  Before function call
+0:  Accessing
+0:      Reading
+1:  After function call
+2:  Accessing
+2:      Reading
+3:  After function call
+13:  After function call
+14:  Literal    value: a
+14:      String value: a
+15:  Literal    value: 1
+15:      Integer value: 1
+16:  Literal    value: b
+16:      String value: b
+17:  Literal    value: 2
+17:      Integer value: 2
+18:  Literal    value: c
+18:      String value: c
+19:  Literal    value: 3
+19:      Integer value: 3
+20:  Literal    value: {'a': 1, 'b': 2, 'c': 3}
+20:  Dictionary items: [('a', 1), ('b', 2), ('c', 3)]
+21:  Accessing
+21:      Writing
+22:  Accessing
+22:      Reading
+23:  Accessing
+23:      Reading
+-1:  Uncaught exception dict expected at most 1 argument, got 2 <traceback object at
+-1:  Execution started
+4:  Accessing
+4:      Reading
+5:  Literal    value: 1
+5:      Integer value: 1
+6:  Literal    value: 2
+6:      Integer value: 2
+7:  Literal    value: 3
+7:      Integer value: 3
+8:  Before function call
+0:  Accessing
+0:      Reading
+1:  After function call
+2:  Accessing
+2:      Reading
+3:  After function call
+8:  After function call
+9:  Accessing
+9:      Reading
+10:  Literal    value: 1
+10:      Integer value: 1
+11:  Literal    value: 2
+11:      Integer value: 2
+12:  Literal    value: 3
+12:      Integer value: 3
+13:  Before function call
+0:  Accessing
+0:      Reading
+1:  After function call
+2:  Accessing
+2:      Reading
+3:  After function call
+13:  After function call
+14:  Literal    value: a
+14:      String value: a
+15:  Literal    value: 1
+15:      Integer value: 1
+16:  Literal    value: b
+16:      String value: b
+17:  Literal    value: 2
+17:      Integer value: 2
+18:  Literal    value: c
+18:      String value: c
+19:  Literal    value: 3
+19:      Integer value: 3
+20:  Literal    value: {'a': 1, 'b': 2, 'c': 3}
+20:  Dictionary items: [('a', 1), ('b', 2), ('c', 3)]
+21:  Accessing
+21:      Writing
+22:  Accessing
+22:      Reading
+23:  Accessing
+23:      Reading
+24:  Before function call
+0:  Accessing
+0:      Reading
+1:  After function call
+2:  Accessing
+2:      Reading
+3:  After function call
+24:  After function call
+-1:  Execution ended
