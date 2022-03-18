@@ -60,12 +60,100 @@ class TraceAll(BaseAnalysis):
 
     def binary_operation(self, dyn_ast: str, iid: int, op: str, left: Any, right: Any, result: Any) -> Any:
         self.log(iid, 'Binary Operation', left, op, right, '->', result)
+    
+    def add(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def bit_and(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def bit_or(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def bit_xor(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def divide(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def floor_divide(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def left_shift(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def right_shift(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def matrix_multiply(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def modulo(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def multiply(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def power(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def subtract(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def _and(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
+    
+    def _or(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Binary Operation', left, right, '->', result)
 
-    def unary_operation(self, dyn_ast: str, iid: int, op: str, arg: Any, result: Any) -> Any:
-        self.log(iid, 'Unary Operation', op, arg, '->', result)
+    def unary_operation(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
+        self.log(iid, 'Unary Operation', arg, '->', result)
+    
+    def bit_invert(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
+        self.log(iid, 'Unary Operation', arg, '->', result)
+    
+    def minus(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
+        self.log(iid, 'Unary Operation', arg, '->', result)
+
+    def _not(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
+        self.log(iid, 'Unary Operation', arg, '->', result)
+    
+    def plus(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
+        self.log(iid, 'Unary Operation', arg, '->', result)
 
     def comparison(self, dyn_ast: str, iid: int, op: str, left: Any, right: Any, result: Any) -> Any:
         self.log(iid, 'Comparison', left, op, right, '->', result)
+    
+    def equal(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Comparison', left, right, '->', result)
+    
+    def greater_than(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Comparison', left, right, '->', result)
+    
+    def greater_than_equal(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Comparison', left, right, '->', result)
+    
+    def _in(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Comparison', left, right, '->', result)
+    
+    def _is(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Comparison', left, right, '->', result)
+
+    def less_than(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Comparison', left, right, '->', result)
+
+    def less_than_equal(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Comparison', left, right, '->', result)
+
+    def not_equal(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Comparison', left, right, '->', result)
+
+    def is_not(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Comparison', left, right, '->', result)
+
+    def not_in(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        self.log(iid, 'Comparison', left, right, '->', result)
+
 
     # Memory access
 
