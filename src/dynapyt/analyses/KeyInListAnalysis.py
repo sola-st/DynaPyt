@@ -8,3 +8,7 @@ class KeyInListAnalysis(BaseAnalysis):
     def _in(self, dyn_ast, iid, left, right, result):
         if isinstance(right, list) and len(right) > self.threshold:
             print('Dynapyt warning: checking key in list is less efficient than checking key in set')
+    
+    def not_in(self, dyn_ast, iid, left, right, result):
+        if isinstance(right, list) and len(right) > self.threshold:
+            print('Dynapyt warning: checking key in list is less efficient than checking key in set')

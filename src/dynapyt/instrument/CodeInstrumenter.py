@@ -414,7 +414,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         bin_op = {'Add': 0, 'BitAnd': 1, 'BitOr': 2, 'BitXor': 3, 'Divide': 4,
             'FloorDivide': 5, 'LeftShift': 6, 'MatrixMultiply': 7, 'Modulo': 8,
             'Multiply': 9, 'Power': 10, 'RightShift': 11, 'Subtract': 12}
-        callee_name = cst.Name(value="_binary_op_")
+        callee_name = cst.Name(value='_binary_op_')
         self.to_import.add('_binary_op_')
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))

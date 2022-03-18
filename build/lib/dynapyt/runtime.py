@@ -57,7 +57,7 @@ def _binary_op_(dyn_ast, iid, left, opr, right):
             left = left()
             right = right()
         except TypeError:
-            pass
+            raise
     if opr == 0:
         result = left + right
     elif opr == 1:
@@ -88,12 +88,12 @@ def _binary_op_(dyn_ast, iid, left, opr, right):
         try:
             left = left()
         except TypeError:
-            pass
+            raise
         if left:
             try:
                 right = right()
             except TypeError:
-                pass
+                raise
             result = left and right
         else:
             result = left
@@ -101,14 +101,14 @@ def _binary_op_(dyn_ast, iid, left, opr, right):
         try:
             left = left()
         except TypeError:
-            pass
+            raise
         if left:
             result = left
         else:
             try:
                 right = right()
             except TypeError:
-                pass
+                raise
             result = left or right
     call_if_exists('operation', dyn_ast, iid, bin_op[opr], [left, right], result)
     result_high = call_if_exists('binary_operation', dyn_ast, iid, bin_op[opr], left, right, result)
