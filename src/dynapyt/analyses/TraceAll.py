@@ -22,9 +22,6 @@ class TraceAll(BaseAnalysis):
         logging.info(str(iid) + ': ' + res[:80])
 
     # Literals
-
-    def number(self, dyn_ast: str, iid: int, val: Any) -> Any:
-        self.log(iid, '    Number', 'value:', val)
     
     def integer(self, dyn_ast: str, iid: int, val: Any) -> Any:
         self.log(iid, '    Integer', 'value:', val)
@@ -207,6 +204,45 @@ class TraceAll(BaseAnalysis):
     
     def augmented_assignment(self, dyn_ast: str, iid: int, left: Any, op: str, right: Any) -> Any:
         self.log(iid, 'Augmented assignment', left, op, right)
+    
+    def add_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def bit_and_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def bit_or_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def bit_xor_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def divide_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def floor_divide_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def left_shift_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def matrix_multiply_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def modulo_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def multiply_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def power_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def right_shift_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
+    
+    def subtract_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        self.log(iid, 'Augmented assignment', left, right)
 
     def _raise(self, dyn_ast: str, iid: int, exc: Exception, cause: Any) -> Optional[Exception]:
         self.log(iid, 'Exception raised', exc, 'because of', cause)

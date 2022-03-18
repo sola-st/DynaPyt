@@ -4,11 +4,9 @@
         "end_execution": { },
         "uncaught_exception": { },
         "literal": {
-            "number": {
-                "integer": { },
-                "float": { },
-                "imaginary": { }
-            },
+            "integer": { },
+            "float": { },
+            "imaginary": { },
             "boolean": { },
             "string": { },
             "dictionary": { },
