@@ -103,7 +103,7 @@ class TraceAll(BaseAnalysis):
     def _or(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
         self.log(iid, 'Binary Operation', left, right, '->', result)
 
-    def unary_operation(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
+    def unary_operation(self, dyn_ast: str, iid: int, opr: Any, arg: Any, result: Any) -> Any:
         self.log(iid, 'Unary Operation', arg, '->', result)
     
     def bit_invert(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
