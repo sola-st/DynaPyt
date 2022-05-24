@@ -7,6 +7,7 @@ __pycache__
 workspace.code-workspace
 *.egg-info
 *.txt
+!requirements.txt
 *.xml
 build/
 dist/
