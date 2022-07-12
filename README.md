@@ -1,4 +1,4 @@
-# DynaPyt
+# DynaPyt: A Dynamic Analysis Framework for Python
 
 
 ## Installation
