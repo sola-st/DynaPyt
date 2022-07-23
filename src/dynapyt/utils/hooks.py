@@ -1,7 +1,11 @@
+try:
+    import importlib.resources as pkg_resources
+except ImportError:
+    # Try backported to PY<37 `importlib_resources`.
+    import importlib_resources as pkg_resources
 import json
 import builtins
 import keyword
-import importlib.resources
 
 def snake(x):
     res = ''
@@ -44,6 +48,6 @@ def get_used_leaves(root, method_list):
     return res
 
 def get_hooks_from_analysis(method_list):
-    with importlib.resources.open_text('dynapyt.utils', 'hierarchy.json') as f:
+    with pkg_resources.open_text('dynapyt.utils', 'hierarchy.json') as f:
         hierarchy = json.load(f)
     return set(get_used_leaves(hierarchy, method_list))

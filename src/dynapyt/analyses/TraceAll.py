@@ -10,15 +10,20 @@ class TraceAll(BaseAnalysis):
     
     def __init__(self) -> None:
         super().__init__()
-        logging.basicConfig(filename='output.log', format='%(message)s', encoding='utf-8', level=logging.INFO)
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        handler = logging.FileHandler('output.log', 'w', 'utf-8')
+        handler.setFormatter(logging.Formatter('%(message)s'))
+        root_logger.addHandler(handler)
     
     def log(self, iid: int, *args, **kwargs):
+        # logging.info(str(iid) + ': ' + str(args))
         res = ''
-        # for arg in args:
-        #     if 'danger_of_recursion' in kwargs:
-        #         res += ' ' + str(hex(id(arg)))
-        #     else:
-        #         res += ' ' + str(arg)
+        for arg in args:
+             if 'danger_of_recursion' in kwargs:
+                 res += ' ' + str(hex(id(arg)))
+             else:
+                 res += ' ' + str(arg)
         logging.info(str(iid) + ': ' + res[:80])
 
     # Literals
