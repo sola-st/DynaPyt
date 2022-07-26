@@ -56,9 +56,9 @@ python -m dynapyt.run_all --directory <directory of project> --entry <entry file
 To reproduce results from the paper, follow these instructions:  
 We suggest running each experiment in a fresh Python environment.  
 
-First, install DynaPyt using instructions above.
+First, install DynaPyt using the instructions above.
 
-### Analyzing the Python projects (RQ1, RQ2, and RQ4)
+### Analyzing the Python Projects (RQ1, RQ2, and RQ4)
 For each project (for example `Textualize/rich`):
 1) Clone the repository (or download the zip):
 ```
@@ -69,7 +69,7 @@ cd rich
 ```
 python -m dynapyt.run_instrumentation --directory . --analysis TraceAll
 ```
-3) Add entry file (`run_all_tests.py`) for running tests in the root directory:
+3) Add an entry file (`run_all_tests.py`) that runs all tests into the root directory:
 ```python
 import pytest
 
@@ -77,7 +77,7 @@ pytest.main(['-n', '8', '--import-mode=importlib', './tests'])
 ```
 Replace `'./tests'` with the path to test files in the project.  
 
-4) Install the package (may need extra steps for other packages):
+4) Install the package of the project-under-analysis (may need extra steps for other packages):
 ```
 pip install .
 ```
@@ -91,10 +91,10 @@ For running the original:
 time python run_all_tests.py
 ```
 
-### Running other analyses (RQ3)
-To run other DynaPyt analyses, use the appropriate name (the class name) for `--analysis` in both instrumentation and analysis scripts.  
+### Running Other Analyses (RQ3)
+To run other DynaPyt analyses, use the appropriate name (the class name) for `--analysis` in both the instrumentation and the analysis scripts.  
 
-To run Python's `sys.settrace`:  
+To run Python's `sys.settrace` (used as a baseline in the paper):  
 From the above instructions, follow step 1, skip step 2 and 3, run step 4, and then put the following code in `run_all_tests.py`:
 ```python
 from sys import settrace
@@ -113,4 +113,15 @@ time python run_all_tests.py
 
 
 ## Citation
-To be added
+
+Please refer to DynaPyt via our FSE'22 paper:
+
+```
+@InProceedings{fse2022-DynaPyt,
+  author    = {Aryaz Eghbali and Michael Pradel},
+  title     = {Dyna{P}yt: A Dynamic Analysis Framework for {P}ython},
+  booktitle = {{ESEC/FSE} '22: 30th {ACM} Joint European Software Engineering Conference and Symposium on the Foundations of Software Engineering},
+  year      = {2022},
+  publisher = {{ACM}},
+}
+```
