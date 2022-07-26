@@ -16,11 +16,15 @@ pip install libcst
 ```
 pip install .
 ```
-in the root directory.
+in the root directory of the project.
 
 --------------------
 
-## Instrumentation
+## Writing an Analysis
+
+An analysis is a subclass of BaseAnalysis. See the [analysis folder](src/dynapyt/analyses) for examples. To add your own analysis, add a file with a new analysis class to this folder. The name of the class is refered to as \<analysis name\> below.
+
+## Instrumenting Python Code
 
 To run the instrumentation on a single file:  
 ```bash
@@ -33,21 +37,22 @@ python -m dynapyt.run_instrumentation --directory <path to directory> --analysis
 ```
 
 
-## Analysis
+## Running an Analysis
 
-To run the analysis:  
+To run an analysis:  
 ```bash
 python -m dynapyt.run_analysis --entry <entry file (python)> --analysis <analysis name>
 ```
 
-To instrument and run the analysis on a project:  
+Single command to instrument and run an analysis on a project:  
 ```bash
 python -m dynapyt.run_all --directory <directory of project> --entry <entry file (python)> --analysis <analysis name>
 ```
 
 --------------------
 
-## Reproducing Results
+## Reproducing the Results in the Paper
+
 To reproduce results from the paper, follow these instructions:  
 We suggest running each experiment in a fresh Python environment.  
 
