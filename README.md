@@ -1,6 +1,8 @@
 # DynaPyt: A Dynamic Analysis Framework for Python
-DynaPyt is a dynamic analysis framework designed and developed by [Eghbali and Pradel](https://2022.esec-fse.org/details/fse-2022-research-papers/48/DynaPyt-A-Dynamic-Analysis-Framework-for-Python). 
+DynaPyt is a dynamic analysis framework designed and developed by [Aryaz Eghbali and Michael Pradel](https://2022.esec-fse.org/details/fse-2022-research-papers/48/DynaPyt-A-Dynamic-Analysis-Framework-for-Python). 
 The framework provides hooks for a variety of runtime events in multiple layers of abstraction.
+Users can create arbitrary dynamic analyses by implementing relevant hooks.
+Beyond observing runtime behavior, DynaPyt also supports manipulation of behavior, e.g., to inject runtime values or modify branching decisions.
 
 --------------------
 
