@@ -10,6 +10,8 @@ parser.add_argument(
     "--directory", help="Directory of the project to analyze")
 parser.add_argument(
     "--analysis", help="Analysis class name")
+parser.add_argument(
+    "--module", help="Adds external module paths")
 
 def process_files(cmd_list, file_path):
     comp_proc = run(cmd_list)
@@ -19,15 +21,15 @@ def process_files(cmd_list, file_path):
 if __name__ == '__main__':
     args = parser.parse_args()
     start = args.directory
-    print(start)
     analysis = args.analysis
+    module = args.module
     start_time = time.time()
     all_cmds = []
     for dir_path, dir_names, file_names in walk(start):
         for name in file_names:
             if name.endswith('.py'):
                 file_path = path.join(dir_path, name)
-                cmd_list = ['python', '-m', 'dynapyt.instrument.instrument', '--files', file_path, '--analysis', analysis]
+                cmd_list = ['python', '-m', 'dynapyt.instrument.instrument', '--files', file_path, '--analysis', analysis, '--module', module]
                 all_cmds.append((cmd_list, file_path))
     with Pool(maxtasksperchild=5) as p:
         p.starmap(process_files, all_cmds)

@@ -5,14 +5,14 @@ from libcst.matchers import call_if_not_inside, call_if_inside
 from libcst.metadata.expression_context_provider import ExpressionContext
 from libcst.metadata.scope_provider import QualifiedNameSource, ClassScope
 from ..utils.hooks import snake
-
+from .IIDs import IIDs
 
 class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     METADATA_DEPENDENCIES = (ParentNodeProvider, PositionProvider, ScopeProvider, ExpressionContextProvider, QualifiedNameProvider,)
 
     # Internal
-    def __init__(self, src, file_path, iids, selected_hooks):
+    def __init__(self, src, file_path, iids: IIDs, selected_hooks):
         super().__init__()
         self.source = src
         self.file_path = file_path

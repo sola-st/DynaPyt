@@ -16,8 +16,12 @@ test/targetPrograms/*.orig
 .hypothesis/
 test/PythonRepos/
 
+# vscode
+*.code-workspace
+
 # virtualenv
 bin/
+build/
 pyvenv.cfg
 
 # output
