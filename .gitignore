@@ -15,3 +15,7 @@ dist/
 test/targetPrograms/*.orig
 .hypothesis/
 test/PythonRepos/
+venvs/**
+!venvs
+under_test/**
+!under_test
