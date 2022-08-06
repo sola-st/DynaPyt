@@ -10,13 +10,13 @@ ENV PATH="/home/eghbalaz/.local/bin:${PATH}"
 
 WORKDIR /home/eghbalaz/app
 
-RUN pip install --user --upgrade pip setuptools wheel
+RUN pip install --upgrade pip setuptools wheel
 
 COPY --chown=eghbalaz:eghbalaz requirements.txt ./
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY --chown=eghbalaz:eghbalaz . .
-RUN pip install --user .
+RUN pip install .
 RUN chmod +x ./run_all.sh
 RUN mkdir test/results
 

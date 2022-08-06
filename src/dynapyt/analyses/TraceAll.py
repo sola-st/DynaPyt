@@ -10,7 +10,7 @@ class TraceAll(BaseAnalysis):
     
     def __init__(self) -> None:
         super().__init__()
-        logging.basicConfig(filename='output.log', format='%(message)s', encoding='utf-8', level=logging.INFO)
+        logging.basicConfig(filename='output.log', format='%(message)s', level=logging.INFO)
     
     def log(self, iid: int, *args, **kwargs):
         res = ''
