@@ -32,7 +32,6 @@ def process_files(cmd_list, file_path):
 if __name__ == '__main__':
     args = parser.parse_args()
     start = args.directory
-    print(start)
     analysis = args.analysis
     entry = args.entry
     module = args.module

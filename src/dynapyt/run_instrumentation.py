@@ -1,4 +1,5 @@
 import argparse
+import shutil
 from subprocess import run
 from os import walk
 from os import path
@@ -25,11 +26,23 @@ if __name__ == '__main__':
     module = args.module
     start_time = time.time()
     all_cmds = []
-    for dir_path, dir_names, file_names in walk(start):
+
+    # move up one directory
+    # remove last slash in case a path like /some/path
+    # is specified
+    if start[-1] == '/':
+        start = start[:-1]
+    working_dir = start.rsplit('/',1)[0]
+    working_dir += '/dynapyt_analysis'
+    shutil.rmtree(working_dir, ignore_errors=True)
+    shutil.copytree(start, working_dir)
+    for dir_path, dir_names, file_names in walk(working_dir):
         for name in file_names:
             if name.endswith('.py'):
                 file_path = path.join(dir_path, name)
-                cmd_list = ['python', '-m', 'dynapyt.instrument.instrument', '--files', file_path, '--analysis', analysis, '--module', module]
+                cmd_list = ['python', '-m', 'dynapyt.instrument.instrument', '--files', file_path, '--analysis', analysis]
+                if module is not None:
+                    cmd_list.extend(['--module', module])
                 all_cmds.append((cmd_list, file_path))
     with Pool(maxtasksperchild=5) as p:
         p.starmap(process_files, all_cmds)

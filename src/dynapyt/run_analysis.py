@@ -4,7 +4,6 @@ from subprocess import run
 from os.path import abspath
 import sys
 import traceback
-from .instrument.IIDs import IIDs
 
 parser = argparse.ArgumentParser()
 parser.add_argument(

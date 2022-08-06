@@ -84,7 +84,6 @@ if __name__ == '__main__':
         print('module could not be imported')
         traceback.print_exc()
         pass 
-
     class_ = getattr(module, args.analysis)
     instance = class_()
     method_list = [func for func in dir(instance) if callable(getattr(instance, func)) and not func.startswith("__")]
