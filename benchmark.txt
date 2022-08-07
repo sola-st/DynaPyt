@@ -1,0 +1,9 @@
+ansible-devel test
+django-main tests
+keras-master keras/tests
+pandas-main pandas/tests
+requests-main tests
+rich-master tests
+scikit-learn-main sklearn/tests
+scrapy-master tests
+thefuck-master tests

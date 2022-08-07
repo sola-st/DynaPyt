@@ -3,6 +3,9 @@
 # $2: test directory in repository root
 # $3: analysis name
 
+[ -d venvs ] || mkdir venvs
+[ -d under_test ] || mkdir under_test
+
 alias python=python3.8
 python -m pip install --user virtualenv
 

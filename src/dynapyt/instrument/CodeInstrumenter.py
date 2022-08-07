@@ -100,7 +100,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         dynapyt_imports.append(self.__create_import(["_catch_"]))
         import_names = list(self.to_import)
         for i in range(len(updated_node.body)):
-            if m.matches(updated_node.body[i], m.SimpleStatementLine()) and m.matches(updated_node.body[i].body[0], m.ImportFrom(module=m.Name(value='__future__'))):
+            if m.matches(updated_node.body[i], m.SimpleStatementLine()) and \
+            (m.matches(updated_node.body[i].body[0], m.ImportFrom(module=m.Name(value='__future__'))) or \
+            m.matches(updated_node.body[i].body[0], m.Expr(value=m.SimpleString()))):
                 imports_index = i
         
         if len(import_names) > 0:
