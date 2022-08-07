@@ -27,6 +27,9 @@ setuptools.setup(
     },
     include_package_data=True,
     python_requires=">=3.6",
+    setup_requires=[
+        'libcst',
+    ],
     install_requires=[
         'libcst',
     ],
