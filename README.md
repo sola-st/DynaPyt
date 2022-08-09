@@ -86,6 +86,8 @@ Then, if the project can be installed with just `pip install .`, ignore this ste
 Finally, run
 ```
 bash ./experiment.sh <package name> <test directory> <analysis name>
+# E.g. for "rich" repository located at test/PythonRepos/rich:
+bash ./experiment.sh rich test TraceAll
 ```
 to run the analysis, or
 ```
