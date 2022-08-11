@@ -193,7 +193,7 @@ def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
             else:
                 kw_args = dict(kw_args, **a)
         pos_args = tuple(tmp)
-        call_if_exists('pre_call', dyn_ast, iid, pos_args, kw_args)
+        call_if_exists('pre_call', dyn_ast, iid, call.__name__, pos_args, kw_args)
         result = call(*pos_args, **kw_args)
         new_res = call_if_exists('post_call', dyn_ast, iid, result, pos_args, kw_args)
         return new_res if new_res is not None else result

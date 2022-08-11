@@ -6,7 +6,7 @@ class CallGraph(BaseAnalysis):
     def __init__(self):
         self.graph = set()
 
-    def pre_call(self, dyn_ast: str, iid: int):
+    def pre_call(self, dyn_ast: str, iid: int, function_name: str):
         ast, iids = self._get_ast(dyn_ast)
         caller = get_parent_by_type(ast, iids.iid_to_location[iid], m.FunctionDef())
         callee = get_node_by_location(ast, iids.iid_to_location[iid], m.Call())

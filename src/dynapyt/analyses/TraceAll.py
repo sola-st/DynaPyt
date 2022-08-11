@@ -199,7 +199,7 @@ class TraceAll(BaseAnalysis):
 
     # Function Call
 
-    def pre_call(self, dyn_ast: str, iid: int, pos_args: Tuple, kw_args: Dict):
+    def pre_call(self, dyn_ast: str, iid: int, function_name,  pos_args: Tuple, kw_args: Dict):
         self.log(iid, 'Before function call')
     
     def post_call(self, dyn_ast: str, iid: int, val: Any, pos_args: Tuple, kw_args: Dict):
