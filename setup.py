@@ -11,9 +11,9 @@ setuptools.setup(
     description="Dynamic analysis framework for Python",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/sola-st/python-dynamic-analysis",
+    url="https://github.com/sola-st/DynaPyt",
     project_urls={
-        "Bug Tracker": "https://github.com/sola-st/python-dynamic-analysis/issues",
+        "Bug Tracker": "https://github.com/sola-st/DynaPyt/issues",
     },
     classifiers=[
         "Programming Language :: Python :: 3",
@@ -27,4 +27,10 @@ setuptools.setup(
     },
     include_package_data=True,
     python_requires=">=3.6",
+    setup_requires=[
+        'libcst',
+    ],
+    install_requires=[
+        'libcst',
+    ],
 )

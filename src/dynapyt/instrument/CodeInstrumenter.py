@@ -23,6 +23,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         self.current_function = []
         self.selected_hooks = selected_hooks
         self.to_import = set()
+        self.blacklist = ['__file__', '__name__', '__doc__', '__package__', 
+            '__class__', '__module__', '__builtins__', '__loader__', '__spec__', 
+            '__cached__', '__annotations__', '__all__', '__path__', '__docformat__'] 
 
     def __create_iid(self, node):
         location = self.get_metadata(PositionProvider, node)
@@ -97,7 +100,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         dynapyt_imports.append(self.__create_import(["_catch_"]))
         import_names = list(self.to_import)
         for i in range(len(updated_node.body)):
-            if m.matches(updated_node.body[i], m.SimpleStatementLine()) and m.matches(updated_node.body[i].body[0], m.ImportFrom(module=m.Name(value='__future__'))):
+            if m.matches(updated_node.body[i], m.SimpleStatementLine()) and \
+            (m.matches(updated_node.body[i].body[0], m.ImportFrom(module=m.Name(value='__future__'))) or \
+            m.matches(updated_node.body[i].body[0], m.Expr(value=m.SimpleString()))):
                 imports_index = i
         
         if len(import_names) > 0:
@@ -124,6 +129,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     # Lowest level
     @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.AnnAssign())
     def leave_Name(self, original_node, updated_node):
+        if updated_node.value in self.blacklist:
+            return updated_node
         if ('boolean' in self.selected_hooks) and (updated_node.value in ['True', 'False']):
             callee_name = cst.Name(value='_bool_')
             self.to_import.add('_bool_')
