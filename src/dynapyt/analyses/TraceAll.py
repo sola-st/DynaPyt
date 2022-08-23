@@ -1,6 +1,6 @@
 import logging
 from types import TracebackType
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import libcst as cst
 import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
@@ -558,7 +558,7 @@ class TraceAll(BaseAnalysis):
 
     # Function Call
 
-    def pre_call(self, dyn_ast: str, iid: int, function_name: str, pos_args: Tuple, kw_args: Dict):
+    def pre_call(self, dyn_ast: str, iid: int, function: Callable, pos_args: Tuple, kw_args: Dict):
         """Hook called before a function call happens.
 
         Parameters
