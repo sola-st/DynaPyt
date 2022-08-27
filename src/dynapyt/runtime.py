@@ -1,7 +1,5 @@
 from sys import exc_info
 import libcst as cst
-from copy import copy
-from dynapyt.utils.Dynapyt_Unidefined import Dynapyt_Undefined
 from dynapyt.utils.hooks import snake, get_name
 
 analysis = None
