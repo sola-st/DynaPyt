@@ -638,8 +638,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             name_source = self.get_metadata(QualifiedNameProvider, original_node)
         except KeyError:
             name_source = []
-        if (((len(list(name_source)) > 0) and (list(name_source)[0].source == QualifiedNameSource.BUILTIN)) or 
-            (any(a for a in updated_node.args if m.matches(a.value, m.GeneratorExp())))):
+        if ((any(a for a in updated_node.args if m.matches(a.value, m.GeneratorExp())))):
             call_arg = cst.Arg(value=updated_node)
             only_post = cst.Arg(value=cst.Name('True'))
             call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, call_arg, only_post, cst.Arg(value=cst.Name('None')), cst.Arg(value=cst.Name('None'))], lpar=original_node.lpar, rpar=original_node.rpar)

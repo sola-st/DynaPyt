@@ -567,8 +567,8 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntaxt tree.
         iid : int
             Unique ID of the syntax tree node.
-        function_name : str
-            Name of the function which will be called
+        function : str
+            Function which will be called
         pos_args : Tuple
             The positional arguments passed to the function.
         kw_args : Dict
@@ -576,7 +576,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, 'Before function call')
     
-    def post_call(self, dyn_ast: str, iid: int, val: Any, pos_args: Tuple, kw_args: Dict) -> Any:
+    def post_call(self, dyn_ast: str, iid: int, result: Any, call: Callable, pos_args: Tuple, kw_args: Dict) -> Any:
         """Hook called after a function call.
 
         Parameters
@@ -587,6 +587,8 @@ class TraceAll(BaseAnalysis):
             Unique ID of the syntax tree node.
         val : Any
             The return value of the function.
+        call: Callable
+            The function which was called
         pos_args : Tuple
             The positional arguments passed to the function.
         kw_args : Dict

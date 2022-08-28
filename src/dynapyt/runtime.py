@@ -181,7 +181,7 @@ def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
     call_if_exists('runtime_event', dyn_ast, iid)
     if only_post:
         result = call
-        new_res = call_if_exists('post_call', dyn_ast, iid, result, pos_args, kw_args)
+        new_res = call_if_exists('post_call', dyn_ast, iid, result, call, pos_args, kw_args)
         return new_res if new_res is not None else result
     else:
         tmp = []
@@ -195,7 +195,7 @@ def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
         pos_args = tuple(tmp)
         call_if_exists('pre_call', dyn_ast, iid, call, pos_args, kw_args)
         result = call(*pos_args, **kw_args)
-        new_res = call_if_exists('post_call', dyn_ast, iid, result, pos_args, kw_args)
+        new_res = call_if_exists('post_call', dyn_ast, iid, result, call, pos_args, kw_args)
         return new_res if new_res is not None else result
 
 def _bool_(dyn_ast, iid, val):
