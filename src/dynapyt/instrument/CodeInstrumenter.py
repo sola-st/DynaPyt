@@ -104,6 +104,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             (m.matches(updated_node.body[i].body[0], m.ImportFrom(module=m.Name(value='__future__'))) or \
             m.matches(updated_node.body[i].body[0], m.Expr(value=m.SimpleString()))):
                 imports_index = i
+            else:
+                break
         
         if len(import_names) > 0:
             dynapyt_imports.append(self.__create_import(import_names))
