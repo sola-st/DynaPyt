@@ -1,5 +1,5 @@
 attrs==21.4.0
-dataclasses==0.8
+#dataclasses==0.8 only for python version <=3.7
 execnet==1.9.0
 importlib-metadata==4.8.3
 importlib-resources==5.4.0
