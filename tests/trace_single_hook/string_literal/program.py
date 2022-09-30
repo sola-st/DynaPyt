@@ -1,4 +1,4 @@
 x = "abc"
-y = 24
+y = 23
 z = len(x) + y
 print(z)

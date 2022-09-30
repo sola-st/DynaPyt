@@ -6,7 +6,6 @@ myenv
 __pycache__
 workspace.code-workspace
 *.egg-info
-*.txt
 !benchmark.txt
 !requirements.txt
 *.xml
