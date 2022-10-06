@@ -67,18 +67,6 @@
         },
         "control_flow_event": {
             "conditional_control_flow": {
-                "if": {
-                    "enter_if": { },
-                    "exit_if": { }
-                },
-                "while": {
-                    "enter_while": { },
-                    "exit_while": { }
-                },
-                "for": {
-                    "enter_for": { },
-                    "exit_for": { }
-                },
                 "enter_control_flow": {
                     "enter_if": { },
                     "enter_for": { },
