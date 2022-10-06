@@ -40,17 +40,21 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
 
     # analyze
     rt.set_analysis(analysis_instance)
-    captured = capsys.readouterr() # clear stdout
-    analysis_instance.begin_execution()
+    captured = capsys.readouterr()  # clear stdout
+    if hasattr(analysis_instance, "begin_execution"):
+        analysis_instance.begin_execution()
     import_module(f"{module_prefix}.program")
-    analysis_instance.end_execution()
+    if hasattr(analysis_instance, "end_execution"):
+        analysis_instance.end_execution()
 
     # check output
     expected_file = join(abs_dir, "expected.txt")
     with open(expected_file, "r") as file:
         expected = file.read()
-    
-    captured = capsys.readouterr() # read stdout produced by running the analyzed program
+
+    captured = (
+        capsys.readouterr()
+    )  # read stdout produced by running the analyzed program
     if captured.out != expected and captured.out != expected + "\n":
         pytest.fail(
             f"Output of {rel_dir} does not match expected output.\n--> Expected:\n{expected}\n--> Actual:\n{captured.out}"
@@ -59,4 +63,3 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     # restore uninstrumented program and remove temporary files
     move(orig_program_file, program_file)
     remove(join(abs_dir, "program-dynapyt.json"))
-
