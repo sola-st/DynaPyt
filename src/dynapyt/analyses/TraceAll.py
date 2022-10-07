@@ -1,6 +1,6 @@
 import logging
 from types import TracebackType
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import libcst as cst
 import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
@@ -414,7 +414,7 @@ class TraceAll(BaseAnalysis):
     def read_identifier(self, dyn_ast: str, iid: int, val: Any) -> Any:
         self.log(iid, '    Reading')
 
-    def write(self, dyn_ast: str, iid: int, old_val: Any, new_val: Any) -> Any:
+    def write(self, dyn_ast: str, iid: int, old_vals: List[Callable], new_val: Any) -> Any:
         """Hook for writes.
 
         Parameters
@@ -423,8 +423,11 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
-        old_val : Any
-            The value before the write takes effect.
+        old_vals : Any
+            A list of old values before the write takes effect.
+            It's a list to support multiple assignments.
+            Each old value is wrapped into a lambda function, so that
+            the analysis writer can decide if and when to evaluate it.
         new_val : Any
             The value after the write takes effect.
         
