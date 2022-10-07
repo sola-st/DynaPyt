@@ -1,6 +1,0 @@
-write with old=undef and new={}
-write with old=undef and new=-999.5
-write with old=undef and new=hi there
-write with old=-999.5 and new=555.9
-555.9
-abc
