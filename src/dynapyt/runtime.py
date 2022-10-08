@@ -1,7 +1,5 @@
 from sys import exc_info
 import libcst as cst
-from copy import copy
-from dynapyt.utils.Dynapyt_Unidefined import Dynapyt_Undefined
 from dynapyt.utils.hooks import snake, get_name
 
 analysis = None
@@ -33,7 +31,7 @@ def _aug_assign_(dyn_ast, iid, left, opr, right):
             'MultiplyAssign', 'PowerAssign', 'RightShiftAssign', 'SubtractAssign']
     call_if_exists('operation', dyn_ast, iid, operator[opr][:-6], [left, right], None)
     call_if_exists('binary_operation', dyn_ast, iid, operator[opr][:-6], left, right, None)
-    call_if_exists(snake(operator[opr][:-6]), dyn_ast, iid, left, right)
+    call_if_exists(snake(operator[opr][:-6]), dyn_ast, iid, left, right, None)
     call_if_exists('memory_access', dyn_ast, iid, right)
     call_if_exists('write', dyn_ast, iid, [left], right)
     result_high = call_if_exists('augmented_assignment', dyn_ast, iid, left, operator[opr], right)

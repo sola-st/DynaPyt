@@ -1,0 +1,2 @@
+multiplying 5 and 6 gives 30
+30

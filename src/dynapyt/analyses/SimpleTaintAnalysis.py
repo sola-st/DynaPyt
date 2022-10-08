@@ -12,7 +12,7 @@ class SimpleTaintAnalysis(BaseAnalysis):
         self.seen_sink = False
         self.warning = False
 
-    def write(self, dyn_ast, iid, old_val, new_val):
+    def write(self, dyn_ast, iid, old_vals, new_val):
         ast, iids = self._get_ast(dyn_ast)
         node = get_node_by_location(ast, iids.iid_to_location[iid], m.Assign())
         if m.matches(node, m.Assign(value=m.Await(expression=m.Call(func=m.Attribute(value=m.Name(value='request'), attr=m.Name(value='post')))))):

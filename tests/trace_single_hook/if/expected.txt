@@ -1,0 +1,7 @@
+begin execution
+enter control flow event with condition True
+if condition evaluates to True
+foo is greater than 50
+done with control flow statement
+done with if statement
+end execution
