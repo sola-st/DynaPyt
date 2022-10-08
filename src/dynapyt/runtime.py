@@ -11,11 +11,8 @@ def set_analysis(new_analysis):
     analysis = new_analysis
 
 def call_if_exists(f, *args):
-    try:
-        func = getattr(analysis, f)
-        return func(*args)
-    except AttributeError:
-        return
+    func = getattr(analysis, f, lambda *args: None)
+    return func(*args)
 
 def _dynapyt_parse_to_ast_(code):
     return cst.parse_module(code)
