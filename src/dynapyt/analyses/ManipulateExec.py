@@ -7,6 +7,6 @@ class ManipulateExec(BaseAnalysis):
         if random() < 0.5:
             return not cond_value
 
-    def write(self, f: str, iid: int, old_val: Any, new_val: Any) -> Any:
+    def write(self, f: str, iid: int, old_vals: Any, new_val: Any) -> Any:
         if new_val == 23:
             return 42

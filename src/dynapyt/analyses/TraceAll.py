@@ -1,6 +1,6 @@
 import logging
 from types import TracebackType
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import libcst as cst
 import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
@@ -29,7 +29,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         val : Any
@@ -48,7 +48,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         val : Any
@@ -67,7 +67,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         val : Any
@@ -86,7 +86,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         val : Any
@@ -105,7 +105,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         val : Any
@@ -124,7 +124,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         val : Any
@@ -145,7 +145,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         items : List[Any]
@@ -168,7 +168,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         value : List
@@ -189,7 +189,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         items : List[Any]
@@ -212,7 +212,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         operator : str
@@ -235,7 +235,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         op : str
@@ -305,7 +305,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         opr : str
@@ -340,7 +340,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         op : str
@@ -398,7 +398,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         val : Any
@@ -414,17 +414,20 @@ class TraceAll(BaseAnalysis):
     def read_identifier(self, dyn_ast: str, iid: int, val: Any) -> Any:
         self.log(iid, '    Reading')
 
-    def write(self, dyn_ast: str, iid: int, old_val: Any, new_val: Any) -> Any:
+    def write(self, dyn_ast: str, iid: int, old_vals: List[Callable], new_val: Any) -> Any:
         """Hook for writes.
 
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
-        old_val : Any
-            The value before the write takes effect.
+        old_vals : Any
+            A list of old values before the write takes effect.
+            It's a list to support multiple assignments.
+            Each old value is wrapped into a lambda function, so that
+            the analysis writer can decide if and when to evaluate it.
         new_val : Any
             The value after the write takes effect.
         
@@ -441,7 +444,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         val : Any
@@ -461,7 +464,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         base : Any
@@ -485,7 +488,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         base : Any
@@ -510,7 +513,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         args : List[Any]
@@ -532,7 +535,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         result : Any
@@ -559,7 +562,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         pos_args : Tuple
@@ -575,7 +578,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         val : Any
@@ -601,7 +604,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         left : Any
@@ -665,7 +668,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         exc : Exception
@@ -686,7 +689,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         condition : bool
@@ -709,7 +712,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         cond_value : bool
@@ -728,28 +731,42 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         """
         self.log(iid, 'Control-flow exit')
 
-    def _if(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
+    def enter_if(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
+        """Hook called when entering an if conditional.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        cond_value : bool
+            Whether the condition is true or false.
+        
+        Returns
+        -------
+        Optional[bool]
+            If provided, overwrites the condition (which may change the branch outcome).
+        """
         self.log(iid, '   If', cond_value)
 
-    def _for(self, dyn_ast: str, iid: int, next_value: Any, is_async: bool) -> Optional[Any]:
+    def enter_for(self, dyn_ast: str, iid: int, next_value: Any, is_async: bool) -> Optional[Any]:
         """Hook for entering a single iteration of a for loop.
 
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         next_value : Any
             The next value of the iterator.
-        is_async : bool
-            Whether the loop is asynchronous.
         
         Returns
         -------
@@ -758,17 +775,17 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, '   For', next_value)
 
-    def _while(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
+    def enter_while(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
         """Hook for entering the next iteration of a while loop.
 
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         cond_value : bool
-            The value of the condition.
+            The value of the condition (which may change the branch outcome).
         
         Returns
         -------
@@ -783,7 +800,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         
@@ -800,7 +817,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         
@@ -817,7 +834,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         """
@@ -829,7 +846,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         exceptions : List[Exception]
@@ -852,7 +869,7 @@ class TraceAll(BaseAnalysis):
         Parameters
         ----------
         dyn_ast : str
-            The path to the original code. Can be used to extract the syntaxt tree.
+            The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
         """

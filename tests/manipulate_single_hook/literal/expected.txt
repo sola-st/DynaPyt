@@ -1,0 +1,3 @@
+literal hook called: 5
+literal hook called: 99
+abc
