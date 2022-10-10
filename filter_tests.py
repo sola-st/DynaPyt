@@ -5,7 +5,7 @@ import pytest
 bad_tests = set()
 results = []
 print(' '.join(sys.argv))
-test_dir = sys.argv[2]
+test_dir = sys.argv[-1]
 
 def find_testfile(frame, package_test_dir):
     while frame is not None:
@@ -34,7 +34,7 @@ def uses_stack(frame, event, arg=None):
 
 sys.settrace(uses_stack)
 
-pytest.main([sys.argv[1] + '/' + test_dir])
+pytest.main(sys.argv[1:])
 
 print('\n'.join(bad_tests))
 with open('filtered.txt', 'w') as f:

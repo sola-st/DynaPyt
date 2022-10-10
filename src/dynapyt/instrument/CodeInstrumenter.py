@@ -628,6 +628,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_Call(self, original_node, updated_node):
         if ('pre_call' not in self.selected_hooks) and ('post_call' not in self.selected_hooks):
             return updated_node
+        site_sensitive_functions = ['breakpoint', 'dir', 'eval', 'exec', 'globals', 'help', 'locals', 'super', 'vars']
         callee_name = cst.Name(value='_call_')
         self.to_import.add('_call_')
         iid = self.__create_iid(original_node)
@@ -640,7 +641,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             name_source = self.get_metadata(QualifiedNameProvider, original_node)
         except KeyError:
             name_source = []
-        if (((len(list(name_source)) > 0) and (list(name_source)[0].source == QualifiedNameSource.BUILTIN)) or 
+        if (((len(list(name_source)) > 0) and (list(name_source)[0].source == QualifiedNameSource.BUILTIN) and (original_node.func.value in site_sensitive_functions)) or 
             (any(a for a in updated_node.args if m.matches(a.value, m.GeneratorExp())))):
             call_arg = cst.Arg(value=updated_node)
             only_post = cst.Arg(value=cst.Name('True'))

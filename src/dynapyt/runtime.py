@@ -9,6 +9,7 @@ def set_analysis(new_analysis):
     analysis = new_analysis
 
 def call_if_exists(f, *args):
+    print(f'Calling {f} on analysis {analysis}')
     try:
         func = getattr(analysis, f)
         return func(*args)
@@ -480,6 +481,6 @@ def _gen_(dyn_ast, iid, iterator):
                 yield result
             else:
                 yield it
-        except StopIteration:
-            _enter_for_(dyn_ast, iid, StopIteration())
+        except StopIteration as e:
+            _enter_for_(dyn_ast, iid, e)
             return
