@@ -318,6 +318,7 @@ def _attr_(dyn_ast, iid, base, attr):
     else:
         val = getattr(base, attr)
     call_if_exists('memory_access', dyn_ast, iid, val)
+    call_if_exists('read', dyn_ast, iid, val)
     result = call_if_exists('read_attribute', dyn_ast, iid, base, attr, val)
     return result if result != None else val
 
@@ -328,6 +329,7 @@ def _sub_(dyn_ast, iid, base, sl):
     else:
         val = base[tuple(sl)]
     call_if_exists('memory_access', dyn_ast, iid, val)
+    call_if_exists('read', dyn_ast, iid, val)
     result = call_if_exists('read_subscript', dyn_ast, iid, base, sl, val)
     return result if result != None else val
 
@@ -366,6 +368,7 @@ def _read_(dyn_ast, iid, var_arg):
     call_if_exists('runtime_event', dyn_ast, iid)
     value = var_arg()
     call_if_exists('memory_access', dyn_ast, iid, value)
+    call_if_exists('read', dyn_ast, iid, value)
     result = call_if_exists('read_identifier', dyn_ast, iid, value)
     return result if result != None else value
 
