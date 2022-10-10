@@ -411,6 +411,9 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, 'Accessing')
     
+    def read(self, dyn_ast: str, iid: int, val: Any) -> Any:
+        self.log(iid, ' Reading')
+    
     def read_identifier(self, dyn_ast: str, iid: int, val: Any) -> Any:
         self.log(iid, '    Reading')
 
