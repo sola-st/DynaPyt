@@ -1,6 +1,6 @@
 import libcst as cst
 import os.path as path
-from ..instrument.IIDs import IIDs
+from ..instrument.IIDs import IIDs, Location
 
 class BaseAnalysis:
 
@@ -18,3 +18,9 @@ class BaseAnalysis:
             self.asts[filepath] = (cst.parse_module(src), iids)
 
         return self.asts[filepath]
+    
+    def iid_to_location(self, filepath: str, iid: int) -> Location:
+        return IIDs(filepath).iid_to_location[iid]
+    
+    def location_to_iid(self, filepath: str, location: Location) -> int:
+        return IIDs(filepath).location_to_iid[location]
