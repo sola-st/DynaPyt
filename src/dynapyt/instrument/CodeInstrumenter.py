@@ -626,12 +626,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(test=call, whitespace_after_assert=cst.SimpleWhitespace(' '))
     
     def leave_Call(self, original_node, updated_node):
-        try:
-            name_source = self.get_metadata(QualifiedNameProvider, original_node)
-        except KeyError:
-            name_source = []
-        if ('pre_call' not in self.selected_hooks) and ('post_call' not in self.selected_hooks) or (len(name_source) > 0 and "builtins.super" in str(next(iter(name_source)))):
-            return updated_node 
+        if ('pre_call' not in self.selected_hooks) and ('post_call' not in self.selected_hooks):
+            return updated_node
+        site_sensitive_functions = ['breakpoint', 'dir', 'eval', 'exec', 'globals', 'help', 'locals', 'super', 'vars']
         callee_name = cst.Name(value='_call_')
         self.to_import.add('_call_')
         iid = self.__create_iid(original_node)
@@ -640,7 +637,12 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         positional_args = cst.Arg(value=cst.List(elements=[cst.Element(value=cst.Tuple(elements=[cst.Element(value=cst.SimpleString(value=self.__as_string(a.star))),
             cst.Element(value=a.with_changes(comma=cst.MaybeSentinel.DEFAULT, star=''))])) for a in updated_node.args if a.keyword is None]))
         keyword_args = cst.Arg(value=cst.Dict(elements=[cst.DictElement(key=cst.SimpleString(value=self.__as_string(a.keyword.value)), value=a.value) for a in updated_node.args if a.keyword is not None]))
-        if any(a for a in updated_node.args if m.matches(a.value, m.GeneratorExp())):
+        try:
+            name_source = self.get_metadata(QualifiedNameProvider, original_node)
+        except KeyError:
+            name_source = []
+        if (((len(list(name_source)) > 0) and (list(name_source)[0].source == QualifiedNameSource.BUILTIN) and (original_node.func.value in site_sensitive_functions)) or 
+            (any(a for a in updated_node.args if m.matches(a.value, m.GeneratorExp())))):
             call_arg = cst.Arg(value=updated_node)
             only_post = cst.Arg(value=cst.Name('True'))
             call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, call_arg, only_post, cst.Arg(value=cst.Name('None')), cst.Arg(value=cst.Name('None'))], lpar=original_node.lpar, rpar=original_node.rpar)

@@ -13,6 +13,8 @@ venv=$1_$3_env
 virtualenv --python 3.9.0 venvs/$venv
 source venvs/$venv/bin/activate
 
+export PYTHONPATH="$PWD/venvs/$venv/lib/python3.9/site-packages"
+
 exactTime=`date +%y%m%d%H%M%S`
 
 # Install DynaPyt
@@ -34,6 +36,7 @@ if [ $3 = "original" ]; then
     [ -f myInstall.sh ] && bash ./myInstall.sh || pip install .
     # Run tests
     python run_all_tests.py > $1_original_${exactTime}_output.txt
+    tail -n 3 $1_original_${exactTime}_output.txt
 else
     # Instrument code
     python -m dynapyt.run_instrumentation --dir . --analysis $3
@@ -41,6 +44,7 @@ else
     [ -f myInstall.sh ] && bash ./myInstall.sh || pip install .
     # Run tests
     python -m dynapyt.run_analysis --entry run_all_tests.py --analysis $3 > $1_$3_${exactTime}_output.txt
+    tail -n 3 $1_$3_${exactTime}_output.txt
 fi
 
 cd ../..
