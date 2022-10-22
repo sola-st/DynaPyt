@@ -383,9 +383,9 @@ def _func_exit_(dyn_ast, iid):
     call_if_exists('function_exit', dyn_ast, iid, None)
     return
 
-def _return_(dyn_ast, iid, return_val=None):
+def _return_(dyn_ast, iid, function_iid, return_val=None):
     call_if_exists('runtime_event', dyn_ast, iid)
-    result_high = call_if_exists('function_exit', dyn_ast, iid, return_val)
+    result_high = call_if_exists('function_exit', dyn_ast, function_iid, return_val)
     result_low = call_if_exists('_return', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
@@ -411,7 +411,7 @@ def _assert_(dyn_ast, iid, test, msg):
 def _lambda_(dyn_ast, iid, args, expr):
     _func_entry_(dyn_ast, iid, args, True)
     res = expr()
-    return _return_(dyn_ast, iid, res)
+    return _return_(dyn_ast, iid, iid, res)
 
 def _break_(dyn_ast, iid):
     call_if_exists('runtime_event', dyn_ast, iid)

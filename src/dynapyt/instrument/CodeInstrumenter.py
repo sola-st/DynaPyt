@@ -6,6 +6,7 @@ from libcst.metadata.expression_context_provider import ExpressionContext
 from libcst.metadata.scope_provider import QualifiedNameSource, ClassScope
 from ..utils.hooks import snake
 from .IIDs import IIDs
+import os
 
 class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
@@ -48,7 +49,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             return updated_node
         if m.matches(updated_node, m.Call(func=m.Name('super'), args=[])):
             class_arg = cst.Arg(value=cst.Name(value=self.current_class[-1]))
-            function_arg = cst.Arg(value=cst.Name(value=self.current_function[-1].value))
+            function_arg = cst.Arg(value=cst.Name(value=self.current_function[-1]["params"].value))
             new_node = updated_node.with_changes(args=[class_arg, function_arg])
             return cst.Lambda(params=cst.Parameters(params=[]), body=new_node)
         used_names = list(m.findall(original_node, m.Name()))
@@ -92,9 +93,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     # Top level
 
-    def leave_Module(self, original_node, updated_node):
+    def leave_Module(self, original_node: cst.Module, updated_node: cst.Module):
         imports_index = -1
-        parse_to_ast = cst.BinaryOperation(left=cst.Name(value='__file__'), operator=cst.Add(), right=cst.SimpleString('".orig"'))
+        abs_path = os.path.abspath(self.file_path)
+        parse_to_ast = cst.BinaryOperation(left=cst.SimpleString(value=self.__as_string(str(abs_path))), operator=cst.Add(), right=cst.SimpleString('".orig"'))
         get_ast = cst.SimpleStatementLine(body=[cst.Assign(targets=[cst.AssignTarget(cst.Name('_dynapyt_ast_'))], value=parse_to_ast)])
         dynapyt_imports = [cst.Newline(value='\n')]
         dynapyt_imports.append(self.__create_import(["_catch_"]))
@@ -527,25 +529,25 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(value=call, target=original_node.target)
     
     # Function
-    def visit_FunctionDef(self, node):
+    def visit_FunctionDef(self, node: cst.FunctionDef):
+        iid = self.__create_iid(node)
+        params = None
         if len(node.params.params) > 0:
-            self.current_function.append(node.params.params[0].name)
+            params = node.params.params[0].name
         elif len(node.params.posonly_params) > 0:
-            self.current_function.append(node.params.posonly_params[0].name)
-        else:
-            self.current_function.append(None)
+            params = node.params.posonly_params[0].name
+        self.current_function.append({ "params": params, "name": node.name, "iid": iid})
 
-    def leave_FunctionDef(self, original_node, updated_node):
-        self.current_function.pop()
-        if 'function' not in self.selected_hooks:
+    def leave_FunctionDef(self, original_node: cst.FunctionDef, updated_node: cst.FunctionDef):
+        function_metadata = self.current_function.pop()
+        if 'function_enter' not in self.selected_hooks and 'function_exit' not in self.selected_hooks:
             return updated_node
         enter_name = cst.Name(value='_func_entry_')
         self.to_import.add('_func_entry_')
         exit_name = cst.Name(value='_func_exit_')
         self.to_import.add('_func_exit_')
-        iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
-        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        iid_arg = cst.Arg(value=cst.Integer(value=str(function_metadata["iid"])))
         args_arg = cst.Arg(value=cst.List(elements=[cst.Element(value=self.__wrap_in_lambda(po.name, pu.name)) for po, pu in zip(original_node.params.params, updated_node.params.params)]))
         entry_stmt = cst.Expr(cst.Call(func=enter_name, args=[ast_arg, iid_arg, args_arg]))
         exit_stmt = cst.Expr(cst.Call(func=exit_name, args=[ast_arg, iid_arg]))
@@ -570,6 +572,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(body=new_stmt)
     
     def leave_Return(self, original_node, updated_node):
+        function_metadata = self.current_function[-1]
         if 'return' not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value='_return_')
@@ -577,8 +580,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name('_dynapyt_ast_'))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        function_iid_arg = cst.Arg(value=cst.Integer(value=str(function_metadata["iid"])))
         val_arg = cst.Arg(value=updated_node.value, keyword=cst.Name(value='return_val'))
-        arg_list = [ast_arg, iid_arg]
+        arg_list = [ast_arg, iid_arg, function_iid_arg]
         if updated_node.value is not None:
             arg_list.append(val_arg)
         call = cst.Call(func=callee_name, args=arg_list)

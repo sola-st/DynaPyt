@@ -24,11 +24,12 @@ if __name__ == '__main__':
         modulePath = additional_module
     try:
         module = importlib.import_module(modulePath + '.' + analysis)
-    except TypeError:
-        print('--module was used but no value specified')
+    except TypeError as e:
+        print(f'--module was used but no value specified {e}')
+        traceback.print_exception(type(e), e, e.__traceback__)
         pass
-    except ImportError:
-        print('module could not be imported')
+    except ImportError as e:
+        print(f'module could not be imported {e}')
         traceback.print_exc()
         pass 
 
