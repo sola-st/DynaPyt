@@ -17,13 +17,12 @@ class TraceAll(BaseAnalysis):
         root_logger.addHandler(handler)
     
     def log(self, iid: int, *args, **kwargs):
-        # logging.info(str(iid) + ': ' + str(args))
         res = ''
-        for arg in args:
-             if 'danger_of_recursion' in kwargs:
-                 res += ' ' + str(hex(id(arg)))
-             else:
-                 res += ' ' + str(arg)
+        # for arg in args:
+        #     if 'danger_of_recursion' in kwargs:
+        #         res += ' ' + str(hex(id(arg)))
+        #     else:
+        #         res += ' ' + str(arg)
         logging.info(str(iid) + ': ' + res[:80])
 
     # Literals
