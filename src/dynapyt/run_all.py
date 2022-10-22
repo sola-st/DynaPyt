@@ -35,22 +35,11 @@ if __name__ == '__main__':
     analysis = args.analysis
     entry = args.entry
     module = args.module
-    print(args)
     start_time = time.time()
     all_cmds = []
     
-    # move up one directory
-    # remove last slash in case a path like /some/path
-    # is specified
-    if start[-1] == '/':
-        start = start[:-1]
-    working_dir = start.rsplit('/',1)[0]
-    working_dir += '/dynapyt_analysis'
-    entry = working_dir + '/' + entry
-    shutil.rmtree(working_dir, ignore_errors=True)
-    shutil.copytree(start, working_dir)
     if args.skip_instrumentation != True:
-        for dir_path, dir_names, file_names in walk(working_dir):
+        for dir_path, dir_names, file_names in walk(start):
             if (args.time_limit is not None) and ((time.time() - start_time)/60 > int(args.time_limit)):
                 break
             for name in file_names:

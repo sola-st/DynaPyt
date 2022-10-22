@@ -1,8 +1,9 @@
 import argparse
-import shutil
-from subprocess import run
 from os import walk
 from os import path
+from pathlib import Path
+import shutil
+from subprocess import run
 import time
 from multiprocessing import Pool
 
@@ -13,6 +14,10 @@ parser.add_argument(
     "--analysis", help="Analysis class name")
 parser.add_argument(
     "--module", help="Adds external module paths")
+parser.add_argument(
+    "--external_dir", help="Place instrumented files in another directory",
+    dest='external_dir', action='store_true'
+)
 
 def process_files(cmd_list, file_path):
     comp_proc = run(cmd_list)
@@ -24,19 +29,18 @@ if __name__ == '__main__':
     start = args.directory
     analysis = args.analysis
     module = args.module
+    use_external_dir = args.external_dir
     start_time = time.time()
     all_cmds = []
 
-    # move up one directory
-    # remove last slash in case a path like /some/path
-    # is specified
-    if start[-1] == '/':
-        start = start[:-1]
-    working_dir = start.rsplit('/',1)[0]
-    working_dir += '/dynapyt_analysis'
-    shutil.rmtree(working_dir, ignore_errors=True)
-    shutil.copytree(start, working_dir)
-    for dir_path, dir_names, file_names in walk(working_dir):
+    if use_external_dir:
+        external_path = Path(start) / "dynapyt_analysis"
+        # create new folder /dynapyt_analysis on same level as specified directory
+        shutil.rmtree(external_path, ignore_errors=True)
+        shutil.copytree(start, external_path)
+        start = str(external_path)
+    
+    for dir_path, dir_names, file_names in walk(start):
         for name in file_names:
             if (name in ['setup.py', '__init__.py', '__version__.py']) or ('config' in name):
                 continue
