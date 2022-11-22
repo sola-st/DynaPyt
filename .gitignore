@@ -20,3 +20,5 @@ venvs/**
 under_test/**
 !under_test
 output.log
+*.txt
+test_files/
