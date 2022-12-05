@@ -514,7 +514,7 @@ class TraceAll(BaseAnalysis):
 
     # Instrumented function
 
-    def function_enter(self, dyn_ast: str, iid: int, args: List[Any], is_lambda: bool) -> None:
+    def function_enter(self, dyn_ast: str, iid: int, name: str, args: List[Any], is_lambda: bool) -> None:
         """Hook for when an instrumented function is entered.
 
         Parameters
@@ -525,6 +525,8 @@ class TraceAll(BaseAnalysis):
             Unique ID of the syntax tree node.
         args : List[Any]
             The arguments passed to the function.
+        name:
+            Name of the function called
         is_lambda : bool
             Whether the function is a lambda function.
         """
@@ -536,7 +538,7 @@ class TraceAll(BaseAnalysis):
         if (not is_lambda) and (get_node_by_location(ast, iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']):
             self.log(iid, 'Entered function', danger_of_recursion=True)
 
-    def function_exit(self, dyn_ast: str, iid: int, result: Any) -> Any:
+    def function_exit(self, dyn_ast: str, iid: int, function_iid: int, name: str, result: Any) -> Any:
         """Hook for exiting an instrumented function.
 
         Parameters
@@ -545,6 +547,10 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
+        function_iid: int
+            ID unique to the current file, referring to the function
+        name: str
+            Name of the function called
         result : Any
             The result of the function.
         

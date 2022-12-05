@@ -1,4 +1,5 @@
 from sys import exc_info
+from typing import Callable
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
 
@@ -257,14 +258,14 @@ def _dict_(dyn_ast, iid, val):
         else:
             value.update({v[0]: v[1]})
     call_if_exists('literal', dyn_ast, iid, value)
-    call_if_exists('dictionary', dyn_ast, iid, val, value)
-    return value
+    res = call_if_exists('dictionary', dyn_ast, iid, val, value)
+    return res if res != None else val
 
 def _list_(dyn_ast, iid, val):
     call_if_exists('runtime_event', dyn_ast, iid)
     call_if_exists('literal', dyn_ast, iid, val)
-    call_if_exists('_list', dyn_ast, iid, val)
-    return val
+    res = call_if_exists('_list', dyn_ast, iid, val)
+    return res if res != None else val
 
 def _tuple_(dyn_ast, iid, val):
     call_if_exists('runtime_event', dyn_ast, iid)
@@ -374,18 +375,18 @@ def _if_(dyn_ast, iid, val):
     result = call_if_exists('_if', dyn_ast, iid, val)
     return result if result != None else val
 
-def _func_entry_(dyn_ast, iid, args, is_lambda=False):
+def _func_entry_(dyn_ast, iid, args, name: str, is_lambda=False):
     call_if_exists('runtime_event', dyn_ast, iid)
-    call_if_exists('function_enter', dyn_ast, iid, args, is_lambda)
+    call_if_exists('function_enter', dyn_ast, iid, args, name, is_lambda)
 
-def _func_exit_(dyn_ast, iid):
+def _func_exit_(dyn_ast, iid, name: str):
     call_if_exists('runtime_event', dyn_ast, iid)
-    call_if_exists('function_exit', dyn_ast, iid, None)
+    call_if_exists('function_exit', dyn_ast, iid, name, None)
     return
 
-def _return_(dyn_ast, iid, function_iid, return_val=None):
+def _return_(dyn_ast, iid, function_iid, function_name, return_val=None):
     call_if_exists('runtime_event', dyn_ast, iid)
-    result_high = call_if_exists('function_exit', dyn_ast, function_iid, return_val)
+    result_high = call_if_exists('function_exit', dyn_ast, function_iid, function_name, return_val)
     result_low = call_if_exists('_return', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
@@ -393,9 +394,9 @@ def _return_(dyn_ast, iid, function_iid, return_val=None):
         return result_high
     return return_val
 
-def _yield_(dyn_ast, iid, return_val=None):
+def _yield_(dyn_ast, iid, function_iid, function_name, return_val=None):
     call_if_exists('runtime_event', dyn_ast, iid)
-    result_high = call_if_exists('function_exit', dyn_ast, iid, return_val)
+    result_high = call_if_exists('function_exit', dyn_ast, function_iid, function_name, return_val)
     result_low = call_if_exists('_yield', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
@@ -409,7 +410,7 @@ def _assert_(dyn_ast, iid, test, msg):
     return result if result is not None else test
 
 def _lambda_(dyn_ast, iid, args, expr):
-    _func_entry_(dyn_ast, iid, args, True)
+    _func_entry_(dyn_ast, iid, args, "lambda", True)
     res = expr()
     return _return_(dyn_ast, iid, iid, res)
 
