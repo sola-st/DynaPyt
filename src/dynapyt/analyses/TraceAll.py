@@ -1,6 +1,6 @@
 import logging
 from types import TracebackType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 import libcst as cst
 import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
@@ -773,7 +773,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, '   If', cond_value)
 
-    def enter_for(self, dyn_ast: str, iid: int, next_value: Any, is_async: bool) -> Optional[Any]:
+    def enter_for(self, dyn_ast: str, iid: int, next_value: Any, iterable: Iterable) -> Optional[Any]:
         """Hook for entering a single iteration of a for loop.
 
         Parameters
@@ -784,6 +784,8 @@ class TraceAll(BaseAnalysis):
             Unique ID of the syntax tree node.
         next_value : Any
             The next value of the iterator.
+        iterable: Iterable
+            Iterable used in the for loop.
         
         Returns
         -------
@@ -791,6 +793,19 @@ class TraceAll(BaseAnalysis):
             If provided, overwrites the value of the iterator.
         """
         self.log(iid, '   For', next_value)
+
+    def exit_for(self, dyn_ast, iid):
+        """Hook for exiting a for loop.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        
+        """
+        self.log(iid, 'For exit')
 
     def enter_while(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
         """Hook for entering the next iteration of a while loop.

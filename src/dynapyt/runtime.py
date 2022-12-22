@@ -454,10 +454,10 @@ def _exit_while_(dyn_ast, iid):
     call_if_exists('exit_control_flow', dyn_ast, iid)
     call_if_exists('exit_while', dyn_ast, iid)
 
-def _enter_for_(dyn_ast, iid, next_val):
+def _enter_for_(dyn_ast, iid, next_val, iterable):
     call_if_exists('runtime_event', dyn_ast, iid)
     result_high = call_if_exists('enter_control_flow', dyn_ast, iid, not isinstance(next_val, StopIteration))
-    result_low = call_if_exists('enter_for', dyn_ast, iid, next_val)
+    result_low = call_if_exists('enter_for', dyn_ast, iid, next_val, iterable)
     if result_low is not None:
         return result_low
     elif result_high is not None:
@@ -476,11 +476,11 @@ def _gen_(dyn_ast, iid, iterator):
     while True:
         try:
             it = next(new_iter)
-            result = _enter_for_(dyn_ast, iid, it)
+            result = _enter_for_(dyn_ast, iid, it, iterator)
             if result is not None:
                 yield result
             else:
                 yield it
         except StopIteration as e:
-            _enter_for_(dyn_ast, iid, e)
+            _enter_for_(dyn_ast, iid, e, iterator)
             return
