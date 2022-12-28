@@ -259,7 +259,7 @@ def _dict_(dyn_ast, iid, val):
             value.update({v[0]: v[1]})
     call_if_exists('literal', dyn_ast, iid, value)
     res = call_if_exists('dictionary', dyn_ast, iid, val, value)
-    return res if res != None else val
+    return res if res != None else value
 
 def _list_(dyn_ast, iid, val):
     call_if_exists('runtime_event', dyn_ast, iid)

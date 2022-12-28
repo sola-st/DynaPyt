@@ -846,7 +846,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 old_else = updated_node.orelse.body.body
             else:
                 old_else = []
-            else_part = cst.Else(body=cst.IndentedBlock(body=old_else + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
+            else_part = cst.Else(body=cst.IndentedBlock(body=list(old_else) + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]))
         else:
             else_part = updated_node.orelse
         return updated_node.with_changes(iter=generator_call, orelse=else_part, target=original_node.target)
