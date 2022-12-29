@@ -2,6 +2,7 @@ import argparse
 import importlib
 from os.path import abspath
 import sys
+import signal
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -35,6 +36,18 @@ if __name__ == '__main__':
     my_analysis = class_()
     rt.set_analysis(my_analysis)
 
+    def end_execution():
+        try:
+            func = getattr(my_analysis, 'end_execution')
+            func()
+        except AttributeError:
+            pass
+
+    # allow dynapyt to exit gracefully
+    # Note: this will almost certainly not work on Windows
+    signal.signal(signal.SIGINT, end_execution)
+    signal.signal(signal.SIGTERM, end_execution)
+
     if not name is None:
         getattr(my_analysis, 'add_metadata', lambda: None)({"name": name})
 
@@ -45,11 +58,10 @@ if __name__ == '__main__':
         pass
     if args.entry.endswith('.py'):
         sys.argv = [args.entry]
-        exec(open(abspath(args.entry)).read())
+        try:
+            exec(open(abspath(args.entry)).read())
+        except Exception as e:
+            end_execution()
     else:
         importlib.import_module(args.entry, '*')
-    try:
-        func = getattr(my_analysis, 'end_execution')
-        func()
-    except AttributeError:
-        pass
+    end_execution()
