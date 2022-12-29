@@ -58,10 +58,7 @@ if __name__ == '__main__':
         pass
     if args.entry.endswith('.py'):
         sys.argv = [args.entry]
-        try:
-            exec(open(abspath(args.entry)).read())
-        except Exception as e:
-            end_execution()
+        exec(open(abspath(args.entry)).read())
     else:
         importlib.import_module(args.entry, '*')
     end_execution()
