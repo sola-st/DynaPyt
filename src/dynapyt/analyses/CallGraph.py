@@ -5,6 +5,7 @@ from ..utils.nodeLocator import get_node_by_location, get_parent_by_type
 
 class CallGraph(BaseAnalysis):
     def __init__(self):
+        super(CallGraph, self).__init__()
         self.graph = set()
 
     def pre_call(self, dyn_ast: str, iid: int, function: Callable):

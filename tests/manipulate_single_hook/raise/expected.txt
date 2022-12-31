@@ -1,0 +1,3 @@
+Exception with message 'foo' and cause with message bar
+TypeError caught
+Done

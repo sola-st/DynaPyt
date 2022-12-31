@@ -1,0 +1,36 @@
+begin execution
+enter control flow event with condition True
+while condition evaluates to True
+9
+enter control flow event with condition True
+while condition evaluates to True
+8
+enter control flow event with condition True
+while condition evaluates to True
+7
+enter control flow event with condition True
+while condition evaluates to True
+6
+enter control flow event with condition True
+while condition evaluates to True
+5
+enter control flow event with condition True
+while condition evaluates to True
+4
+enter control flow event with condition True
+while condition evaluates to True
+3
+enter control flow event with condition True
+while condition evaluates to True
+2
+enter control flow event with condition True
+while condition evaluates to True
+1
+enter control flow event with condition True
+while condition evaluates to True
+0
+enter control flow event with condition False
+while condition evaluates to False
+done with control flow statement
+done with while statement
+end execution

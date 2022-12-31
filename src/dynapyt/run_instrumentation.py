@@ -42,8 +42,6 @@ if __name__ == '__main__':
     
     for dir_path, dir_names, file_names in walk(start):
         for name in file_names:
-            if (name in ['setup.py', '__init__.py', '__version__.py']) or ('config' in name):
-                continue
             if name.endswith('.py'):
                 file_path = path.join(dir_path, name)
                 cmd_list = ['python', '-m', 'dynapyt.instrument.instrument', '--files', file_path, '--analysis', analysis]
