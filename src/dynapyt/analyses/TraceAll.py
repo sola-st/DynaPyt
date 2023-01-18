@@ -759,7 +759,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, '   If', cond_value)
 
-    def enter_for(self, dyn_ast: str, iid: int, next_value: Any, is_async: bool) -> Optional[Any]:
+    def enter_for(self, dyn_ast: str, iid: int, next_value: Any) -> Optional[Any]:
         """Hook for entering a single iteration of a for loop.
 
         Parameters
