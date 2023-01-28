@@ -472,6 +472,9 @@ def _exit_for_(dyn_ast, iid):
     call_if_exists('exit_for', dyn_ast, iid)
 
 def _gen_(dyn_ast, iid, iterator):
+    if iterator is None:
+        return
+
     new_iter = iter(iterator)
     while True:
         try:

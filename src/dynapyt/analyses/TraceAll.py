@@ -776,6 +776,9 @@ class TraceAll(BaseAnalysis):
     def enter_for(self, dyn_ast: str, iid: int, next_value: Any, iterable: Iterable) -> Optional[Any]:
         """Hook for entering a single iteration of a for loop.
 
+        In most cases it should be ensured that the provided iterable is not consumed
+        as the instrumented program will use it later on in the actual for loop.
+
         Parameters
         ----------
         dyn_ast : str

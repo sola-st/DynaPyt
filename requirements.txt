@@ -13,8 +13,7 @@ pyparsing==3.0.9
 pytest==7.0.1
 pytest-forked==1.4.0
 pytest-xdist==2.5.0
-PyYAML==6.0
-tomli==1.2.3
 typing-inspect==0.7.1
 typing_extensions==4.1.1
 zipp==3.6.0
+libcst==0.4.1
