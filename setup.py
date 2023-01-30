@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="dynapyt",
-    version="0.2.1",
+    version="0.2.2",
     author="Aryaz Eghbali",
     author_email="aryaz.egh@gmail.com",
     description="Dynamic analysis framework for Python",
