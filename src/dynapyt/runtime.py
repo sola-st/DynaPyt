@@ -1,4 +1,5 @@
 from sys import exc_info
+from typing import Callable
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
 
@@ -9,11 +10,8 @@ def set_analysis(new_analysis):
     analysis = new_analysis
 
 def call_if_exists(f, *args):
-    try:
-        func = getattr(analysis, f)
-        return func(*args)
-    except AttributeError:
-        return
+    func = getattr(analysis, f, lambda *args: None)
+    return func(*args)
 
 def _dynapyt_parse_to_ast_(code):
     return cst.parse_module(code)
@@ -179,7 +177,7 @@ def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
     call_if_exists('runtime_event', dyn_ast, iid)
     if only_post:
         result = call
-        new_res = call_if_exists('post_call', dyn_ast, iid, result, pos_args, kw_args)
+        new_res = call_if_exists('post_call', dyn_ast, iid, result, call, pos_args, kw_args)
         return new_res if new_res is not None else result
     else:
         tmp = []
@@ -191,9 +189,9 @@ def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
             else:
                 kw_args = dict(kw_args, **a)
         pos_args = tuple(tmp)
-        call_if_exists('pre_call', dyn_ast, iid, pos_args, kw_args)
+        call_if_exists('pre_call', dyn_ast, iid, call, pos_args, kw_args)
         result = call(*pos_args, **kw_args)
-        new_res = call_if_exists('post_call', dyn_ast, iid, result, pos_args, kw_args)
+        new_res = call_if_exists('post_call', dyn_ast, iid, result, call, pos_args, kw_args)
         return new_res if new_res is not None else result
 
 def _bool_(dyn_ast, iid, val):
@@ -260,14 +258,14 @@ def _dict_(dyn_ast, iid, val):
         else:
             value.update({v[0]: v[1]})
     call_if_exists('literal', dyn_ast, iid, value)
-    call_if_exists('dictionary', dyn_ast, iid, val, value)
-    return value
+    res = call_if_exists('dictionary', dyn_ast, iid, val, value)
+    return res if res != None else value
 
 def _list_(dyn_ast, iid, val):
     call_if_exists('runtime_event', dyn_ast, iid)
     call_if_exists('literal', dyn_ast, iid, val)
-    call_if_exists('_list', dyn_ast, iid, val)
-    return val
+    res = call_if_exists('_list', dyn_ast, iid, val)
+    return res if res != None else val
 
 def _tuple_(dyn_ast, iid, val):
     call_if_exists('runtime_event', dyn_ast, iid)
@@ -377,18 +375,18 @@ def _if_(dyn_ast, iid, val):
     result = call_if_exists('_if', dyn_ast, iid, val)
     return result if result != None else val
 
-def _func_entry_(dyn_ast, iid, args, is_lambda=False):
+def _func_entry_(dyn_ast, iid, args, name: str, is_lambda=False):
     call_if_exists('runtime_event', dyn_ast, iid)
-    call_if_exists('function_enter', dyn_ast, iid, args, is_lambda)
+    call_if_exists('function_enter', dyn_ast, iid, args, name, is_lambda)
 
-def _func_exit_(dyn_ast, iid):
+def _func_exit_(dyn_ast, iid, name: str):
     call_if_exists('runtime_event', dyn_ast, iid)
-    call_if_exists('function_exit', dyn_ast, iid, None)
+    call_if_exists('function_exit', dyn_ast, iid, name, None)
     return
 
-def _return_(dyn_ast, iid, return_val=None):
+def _return_(dyn_ast, iid, function_iid, function_name, return_val=None):
     call_if_exists('runtime_event', dyn_ast, iid)
-    result_high = call_if_exists('function_exit', dyn_ast, iid, return_val)
+    result_high = call_if_exists('function_exit', dyn_ast, function_iid, function_name, return_val)
     result_low = call_if_exists('_return', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
@@ -396,9 +394,9 @@ def _return_(dyn_ast, iid, return_val=None):
         return result_high
     return return_val
 
-def _yield_(dyn_ast, iid, return_val=None):
+def _yield_(dyn_ast, iid, function_iid, function_name, return_val=None):
     call_if_exists('runtime_event', dyn_ast, iid)
-    result_high = call_if_exists('function_exit', dyn_ast, iid, return_val)
+    result_high = call_if_exists('function_exit', dyn_ast, function_iid, function_name, return_val)
     result_low = call_if_exists('_yield', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
@@ -412,9 +410,9 @@ def _assert_(dyn_ast, iid, test, msg):
     return result if result is not None else test
 
 def _lambda_(dyn_ast, iid, args, expr):
-    _func_entry_(dyn_ast, iid, args, True)
+    _func_entry_(dyn_ast, iid, args, "lambda", True)
     res = expr()
-    return _return_(dyn_ast, iid, res)
+    return _return_(dyn_ast, iid, iid, res)
 
 def _break_(dyn_ast, iid):
     call_if_exists('runtime_event', dyn_ast, iid)
@@ -456,10 +454,10 @@ def _exit_while_(dyn_ast, iid):
     call_if_exists('exit_control_flow', dyn_ast, iid)
     call_if_exists('exit_while', dyn_ast, iid)
 
-def _enter_for_(dyn_ast, iid, next_val):
+def _enter_for_(dyn_ast, iid, next_val, iterable):
     call_if_exists('runtime_event', dyn_ast, iid)
     result_high = call_if_exists('enter_control_flow', dyn_ast, iid, not isinstance(next_val, StopIteration))
-    result_low = call_if_exists('enter_for', dyn_ast, iid, next_val)
+    result_low = call_if_exists('enter_for', dyn_ast, iid, next_val, iterable)
     if result_low is not None:
         return result_low
     elif result_high is not None:
@@ -474,15 +472,18 @@ def _exit_for_(dyn_ast, iid):
     call_if_exists('exit_for', dyn_ast, iid)
 
 def _gen_(dyn_ast, iid, iterator):
+    if iterator is None:
+        return
+
     new_iter = iter(iterator)
     while True:
         try:
             it = next(new_iter)
-            result = _enter_for_(dyn_ast, iid, it)
+            result = _enter_for_(dyn_ast, iid, it, iterator)
             if result is not None:
                 yield result
             else:
                 yield it
         except StopIteration as e:
-            _enter_for_(dyn_ast, iid, e)
+            _enter_for_(dyn_ast, iid, e, iterator)
             return

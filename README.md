@@ -54,6 +54,8 @@ To run the instrumentation on all files in a directory:
 python -m dynapyt.run_instrumentation --directory <path to directory> --analysis <analysis name>
 ```
 
+Note that instrumented files might not be portable.
+
 
 ## Running an Analysis
 

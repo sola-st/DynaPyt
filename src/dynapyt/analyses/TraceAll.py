@@ -1,6 +1,6 @@
 import logging
 from types import TracebackType
-from typing import Any, Callable, Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 import libcst as cst
 import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
@@ -10,7 +10,11 @@ class TraceAll(BaseAnalysis):
     
     def __init__(self) -> None:
         super().__init__()
-        logging.basicConfig(filename='output.log', format='%(message)s', level=logging.INFO)
+        root_logger = logging.getLogger()
+        root_logger.setLevel(logging.INFO)
+        handler = logging.FileHandler('output.log', 'w', 'utf-8')
+        handler.setFormatter(logging.Formatter('%(message)s'))
+        root_logger.addHandler(handler)
     
     def log(self, iid: int, *args, **kwargs):
         res = ''
@@ -510,7 +514,7 @@ class TraceAll(BaseAnalysis):
 
     # Instrumented function
 
-    def function_enter(self, dyn_ast: str, iid: int, args: List[Any], is_lambda: bool) -> None:
+    def function_enter(self, dyn_ast: str, iid: int, name: str, args: List[Any], is_lambda: bool) -> None:
         """Hook for when an instrumented function is entered.
 
         Parameters
@@ -521,6 +525,8 @@ class TraceAll(BaseAnalysis):
             Unique ID of the syntax tree node.
         args : List[Any]
             The arguments passed to the function.
+        name:
+            Name of the function called
         is_lambda : bool
             Whether the function is a lambda function.
         """
@@ -532,7 +538,7 @@ class TraceAll(BaseAnalysis):
         if (not is_lambda) and (get_node_by_location(ast, iids.iid_to_location[iid], m.FunctionDef()).name in ['__str__', '__repr__']):
             self.log(iid, 'Entered function', danger_of_recursion=True)
 
-    def function_exit(self, dyn_ast: str, iid: int, result: Any) -> Any:
+    def function_exit(self, dyn_ast: str, iid: int, function_iid: int, name: str, result: Any) -> Any:
         """Hook for exiting an instrumented function.
 
         Parameters
@@ -541,6 +547,10 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
+        function_iid: int
+            ID unique to the current file, referring to the function
+        name: str
+            Name of the function called
         result : Any
             The result of the function.
         
@@ -559,7 +569,7 @@ class TraceAll(BaseAnalysis):
 
     # Function Call
 
-    def pre_call(self, dyn_ast: str, iid: int, pos_args: Tuple, kw_args: Dict):
+    def pre_call(self, dyn_ast: str, iid: int, function: Callable, pos_args: Tuple, kw_args: Dict):
         """Hook called before a function call happens.
 
         Parameters
@@ -568,6 +578,8 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
         iid : int
             Unique ID of the syntax tree node.
+        function : str
+            Function which will be called
         pos_args : Tuple
             The positional arguments passed to the function.
         kw_args : Dict
@@ -575,7 +587,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, 'Before function call')
     
-    def post_call(self, dyn_ast: str, iid: int, val: Any, pos_args: Tuple, kw_args: Dict) -> Any:
+    def post_call(self, dyn_ast: str, iid: int, result: Any, call: Callable, pos_args: Tuple, kw_args: Dict) -> Any:
         """Hook called after a function call.
 
         Parameters
@@ -586,6 +598,8 @@ class TraceAll(BaseAnalysis):
             Unique ID of the syntax tree node.
         val : Any
             The return value of the function.
+        call: Callable
+            The function which was called
         pos_args : Tuple
             The positional arguments passed to the function.
         kw_args : Dict
@@ -759,8 +773,11 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, '   If', cond_value)
 
-    def enter_for(self, dyn_ast: str, iid: int, next_value: Any) -> Optional[Any]:
+    def enter_for(self, dyn_ast: str, iid: int, next_value: Any, iterable: Iterable) -> Optional[Any]:
         """Hook for entering a single iteration of a for loop.
+
+        In most cases it should be ensured that the provided iterable is not consumed
+        as the instrumented program will use it later on in the actual for loop.
 
         Parameters
         ----------
@@ -770,6 +787,8 @@ class TraceAll(BaseAnalysis):
             Unique ID of the syntax tree node.
         next_value : Any
             The next value of the iterator.
+        iterable: Iterable
+            Iterable used in the for loop.
         
         Returns
         -------
@@ -777,6 +796,19 @@ class TraceAll(BaseAnalysis):
             If provided, overwrites the value of the iterator.
         """
         self.log(iid, '   For', next_value)
+
+    def exit_for(self, dyn_ast, iid):
+        """Hook for exiting a for loop.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        
+        """
+        self.log(iid, 'For exit')
 
     def enter_while(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
         """Hook for entering the next iteration of a while loop.

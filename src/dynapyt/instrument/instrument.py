@@ -1,6 +1,7 @@
 import argparse
 import importlib
 from multiprocessing import Pool
+import traceback
 import libcst as cst
 from libcst._exceptions import ParserSyntaxError
 from .CodeInstrumenter import CodeInstrumenter
@@ -14,6 +15,8 @@ parser.add_argument(
     "--files", help="Python files to instrument or .txt file with all file paths", nargs="+")
 parser.add_argument(
     "--analysis", help="Analysis class name")
+parser.add_argument(
+    "--module", help="Adds external module paths")
 
 def gather_files(files_arg):
     if len(files_arg) == 1 and files_arg[0].endswith('.txt'):
@@ -67,8 +70,18 @@ def instrument_file(file_path, selected_hooks):
 if __name__ == '__main__':
     args = parser.parse_args()
     files = gather_files(args.files)
-    
-    module = importlib.import_module('dynapyt.analyses.' + args.analysis)
+    additional_module = args.module
+    analysis = args.analysis
+    modulePath = 'dynapyt.analyses'
+    if additional_module is not None:
+        modulePath = additional_module
+    try:
+        module = importlib.import_module(modulePath + '.' + analysis)
+    except TypeError as e:
+        print(f'--module was used but no value specified {e}')
+    except ImportError as e:
+        print(f'module could not be imported {e}')
+
     class_ = getattr(module, args.analysis)
     instance = class_()
     method_list = [func for func in dir(instance) if callable(getattr(instance, func)) and not func.startswith("__")]
