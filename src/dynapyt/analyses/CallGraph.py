@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Tuple, Dict
 import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
 from ..utils.nodeLocator import get_node_by_location, get_parent_by_type
@@ -8,7 +8,7 @@ class CallGraph(BaseAnalysis):
         super(CallGraph, self).__init__()
         self.graph = set()
 
-    def pre_call(self, dyn_ast: str, iid: int, function: Callable):
+    def pre_call(self, dyn_ast: str, iid: int, function: Callable, pos_args: Tuple, kw_args: Dict):
         ast, iids = self._get_ast(dyn_ast)
         caller = get_parent_by_type(ast, iids.iid_to_location[iid], m.FunctionDef())
         callee = get_node_by_location(ast, iids.iid_to_location[iid], m.Call())
