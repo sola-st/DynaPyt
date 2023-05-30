@@ -381,7 +381,7 @@ def _func_entry_(dyn_ast, iid, args, name: str, is_lambda=False):
 
 def _func_exit_(dyn_ast, iid, name: str):
     call_if_exists('runtime_event', dyn_ast, iid)
-    call_if_exists('function_exit', dyn_ast, iid, name, None)
+    call_if_exists('function_exit', dyn_ast, iid, 0, name, None) # The 0 is the function iid, which is not present here and I didn't know what to use exactly
     return
 
 def _return_(dyn_ast, iid, function_iid, function_name, return_val=None):
