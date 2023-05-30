@@ -396,7 +396,7 @@ def _return_(dyn_ast, iid, function_iid, function_name, return_val=None):
 
 def _yield_(dyn_ast, iid, function_iid, function_name, return_val=None):
     call_if_exists('runtime_event', dyn_ast, iid)
-    result_high = call_if_exists('function_exit', dyn_ast, function_iid, function_name, return_val)
+    result_high = call_if_exists('function_exit', dyn_ast, iid, function_iid, function_name, return_val)
     result_low = call_if_exists('_yield', dyn_ast, iid, return_val)
     if result_low != None:
         return result_low
