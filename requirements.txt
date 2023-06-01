@@ -10,9 +10,9 @@ packaging==21.3
 pluggy==1.0.0
 py==1.11.0
 pyparsing==3.0.9
-pytest==7.0.1
+pytest==7.3.1
 pytest-forked==1.4.0
-pytest-xdist==2.5.0
+pytest-xdist==3.3.1
 typing-inspect==0.7.1
 typing_extensions==4.1.1
 zipp==3.6.0
