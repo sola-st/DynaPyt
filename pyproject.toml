@@ -1,14 +1,43 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "dynapyt"
-authors = [{name = "Aryaz Eghbali", email = "aryaz.egh@gmail.com"}, {name = "Michael Pradel", email = "michael@binaervarianz.de"}]
+dynamic = ["version"]
+description = "Dynamic analysis framework for Python"
 readme = "README.md"
-license = {file = "LICENSE"}
-classifiers = ["License :: OSI Approved :: MIT License"]
-dynamic = ["version", "description"]
+license = ""
+requires-python = ">=3.6"
+authors = [
+    { name = "Aryaz Eghbali", email = "aryaz.egh@gmail.com" },
+    { name = "Michael Pradel", email = "michael@binaervarianz.de" },
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+dependencies = [
+    "libcst",
+]
 
 [project.urls]
-Home = "https://github.com/sola-st/dynapyt"
+"Bug Tracker" = "https://github.com/sola-st/DynaPyt/issues"
+Homepage = "https://github.com/sola-st/DynaPyt"
+
+[tool.hatch.version]
+path = "src/dynapyt/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = [
+    "src/dynapyt",
+]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/dynapyt/utils/hierarchy.json" = "src/dynapyt/utils/hierarchy.json"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+]

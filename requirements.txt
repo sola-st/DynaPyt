@@ -16,4 +16,3 @@ pytest-xdist==2.5.0
 typing-inspect==0.7.1
 typing_extensions==4.1.1
 zipp==3.6.0
-libcst==0.4.1

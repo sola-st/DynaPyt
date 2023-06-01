@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="dynapyt",
-    version="0.2.2",
+    version="0.2.3",
     author="Aryaz Eghbali",
     author_email="aryaz.egh@gmail.com",
     description="Dynamic analysis framework for Python",
@@ -23,14 +23,14 @@ setuptools.setup(
     package_dir={"": "src", "test": "test"},
     packages=setuptools.find_packages(where="src"),
     package_data={
-        'dynapyt': ['utils/hierarchy.json'],
+        "dynapyt": ["utils/hierarchy.json"],
     },
     include_package_data=True,
     python_requires=">=3.6",
     setup_requires=[
-        'libcst',
+        "libcst",
     ],
     install_requires=[
-        'libcst',
+        "libcst",
     ],
 )
