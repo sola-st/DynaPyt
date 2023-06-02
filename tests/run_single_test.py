@@ -38,6 +38,11 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
 
     instrument_file(program_file, selected_hooks)
 
+    if exists(join(abs_dir, "__init__.py")) and not exists(
+        join(abs_dir, "__init__.py.orig")
+    ):
+        instrument_file(join(abs_dir, "__init__.py"), selected_hooks)
+
     # analyze
     rt.set_analysis(analysis_instance)
     captured = capsys.readouterr()  # clear stdout
@@ -63,3 +68,8 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     # restore uninstrumented program and remove temporary files
     move(orig_program_file, program_file)
     remove(join(abs_dir, "program-dynapyt.json"))
+    if exists(join(abs_dir, "__init__.py")) and exists(
+        join(abs_dir, "__init__.py.orig")
+    ):
+        move(join(abs_dir, "__init__.py.orig"), join(abs_dir, "__init__.py"))
+        remove(join(abs_dir, "__init__-dynapyt.json"))
