@@ -1399,13 +1399,21 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             and "exit_if" not in self.selected_hooks
         ):
             return updated_node
-        callee_name = cst.Name(value="_enter_if_")
-        self.to_import.add("_enter_if_")
+        callee_name = cst.Name(value="_if_expr_")
+        self.to_import.add("_if_expr_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        val_arg = cst.Arg(value=updated_node.test)
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
+        cond_arg = cst.Arg(value=updated_node.test)
+        body_arg = cst.Arg(
+            value=self.__wrap_in_lambda(original_node.body, updated_node.body)
+        )
+        orelse_arg = cst.Arg(
+            value=self.__wrap_in_lambda(original_node.orelse, updated_node.orelse)
+        )
+        call = cst.Call(
+            func=callee_name, args=[ast_arg, iid_arg, cond_arg, body_arg, orelse_arg]
+        )
         return updated_node.with_changes(test=call)
 
     def leave_While(self, original_node, updated_node):

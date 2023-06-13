@@ -454,10 +454,23 @@ def _read_(dyn_ast, iid, var_arg):
     return result if result != None else value
 
 
-def _if_(dyn_ast, iid, val):
+def _if_expr_(dyn_ast, iid, condition, true_val, false_val):
     call_if_exists("runtime_event", dyn_ast, iid)
-    result = call_if_exists("_if", dyn_ast, iid, val)
-    return result if result != None else val
+    result_high = call_if_exists("enter_control_flow", dyn_ast, iid, condition)
+    result_low = call_if_exists("enter_if", dyn_ast, iid, condition)
+    final_condition = condition
+    if result_low is not None:
+        final_condition = result_low
+    elif result_high is not None:
+        final_condition = result_high
+    if final_condition:
+        res = true_val()
+    else:
+        res = false_val()
+    call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("exit_control_flow", dyn_ast, iid)
+    call_if_exists("exit_if", dyn_ast, iid)
+    return res
 
 
 def _func_entry_(dyn_ast, iid, args, name: str, is_lambda=False):
