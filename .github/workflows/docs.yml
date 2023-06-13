@@ -28,7 +28,7 @@ jobs:
       - run: pip install -e .
       # ADJUST THIS: build your documentation into docs/.
       # We use a custom build script for pdoc itself, ideally you just run `pdoc -o docs/ ...` here.
-      - run: pdoc src/dynapyt/aalyses/TraceAll.py -o doc/
+      - run: pdoc src/dynapyt/analyses/TraceAll.py -o doc/
 
       - uses: actions/upload-pages-artifact@v1
         with:
