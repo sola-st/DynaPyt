@@ -1462,7 +1462,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         )
 
     def leave_CompFor(self, original_node, updated_node):
-        if "enter_for" not in self.selected_hooks:
+        if (
+            "enter_for" not in self.selected_hooks
+            and "exit_for" not in self.selected_hooks
+        ):
             return updated_node
         generator_name = cst.Name(value="_gen_")
         self.to_import.add("_gen_")

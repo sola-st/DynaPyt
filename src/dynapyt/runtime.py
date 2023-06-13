@@ -593,4 +593,5 @@ def _gen_(dyn_ast, iid, iterator):
                 yield it
         except StopIteration as e:
             _enter_for_(dyn_ast, iid, e, iterator)
+            _exit_for_(dyn_ast, iid)
             return
