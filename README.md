@@ -71,6 +71,10 @@ Single command to instrument and run an analysis on a project:
 python -m dynapyt.run_all --directory <directory of project> --entry <entry file (python)> --analysis <analysis name>
 ```
 
+## Available Hooks
+
+Check out [this auto-generated API reference](https://sola-st.github.io/DynaPyt/) for available hooks.
+
 --------------------
 
 ## Reproducing the Results in the Paper
