@@ -194,6 +194,6 @@ venvs/**
 under_test/**
 !under_test
 output.log
-doc/dynapyt/
-doc/index.html
-doc/search.js
+docs/dynapyt/
+docs/index.html
+docs/search.js
