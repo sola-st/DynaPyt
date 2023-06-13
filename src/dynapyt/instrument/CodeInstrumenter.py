@@ -1369,17 +1369,38 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                     body=list(updated_node.body.body)
                     + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]
                 )
+
+            if updated_node.orelse is None:
+                new_orelse_body = [
+                    cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])
+                ]
+            elif m.matches(updated_node.orelse.body, m.SimpleStatementSuite()):
+                new_orelse_body = list(updated_node.orelse.body.body) + [
+                    cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])
+                ]
+            else:
+                new_orelse_body = list(updated_node.orelse.body.body) + [
+                    cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])
+                ]
+            new_orelse = cst.Else(body=cst.IndentedBlock(body=new_orelse_body))
         else:
             new_body = updated_node.body
+            new_orelse = updated_node.orelse
         return updated_node.with_changes(
-            test=call, whitespace_before_test=cst.SimpleWhitespace(" "), body=new_body
+            test=call,
+            whitespace_before_test=cst.SimpleWhitespace(" "),
+            body=new_body,
+            orelse=new_orelse,
         )
 
     def leave_IfExp(self, original_node, updated_node):
-        if "if" not in self.selected_hooks:
+        if (
+            "enter_if" not in self.selected_hooks
+            and "exit_if" not in self.selected_hooks
+        ):
             return updated_node
-        callee_name = cst.Name(value="_if_")
-        self.to_import.add("_if_")
+        callee_name = cst.Name(value="_enter_if_")
+        self.to_import.add("_enter_if_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))

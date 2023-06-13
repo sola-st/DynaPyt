@@ -527,11 +527,12 @@ def _enter_if_(dyn_ast, iid, condition):
     call_if_exists("runtime_event", dyn_ast, iid)
     result_high = call_if_exists("enter_control_flow", dyn_ast, iid, condition)
     result_low = call_if_exists("enter_if", dyn_ast, iid, condition)
+    final_condition = condition
     if result_low is not None:
-        return result_low
+        final_condition = result_low
     elif result_high is not None:
-        return result_high
-    return condition
+        final_condition = result_high
+    return final_condition
 
 
 def _exit_if_(dyn_ast, iid):
