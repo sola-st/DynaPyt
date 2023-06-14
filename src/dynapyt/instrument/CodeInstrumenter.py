@@ -1162,7 +1162,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         if (
             (len(list(name_source)) > 0)
             and (list(name_source)[0].source == QualifiedNameSource.BUILTIN)
-            and (original_node.func.value in site_sensitive_functions)
+            and (
+                m.matches(original_node.func, m.Name())
+                and original_node.func.value in site_sensitive_functions
+            )
         ) or (
             any(a for a in updated_node.args if m.matches(a.value, m.GeneratorExp()))
         ):

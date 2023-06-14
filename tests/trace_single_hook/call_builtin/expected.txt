@@ -1,0 +1,8 @@
+begin execution
+pre call of Foo
+post call of Foo
+pre call of type
+post call of type
+pre call of Foo
+post call of Foo
+end execution

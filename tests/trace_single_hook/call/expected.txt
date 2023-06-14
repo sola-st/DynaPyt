@@ -1,0 +1,7 @@
+begin execution
+pre call of foo
+post call of foo
+pre call of print
+hello world
+post call of print
+end execution
