@@ -8,6 +8,10 @@ from ..utils.nodeLocator import get_node_by_location
 
 
 class TraceAll(BaseAnalysis):
+    """
+    .. include:: ../../../docs/hooks.md
+    """
+
     def __init__(self) -> None:
         super().__init__()
         root_logger = logging.getLogger()
