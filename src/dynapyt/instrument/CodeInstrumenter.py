@@ -281,7 +281,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
 
     def leave_Float(self, original_node, updated_node):
-        if "float" not in self.selected_hooks:
+        if "_float" not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_float_")
         self.to_import.add("_float_")
@@ -441,7 +441,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     @call_if_not_inside(m.AssignTarget() | m.AnnAssign())
     def leave_List(self, original_node, updated_node):
-        if "list" not in self.selected_hooks:
+        if "_list" not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_list_")
         self.to_import.add("_list_")
@@ -477,7 +477,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     @call_if_not_inside(m.AssignTarget() | m.AnnAssign())
     def leave_Tuple(self, original_node, updated_node):
-        if "tuple" not in self.selected_hooks:
+        if "_tuple" not in self.selected_hooks:
             if len(updated_node.lpar) == 0:
                 return updated_node.with_changes(
                     lpar=[cst.LeftParen()], rpar=[cst.RightParen()]
@@ -756,7 +756,11 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
 
     def leave_BooleanOperation(self, original_node, updated_node):
-        if snake(type(original_node.operator).__name__) not in self.selected_hooks:
+        operator_name = snake(type(original_node.operator).__name__)
+        if (
+            operator_name not in self.selected_hooks
+            and f"_{operator_name}" not in self.selected_hooks
+        ):
             return updated_node
         bool_op = {"And": 13, "Or": 14}
         callee_name = cst.Name(value="_binary_op_")
@@ -779,7 +783,11 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
 
     def leave_UnaryOperation(self, original_node, updated_node):
-        if snake(type(original_node.operator).__name__) not in self.selected_hooks:
+        operator_name = snake(type(original_node.operator).__name__)
+        if (
+            operator_name not in self.selected_hooks
+            and f"_{operator_name}" not in self.selected_hooks
+        ):
             return updated_node
         un_op = {"BitInvert": 0, "Minus": 1, "Not": 2, "Plus": 3}
         callee_name = cst.Name(value="_unary_op_")
@@ -800,7 +808,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_Comparison(self, original_node, updated_node):
         if not any(
-            snake(type(i.operator).__name__) in self.selected_hooks
+            (
+                snake(type(i.operator).__name__) in self.selected_hooks
+                or "_" + snake(type(i.operator).__name__) in self.selected_hooks
+            )
             for i in updated_node.comparisons
         ):
             return updated_node
@@ -1080,7 +1091,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     #     return False
 
     def leave_Assert(self, original_node, updated_node):
-        if "assert" not in self.selected_hooks:
+        if "_assert" not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_assert_")
         self.to_import.add("_assert_")
@@ -1204,7 +1215,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     # Exception
     def leave_Raise(self, original_node, updated_node):
-        if "raise" not in self.selected_hooks:
+        if "_raise" not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_raise_")
         self.to_import.add("_raise_")
@@ -1298,13 +1309,13 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     # Control flow
     def leave_IndentedBlock(self, original_node, updated_node):
-        if ("break" not in self.selected_hooks) and (
-            "continue" not in self.selected_hooks
+        if ("_break" not in self.selected_hooks) and (
+            "_continue" not in self.selected_hooks
         ):
             return updated_node
         new_body = []
         for i in updated_node.body:
-            if ("break" in self.selected_hooks) and (
+            if ("_break" in self.selected_hooks) and (
                 m.matches(i, m.SimpleStatementLine(body=[m.Break()]))
             ):
                 callee_name = cst.Name(value="_break_")
@@ -1320,7 +1331,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                     ),
                 )
                 new_body.append(condition)
-            elif ("continue" in self.selected_hooks) and (
+            elif ("_continue" in self.selected_hooks) and (
                 m.matches(i, m.SimpleStatementLine(body=[m.Continue()]))
             ):
                 callee_name = cst.Name(value="_continue_")
