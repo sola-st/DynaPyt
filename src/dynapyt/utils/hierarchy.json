@@ -99,7 +99,6 @@
             },
             "write": { },
             "delete": { }
-        },
-        "testing_wrong_hook": { }
+        }
     }
 }
