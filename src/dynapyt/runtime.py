@@ -490,7 +490,7 @@ def _return_(dyn_ast, iid, function_iid, function_name, return_val=None):
         "function_exit", dyn_ast, function_iid, function_name, return_val
     )
     result_low = call_if_exists(
-        "_return", dyn_ast, iid, function_iid, return_val
+        "_return", dyn_ast, iid, function_iid, function_name, return_val
     )  # return needs both its own iid and the function iid
     if result_low != None:
         return result_low
@@ -504,7 +504,9 @@ def _yield_(dyn_ast, iid, function_iid, function_name, return_val=None):
     result_high = call_if_exists(
         "function_exit", dyn_ast, function_iid, function_name, return_val
     )
-    result_low = call_if_exists("_yield", dyn_ast, iid, function_iid, return_val)
+    result_low = call_if_exists(
+        "_yield", dyn_ast, iid, function_iid, function_name, return_val
+    )
     if result_low != None:
         return result_low
     elif result_high != None:

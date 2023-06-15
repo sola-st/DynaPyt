@@ -654,7 +654,7 @@ class TraceAll(BaseAnalysis):
     # Instrumented function
 
     def function_enter(
-        self, dyn_ast: str, iid: int, name: str, args: List[Any], is_lambda: bool
+        self, dyn_ast: str, iid: int, args: List[Any], name: str, is_lambda: bool
     ) -> None:
         """Hook for when an instrumented function is entered.
 
@@ -717,7 +717,9 @@ class TraceAll(BaseAnalysis):
         """
         self.log(function_iid, "Exiting function")
 
-    def _return(self, dyn_ast: str, iid: int, function_iid: int, value: Any) -> Any:
+    def _return(
+        self, dyn_ast: str, iid: int, function_iid: int, function_name: str, value: Any
+    ) -> Any:
         """Hook for instrumented return statement.
 
 
@@ -732,13 +734,18 @@ class TraceAll(BaseAnalysis):
         function_iid: int
             ID unique to the current file, referring to the function.
 
+        function_name: str
+            Name of the function returning from.
+
         value : Any
             The value returned.
 
         """
         self.log(iid, "   Returning", value)
 
-    def _yield(self, dyn_ast: str, iid: int, function_iid: int, value: Any) -> Any:
+    def _yield(
+        self, dyn_ast: str, iid: int, function_iid: int, function_name: str, value: Any
+    ) -> Any:
         """Hook for instrumented yield statement.
 
 
@@ -752,6 +759,9 @@ class TraceAll(BaseAnalysis):
 
         function_iid: int
             ID unique to the current file, referring to the function.
+
+        function_name: str
+            Name of the function yielding from.
 
         value : Any
             The value yielded.
@@ -967,6 +977,19 @@ class TraceAll(BaseAnalysis):
 
     # Control flow
 
+    def control_flow_event(self, dyn_ast: str, iid: int) -> None:
+        """Hook called when a control flow event happens.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid : int
+            Unique ID of the syntax tree node.
+        """
+        self.log(iid, "Control flow event")
+
     def enter_control_flow(
         self, dyn_ast: str, iid: int, cond_value: bool
     ) -> Optional[bool]:
@@ -1009,7 +1032,7 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Control-flow exit")
 
     def enter_if(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
-        """Hook called when entering an if conditional.
+        """Hook called when entering if.
 
 
         Parameters
@@ -1031,6 +1054,22 @@ class TraceAll(BaseAnalysis):
 
         """
         self.log(iid, "   If", cond_value)
+
+    def exit_if(self, dyn_ast, iid):
+        """Hook for exiting if.
+
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid : int
+            Unique ID of the syntax tree node.
+
+
+        """
+        self.log(iid, "If exit")
 
     def enter_for(
         self, dyn_ast: str, iid: int, next_value: Any, iterable: Iterable
@@ -1105,6 +1144,22 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "   While", cond_value)
 
+    def exit_while(self, dyn_ast, iid):
+        """Hook for exiting a while loop.
+
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid : int
+            Unique ID of the syntax tree node.
+
+
+        """
+        self.log(iid, "While exit")
+
     def _break(self, dyn_ast: str, iid: int) -> Optional[bool]:
         """Hook for break statement.
 
@@ -1147,7 +1202,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "Continue")
 
-    def _try(self, dyn_ast: str, iid: int) -> None:
+    def enter_try(self, dyn_ast: str, iid: int) -> None:
         """Hook for entering a try block.
 
 
@@ -1161,6 +1216,20 @@ class TraceAll(BaseAnalysis):
 
         """
         self.log(iid, "Entered try")
+
+    def clean_exit_try(self, dyn_ast: str, iid: int) -> None:
+        """Hook for exiting a try block without an exception being raised.
+
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid: int
+            Unique ID of the syntax tree node.
+        """
+        self.log(iid, "Clean exit try")
 
     def exception(
         self, dyn_ast: str, iid: int, exceptions: List[Exception], caught: Exception

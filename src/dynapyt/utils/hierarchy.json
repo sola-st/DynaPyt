@@ -5,17 +5,17 @@
         "uncaught_exception": { },
         "literal": {
             "integer": { },
-            "float": { },
+            "_float": { },
             "imaginary": { },
             "boolean": { },
             "string": { },
             "dictionary": { },
-            "list": { },
-            "tuple": { }
+            "_list": { },
+            "_tuple": { }
         },
         "operation": {
             "binary_operation": {
-                "augmented_assign": {
+                "augmented_assignment": {
                     "add_assign": { },
                     "bit_and_assign": { },
                     "bit_or_assign": { },
@@ -43,21 +43,21 @@
                 "power": { },
                 "right_shift": { },
                 "subtract": { },
-                "and": { },
-                "or": { }
+                "_and": { },
+                "_or": { }
             },
             "unary_operation": {
                 "bit_invert": { },
                 "minus": { },
-                "not": { },
+                "_not": { },
                 "plus": { }
             },
             "comparison": {
                 "equal": { },
                 "greater_than": { },
                 "greater_than_equal": { },
-                "in": { },
-                "is": { },
+                "_in": { },
+                "_is": { },
                 "less_than": { },
                 "less_than_equal": { },
                 "not_equal": { },
@@ -66,39 +66,30 @@
             }
         },
         "control_flow_event": {
-            "conditional_control_flow": {
-                "enter_control_flow": {
-                    "enter_if": { },
-                    "enter_for": { },
-                    "enter_while": { }
-                },
-                "exit_control_flow": {
-                    "exit_if": { },
-                    "exit_for": { },
-                    "exit_while": { }
-                },
-                "assert" : { }
+            "enter_control_flow": {
+                "enter_if": { },
+                "enter_for": { },
+                "enter_while": { }
             },
-            "raise": { },
-            "try": {
-                "enter_try": { },
-                "clean_exit_try": { }
+            "exit_control_flow": {
+                "exit_if": { },
+                "exit_for": { },
+                "exit_while": { }
             },
+            "_assert" : { },
+            "_raise": { },
+            "enter_try": { },
+            "clean_exit_try": { },
             "exception": { },
-            "function_call": {
-                "pre_call": { },
-                "post_call": { }
-            },
-            "break": { },
-            "continue": { },
-            "function": {
-                "function_enter": { },
-                "function_exit": {
-                    "return": { },
-                    "yield": { }
-                }
-            },
-            "lambda": { }
+            "pre_call": { },
+            "post_call": { },
+            "_break": { },
+            "_continue": { },
+            "function_enter": { },
+            "function_exit": {
+                "_return": { },
+                "_yield": { }
+            }
         },
         "memory_access": {
             "read": {
@@ -108,6 +99,7 @@
             },
             "write": { },
             "delete": { }
-        }
+        },
+        "testing_wrong_hook": { }
     }
 }
