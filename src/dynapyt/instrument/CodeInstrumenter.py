@@ -855,17 +855,6 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
 
     def leave_Assign(self, original_node, updated_node):
-        if self.file_path.endswith("__init__.py") and m.matches(
-            original_node,
-            m.Assign(
-                targets=[
-                    m.AtLeastN(
-                        n=1, matcher=m.AssignTarget(target=m.Name(value="__version__"))
-                    )
-                ]
-            ),
-        ):
-            return updated_node
         if "write" not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_write_")
