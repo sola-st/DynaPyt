@@ -36,7 +36,13 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         self.current_function = []
         self.selected_hooks = selected_hooks
         self.to_import = set()
-        self.blacklist = [
+
+        # Blacklisted attributes are appended to the end of the source code.
+        # Some programs depend on being able to parse these attributes so
+        # there should be an uninstrumented version in the file (e.g. the
+        # __version__ attribute may be parsed for the project's version upon
+        # installation).
+        self.blacklist_names = {
             "__file__",
             "__name__",
             "__doc__",
@@ -51,7 +57,15 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "__all__",
             "__path__",
             "__docformat__",
-        ]
+            "__version__",
+            "__author__",
+            "__email__",
+            "__license__",
+        }
+        self.blacklist_name_objs = [m.Name(name) for name in self.blacklist_names]
+        
+        # Blacklisted nodes to append to the end of the file
+        self.blacklist_nodes = [cst.Newline(value="\n")]
 
     def __create_iid(self, node):
         location = self.get_metadata(PositionProvider, node)
@@ -196,6 +210,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             + dynapyt_imports
             + [get_ast]
             + [try_body]
+            + self.blacklist_nodes
         )
         return updated_node.with_changes(body=new_body)
 
@@ -215,7 +230,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     # Lowest level
     @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.AnnAssign())
     def leave_Name(self, original_node, updated_node):
-        if updated_node.value in self.blacklist:
+        if updated_node.value in self.blacklist_names:
             return updated_node
         if ("boolean" in self.selected_hooks) and (
             updated_node.value in ["True", "False"]
@@ -855,6 +870,19 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
 
     def leave_Assign(self, original_node, updated_node):
+        # Keep track of nodes of blacklisted attributes
+        if self.file_path.endswith("__init__.py") and m.matches(
+            original_node,
+            m.Assign(
+                targets=[
+                    m.AtLeastN(
+                        n=1, matcher=m.AssignTarget(target=m.OneOf(*self.blacklist_name_objs))
+                    )
+                ]
+            ),
+        ):
+            self.blacklist_nodes.append(cst.SimpleStatementLine(body=[original_node]))
+            self.blacklist_nodes.append(cst.Newline(value="\n"))
         if "write" not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_write_")

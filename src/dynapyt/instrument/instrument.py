@@ -64,22 +64,6 @@ def instrument_file(file_path, selected_hooks):
     copied_file_path = re.sub(r"\.py$", ".py.orig", file_path)
     copyfile(file_path, copied_file_path)
 
-    if file_path.endswith("__init__.py"):
-        black_list = [
-            "__version__",
-            "__author__",
-            "__email__",
-            "__license__",
-            "__all__",
-        ]
-        additional = []
-        original_code = src.splitlines()
-        for l in original_code:
-            for b in black_list:
-                if l.startswith(b):
-                    additional.append(l)
-        instrumented_code = instrumented_code + "\n" + "\n".join(additional)
-
     with open(file_path, "w") as file:
         file.write(instrumented_code)
     iids.store()
