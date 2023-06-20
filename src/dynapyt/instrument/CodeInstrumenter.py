@@ -881,7 +881,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 ]
             ),
         ):
-            self.blacklist_nodes.append(original_node)
+            self.blacklist_nodes.append(cst.SimpleStatementLine(body=[original_node]))
             self.blacklist_nodes.append(cst.Newline(value="\n"))
         if "write" not in self.selected_hooks:
             return updated_node
