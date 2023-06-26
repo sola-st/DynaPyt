@@ -7,8 +7,8 @@ import signal
 
 def run_analysis(entry: str, analysis: str, module: str = None, name: str = None):
     modulePath = "dynapyt.analyses"
-    if additional_module is not None:
-        modulePath = additional_module
+    if module is not None:
+        modulePath = module
     try:
         module = importlib.import_module(modulePath + "." + analysis)
     except TypeError as e:
