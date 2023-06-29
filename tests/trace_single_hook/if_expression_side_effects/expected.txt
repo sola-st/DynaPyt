@@ -1,0 +1,14 @@
+begin execution
+enter control flow event with condition True
+if expression evaluates to True
+bar yes
+done with control flow statement
+done with if expression
+yes
+enter control flow event with condition False
+if expression evaluates to False
+bar no
+done with control flow statement
+done with if expression
+no
+end execution

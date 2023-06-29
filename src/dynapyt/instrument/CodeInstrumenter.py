@@ -63,7 +63,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "__license__",
         }
         self.blacklist_name_objs = [m.Name(name) for name in self.blacklist_names]
-        
+
         # Blacklisted nodes to append to the end of the file
         self.blacklist_nodes = [cst.Newline(value="\n")]
 
@@ -876,7 +876,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             m.Assign(
                 targets=[
                     m.AtLeastN(
-                        n=1, matcher=m.AssignTarget(target=m.OneOf(*self.blacklist_name_objs))
+                        n=1,
+                        matcher=m.AssignTarget(
+                            target=m.OneOf(*self.blacklist_name_objs)
+                        ),
                     )
                 ]
             ),
@@ -1445,7 +1448,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         call = cst.Call(
             func=callee_name, args=[ast_arg, iid_arg, cond_arg, body_arg, orelse_arg]
         )
-        return updated_node.with_changes(test=call)
+        return call
 
     def leave_While(self, original_node, updated_node):
         if ("enter_while" not in self.selected_hooks) and (
