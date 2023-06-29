@@ -1,5 +1,4 @@
 from sys import exc_info
-from typing import Callable
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
 
@@ -236,6 +235,7 @@ def _comp_op_(dyn_ast, iid, left, comparisons):
 
 def _call_(dyn_ast, iid, call, only_post, pos_args, kw_args):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     if only_post:
         result = call
         new_res = call_if_exists(
@@ -411,21 +411,25 @@ def _sub_(dyn_ast, iid, base, sl):
 
 def _try_(dyn_ast, iid):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     call_if_exists("enter_try", dyn_ast, iid)
 
 
 def _end_try_(dyn_ast, iid):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     call_if_exists("clean_exit_try", dyn_ast, iid)
 
 
 def _exc_(dyn_ast, iid, exc=None, name=None):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     call_if_exists("exception", dyn_ast, iid, exc, name)
 
 
 def _raise_(dyn_ast, iid, exc=None, cause=None):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     res = call_if_exists("_raise", dyn_ast, iid, exc, cause)
     if res is not None:
         exc, cause = res
@@ -456,6 +460,7 @@ def _read_(dyn_ast, iid, var_arg):
 
 def _if_expr_(dyn_ast, iid, condition, true_val, false_val):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     result_high = call_if_exists("enter_control_flow", dyn_ast, iid, condition)
     result_low = call_if_exists("enter_if", dyn_ast, iid, condition)
     final_condition = condition
@@ -468,6 +473,7 @@ def _if_expr_(dyn_ast, iid, condition, true_val, false_val):
     else:
         res = false_val()
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     call_if_exists("exit_control_flow", dyn_ast, iid)
     call_if_exists("exit_if", dyn_ast, iid)
     return res
@@ -475,17 +481,20 @@ def _if_expr_(dyn_ast, iid, condition, true_val, false_val):
 
 def _func_entry_(dyn_ast, iid, args, name: str, is_lambda=False):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     call_if_exists("function_enter", dyn_ast, iid, args, name, is_lambda)
 
 
 def _func_exit_(dyn_ast, iid, name: str):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     call_if_exists("function_exit", dyn_ast, iid, name, None)
     return
 
 
 def _return_(dyn_ast, iid, function_iid, function_name, return_val=None):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     result_high = call_if_exists(
         "function_exit", dyn_ast, function_iid, function_name, return_val
     )
@@ -501,6 +510,7 @@ def _return_(dyn_ast, iid, function_iid, function_name, return_val=None):
 
 def _yield_(dyn_ast, iid, function_iid, function_name, return_val=None):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     result_high = call_if_exists(
         "function_exit", dyn_ast, function_iid, function_name, return_val
     )
@@ -516,6 +526,7 @@ def _yield_(dyn_ast, iid, function_iid, function_name, return_val=None):
 
 def _assert_(dyn_ast, iid, test, msg):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     result = call_if_exists("_assert", dyn_ast, iid, test, msg)
     return result if result is not None else test
 
@@ -528,18 +539,21 @@ def _lambda_(dyn_ast, iid, args, expr):
 
 def _break_(dyn_ast, iid):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     result = call_if_exists("_break", dyn_ast, iid)
     return result if result != None else True
 
 
 def _continue_(dyn_ast, iid):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     result = call_if_exists("_continue", dyn_ast, iid)
     return result if result != None else True
 
 
 def _enter_if_(dyn_ast, iid, condition):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     result_high = call_if_exists("enter_control_flow", dyn_ast, iid, condition)
     result_low = call_if_exists("enter_if", dyn_ast, iid, condition)
     final_condition = condition
@@ -552,12 +566,14 @@ def _enter_if_(dyn_ast, iid, condition):
 
 def _exit_if_(dyn_ast, iid):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     call_if_exists("exit_control_flow", dyn_ast, iid)
     call_if_exists("exit_if", dyn_ast, iid)
 
 
 def _enter_while_(dyn_ast, iid, condition):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     result_high = call_if_exists("enter_control_flow", dyn_ast, iid, condition)
     result_low = call_if_exists("enter_while", dyn_ast, iid, condition)
     if result_low is not None:
@@ -569,12 +585,14 @@ def _enter_while_(dyn_ast, iid, condition):
 
 def _exit_while_(dyn_ast, iid):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     call_if_exists("exit_control_flow", dyn_ast, iid)
     call_if_exists("exit_while", dyn_ast, iid)
 
 
 def _enter_for_(dyn_ast, iid, next_val, iterable):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     result_high = call_if_exists(
         "enter_control_flow", dyn_ast, iid, not isinstance(next_val, StopIteration)
     )
@@ -590,6 +608,7 @@ def _enter_for_(dyn_ast, iid, next_val, iterable):
 
 def _exit_for_(dyn_ast, iid):
     call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
     call_if_exists("exit_control_flow", dyn_ast, iid)
     call_if_exists("exit_for", dyn_ast, iid)
 
