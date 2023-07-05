@@ -1,0 +1,46 @@
+begin execution
+enter control flow event with condition True
+for condition evaluates to 0
+enter control flow event with condition True
+done with control flow statement
+enter control flow event with condition True
+for condition evaluates to 1
+enter control flow event with condition True
+done with control flow statement
+enter control flow event with condition True
+for condition evaluates to 2
+enter control flow event with condition True
+done with control flow statement
+enter control flow event with condition True
+for condition evaluates to 3
+enter control flow event with condition True
+done with control flow statement
+enter control flow event with condition True
+for condition evaluates to 4
+enter control flow event with condition True
+done with control flow statement
+enter control flow event with condition True
+for condition evaluates to 5
+enter control flow event with condition True
+done with control flow statement
+enter control flow event with condition True
+for condition evaluates to 6
+enter control flow event with condition True
+done with control flow statement
+enter control flow event with condition True
+for condition evaluates to 7
+enter control flow event with condition True
+done with control flow statement
+enter control flow event with condition True
+for condition evaluates to 8
+enter control flow event with condition True
+done with control flow statement
+enter control flow event with condition True
+for condition evaluates to 9
+enter control flow event with condition True
+done with control flow statement
+enter control flow event with condition False
+for condition evaluates to 
+done with control flow statement
+done with for statement
+end execution

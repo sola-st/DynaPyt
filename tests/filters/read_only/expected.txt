@@ -1,0 +1,7 @@
+begin execution
+read value 10
+10
+20
+read value 10
+30
+end execution

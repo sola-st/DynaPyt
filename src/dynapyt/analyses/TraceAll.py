@@ -561,7 +561,9 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "    Writing")
 
-    def delete(self, dyn_ast: str, iid: int, val: Any) -> Optional[bool]:
+    def delete(
+        self, dyn_ast: str, iid: int, val: List[Tuple[Any, Any, bool]]
+    ) -> Optional[bool]:
         """Hook for deletes.
 
 
@@ -573,14 +575,15 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        val : Any
-            The value deleted.
+        val : List[Tuple[Any, Any, bool]]
+            The list of values to be deleted. Each item in the list is a tuple of the form
+            (base, offset, is_sub). `is_sub` is True if the value is a subscript, e.g. `a[b]`.
 
 
         Returns
         -------
         Any
-            If True cancels the delete.
+            If True cancels the deletion.
 
         """
         self.log(iid, "    Deleting")

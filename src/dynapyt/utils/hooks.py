@@ -1,3 +1,5 @@
+from typing import Dict, List
+
 try:
     import importlib.resources as pkg_resources
 except ImportError:
@@ -6,20 +8,26 @@ except ImportError:
 import json
 import builtins
 import keyword
+import importlib
+
+from ..instrument.filters import START, END, SEPERATOR, get_details
+
 
 def snake(x):
-    res = ''
-    for i in range(len(x)-1):
+    res = ""
+    for i in range(len(x) - 1):
         res += x[i]
-        if ('a' <= x[i] <= 'z') and ('A' <= x[i+1] <= 'Z'):
-            res += '_'
+        if ("a" <= x[i] <= "z") and ("A" <= x[i + 1] <= "Z"):
+            res += "_"
     res += x[-1]
     return res.lower()
 
+
 def get_name(s):
     if (s in dir(builtins)) or (keyword.iskeyword(s)):
-        return '_' + s
+        return "_" + s
     return s
+
 
 def all_leaves(root):
     res = []
@@ -33,21 +41,41 @@ def all_leaves(root):
                 l.append((k, v))
     return res
 
-def get_used_leaves(root, method_list):
+
+def get_used_leaves(
+    root, methods: Dict[str, Dict[str, List[str]]]
+) -> Dict[str, Dict[str, List[str]]]:
     if len(root.items()) == 0:
-        return []
-    res = []
-    for k, v in root.items():
-        if get_name(k) in method_list:
-            if len(v.items()) > 0:
-                res.extend(all_leaves(v))
+        return {}
+    res = {}
+    for hook, children in root.items():
+        if hook in methods:
+            if len(children.items()) > 0:
+                for leaf in all_leaves(children):
+                    res.update({leaf: methods[hook]})
             else:
-                res.append(k)
+                res.update({hook: methods[hook]})
         else:
-            res.extend(get_used_leaves(v, method_list))
+            res.update(get_used_leaves(children, methods))
     return res
 
-def get_hooks_from_analysis(method_list):
-    with pkg_resources.open_text('dynapyt.utils', 'hierarchy.json') as f:
+
+def get_hooks_from_analysis(
+    module_name: str, class_name: str
+) -> Dict[str, Dict[str, List[str]]]:
+    try:
+        module = importlib.import_module(module_name)
+    except TypeError as e:
+        raise e
+    except ImportError as e:
+        raise e
+    class_ = getattr(module, class_name)
+    instance = class_()
+    methods = {
+        func: get_details(getattr(instance, func))
+        for func in dir(instance)
+        if callable(getattr(instance, func)) and not func.startswith("__")
+    }
+    with pkg_resources.open_text("dynapyt.utils", "hierarchy.json") as f:
         hierarchy = json.load(f)
-    return set(get_used_leaves(hierarchy, method_list))
+    return get_used_leaves(hierarchy, methods)

@@ -1,7 +1,5 @@
 import argparse
-import importlib
 from multiprocessing import Pool
-import traceback
 import libcst as cst
 from libcst._exceptions import ParserSyntaxError
 from .CodeInstrumenter import CodeInstrumenter
@@ -78,21 +76,7 @@ if __name__ == "__main__":
     modulePath = "dynapyt.analyses"
     if additional_module is not None:
         modulePath = additional_module
-    try:
-        module = importlib.import_module(modulePath + "." + analysis)
-    except TypeError as e:
-        print(f"--module was used but no value specified {e}")
-    except ImportError as e:
-        print(f"module could not be imported {e}")
-
-    class_ = getattr(module, args.analysis)
-    instance = class_()
-    method_list = [
-        func
-        for func in dir(instance)
-        if callable(getattr(instance, func)) and not func.startswith("__")
-    ]
-    selected_hooks = get_hooks_from_analysis(set(method_list))
+    selected_hooks = get_hooks_from_analysis(modulePath + "." + analysis, args.analysis)
     if len(files) < 2:
         for file_path in files:
             instrument_file(file_path, selected_hooks)

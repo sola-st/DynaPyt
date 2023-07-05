@@ -1,0 +1,5 @@
+begin execution
+integer literal 2
+integer literal 3
+3
+end execution

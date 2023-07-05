@@ -1,3 +1,4 @@
+import re
 import libcst as cst
 from libcst.metadata import (
     ParentNodeProvider,
@@ -34,7 +35,17 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         self.current_try = []
         self.current_class = []
         self.current_function = []
-        self.selected_hooks = selected_hooks
+        self.selected_hooks = {
+            hook: {
+                "only": [re.compile(p) for p in details["only"]]
+                if "only" in details
+                else [],
+                "ignore": [re.compile(p) for p in details["ignore"]]
+                if "ignore" in details
+                else [],
+            }
+            for hook, details in selected_hooks.items()
+        }
         self.to_import = set()
 
         # Blacklisted attributes are appended to the end of the source code.
@@ -66,6 +77,29 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
         # Blacklisted nodes to append to the end of the file
         self.blacklist_nodes = [cst.Newline(value="\n")]
+
+    def __selected_by_decorators(self, hook: str, node: str) -> bool:
+        try:
+            if (
+                "only" in self.selected_hooks[hook]
+                and len(self.selected_hooks[hook]["only"]) > 0
+            ):
+                for p in self.selected_hooks[hook]["only"]:
+                    if p.match(node):
+                        return True
+                return False
+            elif (
+                "ignore" in self.selected_hooks[hook]
+                and len(self.selected_hooks[hook]["ignore"]) > 0
+            ):
+                for p in self.selected_hooks[hook]["ignore"]:
+                    if p.match(node):
+                        return False
+                return True
+            else:
+                return True
+        except:
+            return True
 
     def __create_iid(self, node):
         location = self.get_metadata(PositionProvider, node)
@@ -232,8 +266,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_Name(self, original_node, updated_node):
         if updated_node.value in self.blacklist_names:
             return updated_node
-        if ("boolean" in self.selected_hooks) and (
-            updated_node.value in ["True", "False"]
+        if (
+            ("boolean" in self.selected_hooks)
+            and (updated_node.value in ["True", "False"])
+            and (self.__selected_by_decorators("boolean", original_node.value))
         ):
             callee_name = cst.Name(value="_bool_")
             self.to_import.add("_bool_")
@@ -249,7 +285,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             )
             return call
 
-        if "read_identifier" not in self.selected_hooks:
+        if (
+            "read_identifier" not in self.selected_hooks
+        ) or not self.__selected_by_decorators("read_identifier", original_node.value):
             return updated_node
         try:
             context = self.get_metadata(ExpressionContextProvider, original_node)
@@ -279,7 +317,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             return updated_node
 
     def leave_Integer(self, original_node, updated_node):
-        if "integer" not in self.selected_hooks:
+        if ("integer" not in self.selected_hooks) or not self.__selected_by_decorators(
+            "integer", original_node.value
+        ):
             return updated_node
         callee_name = cst.Name(value="_int_")
         self.to_import.add("_int_")
@@ -296,7 +336,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
 
     def leave_Float(self, original_node, updated_node):
-        if "_float" not in self.selected_hooks:
+        if ("_float" not in self.selected_hooks) or not self.__selected_by_decorators(
+            "float", original_node.value
+        ):
             return updated_node
         callee_name = cst.Name(value="_float_")
         self.to_import.add("_float_")
@@ -313,7 +355,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
 
     def leave_Imaginary(self, original_node, updated_node):
-        if "imaginary" not in self.selected_hooks:
+        if (
+            "imaginary" not in self.selected_hooks
+        ) or not self.__selected_by_decorators("imaginary", original_node.value):
             return updated_node
         callee_name = cst.Name(value="_img_")
         self.to_import.add("_img_")
@@ -333,7 +377,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return False
 
     def leave_ConcatenatedString(self, original_node, updated_node):
-        if "string" not in self.selected_hooks:
+        if ("string" not in self.selected_hooks) or not self.__selected_by_decorators(
+            "string", original_node.value
+        ):
             return updated_node
 
         callee_name = cst.Name(value="_str_")
@@ -359,7 +405,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     @call_if_not_inside(m.FormattedStringExpression() | m.ConcatenatedString())
     def leave_FormattedString(self, original_node, updated_node):
         self.quote = ""
-        if "string" not in self.selected_hooks:
+        if ("string" not in self.selected_hooks) or not self.__selected_by_decorators(
+            "string", original_node.value
+        ):
             return updated_node
         callee_name = cst.Name(value="_str_")
         self.to_import.add("_str_")
@@ -378,7 +426,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     @call_if_not_inside(m.ConcatenatedString())
     @call_if_inside(m.Assign() | m.AugAssign() | m.Arg() | m.BinaryOperation())
     def leave_SimpleString(self, original_node, updated_node):
-        if "string" not in self.selected_hooks:
+        if ("string" not in self.selected_hooks) or not self.__selected_by_decorators(
+            "string", original_node.value
+        ):
             return updated_node
         callee_name = cst.Name(value="_str_")
         self.to_import.add("_str_")
@@ -519,6 +569,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     # Memory access
 
     def leave_Del(self, original_node, updated_node):
+        print(original_node.target)
         if "delete" not in self.selected_hooks:
             return updated_node
         callee_name = cst.Name(value="_delete_")
@@ -734,7 +785,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     # Operations
     def leave_BinaryOperation(self, original_node, updated_node):
-        if snake(type(original_node.operator).__name__) not in self.selected_hooks:
+        hook_name = snake(type(original_node.operator).__name__)
+        if hook_name not in self.selected_hooks:
             return updated_node
         bin_op = {
             "Add": 0,
@@ -823,10 +875,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_Comparison(self, original_node, updated_node):
         if not any(
-            (
-                snake(type(i.operator).__name__) in self.selected_hooks
-                or "_" + snake(type(i.operator).__name__) in self.selected_hooks
-            )
+            snake(type(i.operator).__name__) in self.selected_hooks
             for i in updated_node.comparisons
         ):
             return updated_node
@@ -966,6 +1015,13 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         if (
             "function_enter" not in self.selected_hooks
             and "function_exit" not in self.selected_hooks
+        ) or not (
+            self.__selected_by_decorators(
+                "function_enter", function_metadata["name"].value
+            )
+            or self.__selected_by_decorators(
+                "function_exit", function_metadata["name"].value
+            )
         ):
             return updated_node
         enter_name = cst.Name(value="_func_entry_")
@@ -1130,8 +1186,22 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         )
 
     def leave_Call(self, original_node: cst.Call, updated_node: cst.Call):
-        if ("pre_call" not in self.selected_hooks) and (
-            "post_call" not in self.selected_hooks
+        if (
+            ("pre_call" not in self.selected_hooks)
+            and ("post_call" not in self.selected_hooks)
+            or (
+                m.matches(original_node.func, m.Name())
+                and (
+                    not (
+                        self.__selected_by_decorators(
+                            "pre_call", original_node.func.value
+                        )
+                        or self.__selected_by_decorators(
+                            "post_call", original_node.func.value
+                        )
+                    )
+                )
+            )
         ):
             return updated_node
         site_sensitive_functions = [
@@ -1502,9 +1572,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             generator_call = cst.Call(
                 func=generator_name, args=[ast_arg, iid_arg, iter_arg]
             )
-        else:
-            generator_call = updated_node.iter
-        if "exit_for" in self.selected_hooks:
+            else_part = updated_node.orelse
+        elif "exit_for" in self.selected_hooks:
             end_name = cst.Name(value="_exit_for_")
             self.to_import.add("_exit_for_")
             end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
@@ -1518,8 +1587,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                     + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]
                 )
             )
-        else:
-            else_part = updated_node.orelse
+            generator_call = updated_node.iter
         return updated_node.with_changes(
             iter=generator_call, orelse=else_part, target=original_node.target
         )
