@@ -350,10 +350,11 @@ def _tuple_(dyn_ast, iid, val):
     return value
 
 
-def _delete_(dyn_ast, iid, del_target: List[Tuple[Any, Any, bool]]):
-    call_if_exists("runtime_event", dyn_ast, iid)
-    call_if_exists("memory_access", dyn_ast, iid, del_target)
-    cancel = call_if_exists("delete", dyn_ast, iid, del_target)
+def _delete_(dyn_ast, iid, del_target: List[Tuple[Any, Any, bool]], analyze: bool):
+    if analyze:
+        call_if_exists("runtime_event", dyn_ast, iid)
+        call_if_exists("memory_access", dyn_ast, iid, del_target)
+        cancel = call_if_exists("delete", dyn_ast, iid, del_target)
     if (cancel is not None) and (cancel == True):
         pass
     else:

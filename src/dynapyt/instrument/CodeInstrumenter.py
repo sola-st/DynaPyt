@@ -569,9 +569,15 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     # Memory access
 
     def leave_Del(self, original_node, updated_node):
-        print(original_node.target)
-        if "delete" not in self.selected_hooks:
+        if ("delete" not in self.selected_hooks) and original_node.deep_equals(
+            updated_node
+        ):
             return updated_node
+        else:
+            if "delete" not in self.selected_hooks:
+                analyze_arg = cst.Arg(value=cst.Name(value="False"))
+            else:
+                analyze_arg = cst.Arg(value=cst.Name(value="True"))
         callee_name = cst.Name(value="_delete_")
         self.to_import.add("_delete_")
         iid = self.__create_iid(original_node)
@@ -713,7 +719,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                     )
                 )
         target_arg = cst.Arg(cst.List(elements=targets))
-        call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, target_arg])
+        call = cst.Call(
+            func=callee_name, args=[ast_arg, iid_arg, target_arg, analyze_arg]
+        )
         return cst.Expr(value=call)
 
     @call_if_not_inside(m.AssignTarget() | m.AnnAssign())
