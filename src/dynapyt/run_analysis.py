@@ -10,13 +10,14 @@ def run_analysis(entry: str, analyses: List[str], name: str = None):
     my_analyses = []
     try:
         for analysis in analyses:
+            print(f"Loading analysis {analysis}")
             module = importlib.import_module(".".join(analysis.split(".")[:-1]))
             class_ = getattr(module, analysis.split(".")[-1])
             my_analyses.append(class_())
     except TypeError as e:
-        print(f"--module was used but no value specified {e}")
+        raise
     except ImportError as e:
-        print(f"module could not be imported {e}")
+        raise
 
     rt.set_analysis(my_analyses)
 
