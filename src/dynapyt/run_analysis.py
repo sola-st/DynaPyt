@@ -46,7 +46,7 @@ def run_analysis(entry: str, analyses: List[str], name: str = None):
         sys.argv = [entry]
         exec(open(abspath(entry)).read())
     else:
-        importlib.import_module(entry, "*")
+        importlib.import_module(entry)
     end_execution()
 
 
