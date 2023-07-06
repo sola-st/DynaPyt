@@ -2,13 +2,14 @@ from importlib import import_module
 from os import sep, remove
 from os.path import join, exists
 from shutil import copyfile, move
-import sys
+from inspect import getmembers, isclass
 from typing import Tuple
 import pytest
 
 from dynapyt.instrument.instrument import instrument_file
 from dynapyt.utils.hooks import get_hooks_from_analysis
 import dynapyt.runtime as rt
+from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 
 
 def test_runner(directory_pair: Tuple[str, str], capsys):
@@ -16,8 +17,12 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
 
     # gather hooks used by the analysis
     module_prefix = rel_dir.replace(sep, ".")
+    module = import_module(f"{module_prefix}.analysis")
+    analysis_classes = getmembers(
+        module, lambda c: isclass(c) and issubclass(c, BaseAnalysis)
+    )
     selected_hooks = get_hooks_from_analysis(
-        module_prefix + ".analysis", "TestAnalysis"
+        [f"{module_prefix}.analysis.{ac[0]}" for ac in analysis_classes]
     )
 
     # instrument
@@ -39,17 +44,18 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
         instrument_file(join(abs_dir, "__init__.py"), selected_hooks)
 
     # analyze
-    module = import_module(f"{module_prefix}.analysis")
-    class_ = getattr(module, "TestAnalysis")
-    analysis_instance = class_()
-    rt.set_analysis(analysis_instance)
+    # class_ = getattr(module, "TestAnalysis")
+    analysis_instances = [class_[1]() for class_ in analysis_classes]
+    rt.set_analysis(analysis_instances)
     captured = capsys.readouterr()  # clear stdout
     # print(f"Before analysis: {captured.out}")  # for debugging purposes
-    if hasattr(analysis_instance, "begin_execution"):
-        analysis_instance.begin_execution()
+    for analysis_instance in analysis_instances:
+        if hasattr(analysis_instance, "begin_execution"):
+            analysis_instance.begin_execution()
     import_module(f"{module_prefix}.program")
-    if hasattr(analysis_instance, "end_execution"):
-        analysis_instance.end_execution()
+    for analysis_instance in analysis_instances:
+        if hasattr(analysis_instance, "end_execution"):
+            analysis_instance.end_execution()
 
     # check output
     expected_file = join(abs_dir, "expected.txt")

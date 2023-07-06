@@ -60,22 +60,29 @@ def get_used_leaves(
     return res
 
 
-def get_hooks_from_analysis(
-    module_name: str, class_name: str
-) -> Dict[str, Dict[str, List[str]]]:
+def get_hooks_from_analysis(classes: List[str]) -> Dict[str, Dict[str, List[str]]]:
     try:
-        module = importlib.import_module(module_name)
+        methods = {}
+        for cls in classes:
+            module = importlib.import_module(".".join(cls.split(".")[:-1]))
+            class_ = getattr(module, cls.split(".")[-1])
+            instance = class_()
+            methods.update(
+                {
+                    func: get_details(getattr(instance, func))
+                    for func in dir(instance)
+                    if callable(getattr(instance, func))
+                    and not func.startswith("__")
+                    and (
+                        (func not in methods)
+                        or (methods[func] == get_details(getattr(instance, func)))
+                    )
+                }
+            )
     except TypeError as e:
         raise e
     except ImportError as e:
         raise e
-    class_ = getattr(module, class_name)
-    instance = class_()
-    methods = {
-        func: get_details(getattr(instance, func))
-        for func in dir(instance)
-        if callable(getattr(instance, func)) and not func.startswith("__")
-    }
     with pkg_resources.open_text("dynapyt.utils", "hierarchy.json") as f:
         hierarchy = json.load(f)
     return get_used_leaves(hierarchy, methods)

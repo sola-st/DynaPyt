@@ -3,17 +3,21 @@ from sys import exc_info
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
 
-analysis = None
+analyses = None
 
 
-def set_analysis(new_analysis):
-    global analysis
-    analysis = new_analysis
+def set_analysis(new_analyses: List[Any]):
+    global analyses
+    analyses = new_analyses
 
 
 def call_if_exists(f, *args):
-    func = getattr(analysis, f, lambda *args: None)
-    return func(*args)
+    global analyses
+    return_value = None
+    for analysis in analyses:
+        func = getattr(analysis, f, lambda *args: None)
+        return_value = func(*args)
+    return return_value
 
 
 def _dynapyt_parse_to_ast_(code):

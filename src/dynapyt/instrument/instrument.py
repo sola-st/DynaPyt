@@ -14,8 +14,9 @@ parser.add_argument(
     help="Python files to instrument or .txt file with all file paths",
     nargs="+",
 )
-parser.add_argument("--analysis", help="Analysis class name")
-parser.add_argument("--module", help="Adds external module paths")
+parser.add_argument(
+    "--analysis", help="Analysis class(es) (full dotted path)", nargs="+"
+)
 
 
 def gather_files(files_arg):
@@ -71,12 +72,8 @@ def instrument_file(file_path, selected_hooks):
 if __name__ == "__main__":
     args = parser.parse_args()
     files = gather_files(args.files)
-    additional_module = args.module
     analysis = args.analysis
-    modulePath = "dynapyt.analyses"
-    if additional_module is not None:
-        modulePath = additional_module
-    selected_hooks = get_hooks_from_analysis(modulePath + "." + analysis, args.analysis)
+    selected_hooks = get_hooks_from_analysis(args.analysis)
     if len(files) < 2:
         for file_path in files:
             instrument_file(file_path, selected_hooks)
