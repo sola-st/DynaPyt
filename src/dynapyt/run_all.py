@@ -48,20 +48,12 @@ if __name__ == "__main__":
                         "--files",
                         file_path,
                         "--analysis",
-                        analysis,
-                    ]
+                    ] + analysis
                     all_cmds.append((cmd_list, file_path))
         with Pool() as p:
             p.starmap(process_files, all_cmds)
 
     run(
-        [
-            "python",
-            "-m",
-            "dynapyt.run_analysis",
-            "--entry",
-            entry,
-            "--analysis",
-            analysis,
-        ]
+        ["python", "-m", "dynapyt.run_analysis", "--entry", entry, "--analysis"]
+        + analysis
     )

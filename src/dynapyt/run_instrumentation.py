@@ -32,8 +32,7 @@ def instrument_dir(directory: str, analysis: List[str], use_external_dir: bool =
                     "--files",
                     file_path,
                     "--analysis",
-                    analysis,
-                ]
+                ] + analysis
                 all_cmds.append((cmd_list, file_path))
     with Pool(maxtasksperchild=5) as p:
         p.starmap(process_files, all_cmds)
