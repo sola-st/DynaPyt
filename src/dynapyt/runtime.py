@@ -8,11 +8,11 @@ analyses = None
 
 def set_analysis(new_analyses: List[Any]):
     global analyses
+    print(f"Setting analyses to {new_analyses}")
     analyses = new_analyses
 
 
 def call_if_exists(f, *args):
-    global analyses
     return_value = None
     for analysis in analyses:
         func = getattr(analysis, f, lambda *args: None)

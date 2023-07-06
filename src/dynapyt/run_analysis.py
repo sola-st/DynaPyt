@@ -10,7 +10,6 @@ def run_analysis(entry: str, analyses: List[str], name: str = None):
     my_analyses = []
     try:
         for analysis in analyses:
-            print(f"Loading analysis {analysis}")
             module = importlib.import_module(".".join(analysis.split(".")[:-1]))
             class_ = getattr(module, analysis.split(".")[-1])
             my_analyses.append(class_())
