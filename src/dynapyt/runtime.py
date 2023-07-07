@@ -9,6 +9,8 @@ analyses = None
 def set_analysis(new_analyses: List[Any]):
     global analyses
     print(f"Setting analyses to {new_analyses}")
+    t, v, stack_trace = exc_info()
+    print(f"Stack trace: {stack_trace}")
     analyses = new_analyses
 
 
