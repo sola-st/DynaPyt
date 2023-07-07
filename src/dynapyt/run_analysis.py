@@ -47,7 +47,12 @@ def run_analysis(entry: str, analyses: List[str], name: str = None):
         exec(open(abspath(entry)).read())
     else:
         importlib.import_module(entry)
-    end_execution()
+    try:
+        for my_analysis in my_analyses:
+            func = getattr(my_analysis, "end_execution")
+            func()
+    except AttributeError:
+        pass
 
 
 parser = argparse.ArgumentParser()
