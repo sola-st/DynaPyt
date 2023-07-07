@@ -118,7 +118,13 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         )
         # imp_aliases = [cst.ImportAlias(name=cst.Name(value=name)) for name in names]
         # imp = cst.ImportFrom(module=module_name, names=imp_aliases)
-        imp = cst.Import(names=[cst.ImportAlias(name=module_name)])
+        imp = cst.Import(
+            names=[
+                cst.ImportAlias(
+                    name=module_name, asname=cst.AsName(cst.Name(value="_rt"))
+                )
+            ]
+        )
         stmt = cst.SimpleStatementLine(body=[imp])
         return stmt
 
