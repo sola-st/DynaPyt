@@ -47,6 +47,7 @@ def run_analysis(entry: str, analyses: List[str], name: str = None):
         exec(open(abspath(entry)).read())
     else:
         print(entry)
+        print(sys.path)
         importlib.import_module(entry)
     end_execution()
 
