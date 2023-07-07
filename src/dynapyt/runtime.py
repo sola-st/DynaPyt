@@ -1,5 +1,6 @@
 from typing import List, Tuple, Any
 from sys import exc_info
+import traceback
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
 
@@ -9,8 +10,7 @@ analyses = None
 def set_analysis(new_analyses: List[Any]):
     global analyses
     print(f"Setting analyses to {new_analyses}")
-    t, v, stack_trace = exc_info()
-    print(f"Stack trace: {stack_trace}")
+    traceback.print_stack(limit=10)
     analyses = new_analyses
 
 
