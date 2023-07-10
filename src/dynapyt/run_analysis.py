@@ -44,7 +44,7 @@ def run_analysis(entry: str, analyses: List[str], name: str = None):
         pass
     if entry.endswith(".py"):
         sys.argv = [entry]
-        exec(open(abspath(entry)).read())
+        exec(open(abspath(entry)).read(), globals())
     else:
         importlib.import_module(entry, "*")
     end_execution()
