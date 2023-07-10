@@ -27,6 +27,9 @@ def instrument_dir(
         start = str(external_path)
 
     for dir_path, dir_names, file_names in walk(start):
+        for name in dir_names:
+            if path.join(dir_path, name) in exclude:
+                dir_names.remove(name)
         for name in file_names:
             file_path = path.join(dir_path, name)
             if name.endswith(".py") and file_path not in exclude:
