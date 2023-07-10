@@ -15,6 +15,7 @@ def set_analysis(new_analyses: List[Any]):
 
 
 def call_if_exists(f, *args):
+    print(globals())
     return_value = None
     for analysis in analyses:
         func = getattr(analysis, f, lambda *args: None)
