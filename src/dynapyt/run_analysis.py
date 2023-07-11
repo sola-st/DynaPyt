@@ -1,14 +1,23 @@
 from typing import List
+import json
 import argparse
 import importlib
 from os.path import abspath
+from shutil import rmtree
 import sys
 import signal
 from pathlib import Path
+from filelock import FileLock
 import dynapyt.runtime as _rt
 
 
-def run_analysis(entry: str, analyses: List[str], name: str = None):
+def run_analysis(
+    entry: str, analyses: List[str], name: str = None, coverage: bool = False
+):
+    if coverage:
+        Path("/tmp/dynapyt_coverage").mkdir(exist_ok=True)
+    else:
+        rmtree("/tmp/dynapyt_coverage", ignore_errors=True)
     my_analyses = []
     try:
         for analysis in analyses:
@@ -27,6 +36,10 @@ def run_analysis(entry: str, analyses: List[str], name: str = None):
     _rt.set_analysis(my_analyses)
 
     def end_execution():
+        if _rt.covered is not None:
+            with FileLock("/tmp/dynapyt_coverage/covered.txt.lock"):
+                with open("/tmp/dynapyt_coverage/covered.txt", "w") as f:
+                    json.dump(_rt.covered, f, indent=4)
         try:
             for my_analysis in my_analyses:
                 func = getattr(my_analysis, "end_execution")
@@ -53,21 +66,17 @@ def run_analysis(entry: str, analyses: List[str], name: str = None):
         exec(open(abspath(entry)).read(), globals())
     else:
         importlib.import_module(entry)
-    try:
-        for my_analysis in my_analyses:
-            func = getattr(my_analysis, "end_execution")
-            func()
-    except AttributeError:
-        pass
+    end_execution()
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--entry", help="Entry file for execution")
 parser.add_argument("--analysis", help="Analysis class name(s)", nargs="+")
 parser.add_argument("--name", help="Associates a given name with current run")
+parser.add_argument("--coverage", help="Enables coverage", action="store_true")
 
 if __name__ == "__main__":
     args = parser.parse_args()
     name = args.name
     analyses = args.analysis
-    run_analysis(args.entry, analyses, name)
+    run_analysis(args.entry, analyses, name, args.coverage)

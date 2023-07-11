@@ -1,14 +1,18 @@
 from typing import List, Tuple, Any
+from pathlib import Path
 from sys import exc_info
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
 
 analyses = None
+covered = None
 
 
 def set_analysis(new_analyses: List[Any]):
-    global analyses
+    global analyses, covered
     analyses = new_analyses
+    if Path("/tmp/dynapyt_coverage/").exists():
+        covered = {}
 
 
 def call_if_exists(f, *args):
@@ -18,8 +22,16 @@ def call_if_exists(f, *args):
             analysis_list = af.read().split("\n")
         set_analysis(analysis_list)
     for analysis in analyses:
-        func = getattr(analysis, f, lambda *args: None)
-        return_value = func(*args)
+        func = getattr(analysis, f, None)
+        if func is not None:
+            return_value = func(*args)
+            if covered is not None:
+                file, iid = args[0], args[1]
+                if file not in covered:
+                    covered[file] = {}
+                if iid not in covered[file]:
+                    covered[file][iid] = set()
+                covered[file][iid].add(analysis.__class__.__name__)
     return return_value
 
 
