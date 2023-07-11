@@ -14,8 +14,8 @@ def set_analysis(new_analyses: List[Any]):
 def call_if_exists(f, *args):
     return_value = None
     if analyses is None:
-        with open("/tmp/dynapyt_analyses.txt", "r") as f:
-            analysis_list = f.read().split("\n")
+        with open("/tmp/dynapyt_analyses.txt", "r") as af:
+            analysis_list = af.read().split("\n")
         set_analysis(analysis_list)
     for analysis in analyses:
         func = getattr(analysis, f, lambda *args: None)

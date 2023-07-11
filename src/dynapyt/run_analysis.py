@@ -4,6 +4,8 @@ import importlib
 from os.path import abspath
 import sys
 import signal
+from pathlib import Path
+import dynapyt.runtime as _rt
 
 
 def run_analysis(entry: str, analyses: List[str], name: str = None):
@@ -18,7 +20,11 @@ def run_analysis(entry: str, analyses: List[str], name: str = None):
     except ImportError as e:
         raise
 
-    rt.set_analysis(my_analyses)
+    if Path("/tmp/dynapyt_analyses.txt").exists():
+        Path("/tmp/dynapyt_analyses.txt").unlink()
+    with open("/tmp/dynapyt_analyses.txt", "w") as f:
+        f.write("\n".join(analyses))
+    _rt.set_analysis(my_analyses)
 
     def end_execution():
         try:
@@ -59,8 +65,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--entry", help="Entry file for execution")
 parser.add_argument("--analysis", help="Analysis class name(s)", nargs="+")
 parser.add_argument("--name", help="Associates a given name with current run")
-
-import dynapyt.runtime as rt
 
 if __name__ == "__main__":
     args = parser.parse_args()
