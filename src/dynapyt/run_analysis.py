@@ -46,6 +46,7 @@ def run_analysis(
                 func()
         except AttributeError:
             pass
+        raise Exception(f"dynapyt: end of execution {str(_rt.covered)}")
 
     # allow dynapyt to exit gracefully
     signal.signal(signal.SIGINT, end_execution)
