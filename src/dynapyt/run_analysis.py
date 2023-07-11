@@ -38,7 +38,7 @@ def run_analysis(
     def end_execution():
         if _rt.covered is not None:
             with FileLock("/tmp/dynapyt_coverage/covered.txt.lock"):
-                with open("/tmp/dynapyt_coverage/covered.txt", "w") as f:
+                with open("/tmp/dynapyt_coverage/covered.txt", "a") as f:
                     json.dump(_rt.covered, f, indent=4)
         try:
             for my_analysis in my_analyses:
