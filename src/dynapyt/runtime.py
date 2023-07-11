@@ -1,6 +1,5 @@
 from typing import List, Tuple, Any
 from sys import exc_info
-import traceback
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
 
@@ -9,14 +8,15 @@ analyses = None
 
 def set_analysis(new_analyses: List[Any]):
     global analyses
-    print(f"Setting analyses to {new_analyses}")
-    traceback.print_stack(limit=10)
     analyses = new_analyses
 
 
 def call_if_exists(f, *args):
-    print(globals())
     return_value = None
+    if analyses is None:
+        with open("/tmp/dynapyt_analyses.txt", "r") as f:
+            analysis_list = f.read().split("\n")
+        set_analysis(analysis_list)
     for analysis in analyses:
         func = getattr(analysis, f, lambda *args: None)
         return_value = func(*args)
