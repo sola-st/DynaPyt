@@ -5,6 +5,7 @@ from os.path import abspath
 from shutil import rmtree
 import sys
 from pathlib import Path
+import runtime as _rt
 
 
 def run_analysis(
@@ -45,6 +46,7 @@ def run_analysis(
         exec(open(abspath(entry)).read(), globals())
     else:
         importlib.import_module(entry)
+    _rt.end_execution()
 
 
 parser = argparse.ArgumentParser()
