@@ -41,6 +41,7 @@ def set_analysis(new_analyses: List[Any]):
     print("Setting signal handlers")
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
+    raise Exception("Setting analysis")
 
 
 def call_if_exists(f, *args):

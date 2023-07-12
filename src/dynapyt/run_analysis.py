@@ -30,7 +30,7 @@ def run_analysis(
     with open("/tmp/dynapyt_analyses.txt", "w") as f:
         f.write("\n".join(analyses))
 
-    if not name is None:
+    if name is not None:
         for my_analysis in my_analyses:
             getattr(my_analysis, "add_metadata", lambda: None)({"name": name})
 
