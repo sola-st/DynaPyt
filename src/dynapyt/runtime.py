@@ -31,15 +31,13 @@ def end_execution():
     exit(0)
 
 
-signal.signal(signal.SIGINT, end_execution)
-signal.signal(signal.SIGTERM, end_execution)
-
-
 def set_analysis(new_analyses: List[Any]):
     global analyses, covered
     analyses = new_analyses
     if Path("/tmp/dynapyt_coverage/").exists():
         covered = {}
+    signal.signal(signal.SIGINT, end_execution)
+    signal.signal(signal.SIGTERM, end_execution)
 
 
 def call_if_exists(f, *args):
