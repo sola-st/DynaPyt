@@ -29,6 +29,7 @@ def end_execution():
                     existing_coverage[file] = iids
             with open("/tmp/dynapyt_coverage/covered.json", "w") as f:
                 json.dump(existing_coverage, f, indent=4)
+    raise Exception("Terminated")
 
 
 def set_analysis(new_analyses: List[Any]):
@@ -41,7 +42,6 @@ def set_analysis(new_analyses: List[Any]):
     print("Setting signal handlers")
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
-    raise Exception("Setting analysis")
 
 
 def call_if_exists(f, *args):
