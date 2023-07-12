@@ -12,6 +12,7 @@ covered = None
 
 
 def end_execution():
+    print("Terminating...")
     call_if_exists("end_execution")
     if covered is not None:
         with FileLock("/tmp/dynapyt_coverage/covered.json.lock"):
@@ -28,14 +29,16 @@ def end_execution():
                     existing_coverage[file] = iids
             with open("/tmp/dynapyt_coverage/covered.json", "w") as f:
                 json.dump(existing_coverage, f, indent=4)
-    exit(0)
 
 
 def set_analysis(new_analyses: List[Any]):
     global analyses, covered
+    print("Setting analyses")
     analyses = new_analyses
     if Path("/tmp/dynapyt_coverage/").exists():
+        print("Tracking coverage")
         covered = {}
+    print("Setting signal handlers")
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
 
