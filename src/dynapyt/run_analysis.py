@@ -5,7 +5,7 @@ from os.path import abspath
 from shutil import rmtree
 import sys
 from pathlib import Path
-import runtime as _rt
+from . import runtime as _rt
 
 
 def run_analysis(
