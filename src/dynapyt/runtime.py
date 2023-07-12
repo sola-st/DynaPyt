@@ -54,7 +54,7 @@ def call_if_exists(f, *args):
         func = getattr(analysis, f, None)
         if func is not None:
             return_value = func(*args)
-            if covered is not None:
+            if covered is not None and len(args) >= 2:
                 file, iid = args[0], args[1]
                 if file not in covered:
                     covered[file] = {}
