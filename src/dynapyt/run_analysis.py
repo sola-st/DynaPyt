@@ -34,6 +34,7 @@ def run_analysis(
     if name is not None:
         for my_analysis in my_analyses:
             getattr(my_analysis, "add_metadata", lambda: None)({"name": name})
+    _rt.set_analysis(my_analyses)
 
     try:
         for my_analysis in my_analyses:
