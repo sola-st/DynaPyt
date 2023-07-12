@@ -1,14 +1,10 @@
 from typing import List
-import json
 import argparse
 import importlib
 from os.path import abspath
 from shutil import rmtree
 import sys
-import signal
 from pathlib import Path
-from filelock import FileLock
-import dynapyt.runtime as _rt
 
 
 def run_analysis(
@@ -33,24 +29,6 @@ def run_analysis(
         Path("/tmp/dynapyt_analyses.txt").unlink()
     with open("/tmp/dynapyt_analyses.txt", "w") as f:
         f.write("\n".join(analyses))
-    _rt.set_analysis(my_analyses)
-
-    def end_execution():
-        if _rt.covered is not None:
-            with FileLock("/tmp/dynapyt_coverage/covered.txt.lock"):
-                with open("/tmp/dynapyt_coverage/covered.txt", "a") as f:
-                    json.dump(_rt.covered, f, indent=4)
-        try:
-            for my_analysis in my_analyses:
-                func = getattr(my_analysis, "end_execution")
-                func()
-        except AttributeError:
-            pass
-        raise Exception(f"dynapyt: end of execution {str(_rt.covered)}")
-
-    # allow dynapyt to exit gracefully
-    signal.signal(signal.SIGINT, end_execution)
-    signal.signal(signal.SIGTERM, end_execution)
 
     if not name is None:
         for my_analysis in my_analyses:
@@ -67,7 +45,6 @@ def run_analysis(
         exec(open(abspath(entry)).read(), globals())
     else:
         importlib.import_module(entry)
-    end_execution()
 
 
 parser = argparse.ArgumentParser()

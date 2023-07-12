@@ -1,11 +1,38 @@
 from typing import List, Tuple, Any
 from pathlib import Path
 from sys import exc_info
+import signal
+import json
+from filelock import FileLock
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
 
 analyses = None
 covered = None
+
+
+def end_execution():
+    call_if_exists("end_execution")
+    if covered is not None:
+        with FileLock("/tmp/dynapyt_coverage/covered.json.lock"):
+            with open("/tmp/dynapyt_coverage/covered.json", "r") as f:
+                existing_coverage = json.load(f)
+            for file, iids in existing_coverage.items():
+                if file in covered:
+                    for iid, anas in existing_coverage[file].items():
+                        if iid in covered[file]:
+                            existing_coverage[file][iid].update(anas)
+                        else:
+                            existing_coverage[file][iid] = anas
+                else:
+                    existing_coverage[file] = iids
+            with open("/tmp/dynapyt_coverage/covered.json", "w") as f:
+                json.dump(existing_coverage, f, indent=4)
+    exit(0)
+
+
+signal.signal(signal.SIGINT, end_execution)
+signal.signal(signal.SIGTERM, end_execution)
 
 
 def set_analysis(new_analyses: List[Any]):
