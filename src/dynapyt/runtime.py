@@ -16,8 +16,11 @@ def end_execution():
     call_if_exists("end_execution")
     if covered is not None:
         with FileLock("/tmp/dynapyt_coverage/covered.json.lock"):
-            with open("/tmp/dynapyt_coverage/covered.json", "r") as f:
-                existing_coverage = json.load(f)
+            if Path("/tmp/dynapyt_coverage/covered.json").exists():
+                with open("/tmp/dynapyt_coverage/covered.json", "r") as f:
+                    existing_coverage = json.load(f)
+            else:
+                existing_coverage = {}
             for file, iids in existing_coverage.items():
                 if file in covered:
                     for iid, anas in existing_coverage[file].items():
@@ -25,8 +28,10 @@ def end_execution():
                             existing_coverage[file][iid].update(anas)
                         else:
                             existing_coverage[file][iid] = anas
+                    covered.pop(file)
                 else:
                     existing_coverage[file] = iids
+            existing_coverage.update(covered)
             with open("/tmp/dynapyt_coverage/covered.json", "w") as f:
                 json.dump(existing_coverage, f, indent=4)
     raise Exception("Terminated")
