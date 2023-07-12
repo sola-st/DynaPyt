@@ -68,6 +68,8 @@ def call_if_exists(f, *args):
                     covered[file] = {}
                 if iid not in covered[file]:
                     covered[file][iid] = {analysis.__class__.__name__: 0}
+                if analysis.__class__.__name__ not in covered[file][iid]:
+                    covered[file][iid][analysis.__class__.__name__] = 0
                 covered[file][iid][analysis.__class__.__name__] += 1
     return return_value
 
