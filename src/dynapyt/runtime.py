@@ -24,7 +24,15 @@ def end_execution():
                 if file in covered:
                     for iid, anas in existing_coverage[file].items():
                         if iid in covered[file]:
-                            existing_coverage[file][iid].update(anas)
+                            for ana, count in existing_coverage[file][iid].items():
+                                if ana in covered[file][iid]:
+                                    existing_coverage[file][iid][ana] += covered[file][
+                                        iid
+                                    ][ana]
+                                else:
+                                    existing_coverage[file][iid][ana] = covered[file][
+                                        iid
+                                    ][ana]
                         else:
                             existing_coverage[file][iid] = anas
                     covered.pop(file)
@@ -59,8 +67,8 @@ def call_if_exists(f, *args):
                 if file not in covered:
                     covered[file] = {}
                 if iid not in covered[file]:
-                    covered[file][iid] = set()
-                covered[file][iid].add(analysis.__class__.__name__)
+                    covered[file][iid] = {analysis.__class__.__name__: 0}
+                covered[file][iid][analysis.__class__.__name__] += 1
     return return_value
 
 
