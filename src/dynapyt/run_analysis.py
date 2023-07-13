@@ -36,12 +36,10 @@ def run_analysis(
             getattr(my_analysis, "add_metadata", lambda: None)({"name": name})
     _rt.set_analysis(my_analyses)
 
-    try:
-        for my_analysis in my_analyses:
-            func = getattr(my_analysis, "begin_execution")
+    for my_analysis in my_analyses:
+        func = getattr(my_analysis, "begin_execution", None)
+        if func is not None:
             func()
-    except AttributeError:
-        pass
     if entry.endswith(".py"):
         sys.argv = [entry]
         exec(open(abspath(entry)).read(), globals())
