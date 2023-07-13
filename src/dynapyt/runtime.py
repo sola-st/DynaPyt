@@ -3,6 +3,7 @@ from pathlib import Path
 from sys import exc_info
 import signal
 import json
+import importlib
 from filelock import FileLock
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
@@ -36,7 +37,19 @@ def end_execution():
 
 def set_analysis(new_analyses: List[Any]):
     global analyses, covered
-    analyses = new_analyses
+    if analyses is None:
+        analyses = []
+    for ana in new_analyses:
+        conf = None
+        if ":" in ana:
+            ana, conf = ana.split(":")
+        module_parts = ana.split(".")
+        module = importlib.import_module(".".join(module_parts[:-1]))
+        class_ = getattr(module, module_parts[-1])
+        if conf is not None:
+            analyses.append(class_(conf))
+        else:
+            analyses.append(class_())
     if Path("/tmp/dynapyt_coverage/").exists():
         covered = {}
     signal.signal(signal.SIGINT, end_execution)
