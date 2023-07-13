@@ -20,26 +20,17 @@ def end_execution():
                     existing_coverage = json.load(f)
             else:
                 existing_coverage = {}
-            for file, iids in existing_coverage.items():
-                if file in covered:
-                    for iid, anas in existing_coverage[file].items():
-                        if iid in covered[file]:
-                            for ana, count in existing_coverage[file][iid].items():
-                                if ana in covered[file][iid]:
-                                    existing_coverage[file][iid][ana] += covered[file][
-                                        iid
-                                    ][ana]
-                                else:
-                                    existing_coverage[file][iid][ana] = covered[file][
-                                        iid
-                                    ][ana]
-                        else:
-                            existing_coverage[file][iid] = anas
-                    covered.pop(file)
-                else:
-                    existing_coverage[file] = iids
-            existing_coverage.update(covered)
-            with open("/tmp/dynapyt_coverage/covered.json", "w") as f:
+            for file, iids in covered.items():
+                if file not in existing_coverage:
+                    existing_coverage[file] = {}
+                for iid, anas in iids.items():
+                    if iid not in existing_coverage[file]:
+                        existing_coverage[file][iid] = {}
+                    for ana, count in anas.items():
+                        if ana not in existing_coverage[file][iid]:
+                            existing_coverage[file][iid][ana] = 0
+                        existing_coverage[file][iid][ana] += count
+            with open("/tmp/dynapyt_coverage/covered.json", "a") as f:
                 json.dump(existing_coverage, f, indent=4)
 
 
