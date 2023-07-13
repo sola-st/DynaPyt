@@ -15,29 +15,16 @@ def run_analysis(
         Path("/tmp/dynapyt_coverage").mkdir(exist_ok=True)
     else:
         rmtree("/tmp/dynapyt_coverage", ignore_errors=True)
-    my_analyses = []
-    try:
-        for analysis in analyses:
-            module = importlib.import_module(".".join(analysis.split(".")[:-1]))
-            class_ = getattr(module, analysis.split(".")[-1])
-            my_analyses.append(class_())
-    except TypeError as e:
-        raise
-    except ImportError as e:
-        raise
 
     if Path("/tmp/dynapyt_analyses.txt").exists():
         Path("/tmp/dynapyt_analyses.txt").unlink()
     with open("/tmp/dynapyt_analyses.txt", "w") as f:
         f.write("\n".join(analyses))
 
-    if name is not None:
-        for my_analysis in my_analyses:
-            getattr(my_analysis, "add_metadata", lambda: None)({"name": name})
-    _rt.set_analysis(my_analyses)
+    _rt.set_analysis(analyses)
 
-    for my_analysis in my_analyses:
-        func = getattr(my_analysis, "begin_execution", None)
+    for analysis in _rt.analyses:
+        func = getattr(analysis, "begin_execution", None)
         if func is not None:
             func()
     if entry.endswith(".py"):
