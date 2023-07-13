@@ -44,6 +44,7 @@ def set_analysis(new_analyses: List[Any]):
 
 
 def call_if_exists(f, *args):
+    global covered, analyses
     return_value = None
     if analyses is None:
         with open("/tmp/dynapyt_analyses.txt", "r") as af:
