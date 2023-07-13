@@ -40,16 +40,19 @@ def set_analysis(new_analyses: List[Any]):
     if analyses is None:
         analyses = []
     for ana in new_analyses:
-        conf = None
-        if ":" in ana:
-            ana, conf = ana.split(":")
-        module_parts = ana.split(".")
-        module = importlib.import_module(".".join(module_parts[:-1]))
-        class_ = getattr(module, module_parts[-1])
-        if conf is not None:
-            analyses.append(class_(conf))
+        if isinstance(ana, str):
+            conf = None
+            if ":" in ana:
+                ana, conf = ana.split(":")
+            module_parts = ana.split(".")
+            module = importlib.import_module(".".join(module_parts[:-1]))
+            class_ = getattr(module, module_parts[-1])
+            if conf is not None:
+                analyses.append(class_(conf))
+            else:
+                analyses.append(class_())
         else:
-            analyses.append(class_())
+            analyses.append(ana)
     if Path("/tmp/dynapyt_coverage/").exists():
         covered = {}
     signal.signal(signal.SIGINT, end_execution)
