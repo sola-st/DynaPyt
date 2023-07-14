@@ -1,6 +1,7 @@
 from typing import List, Tuple, Any
 from pathlib import Path
 from sys import exc_info
+import sys
 import signal
 import json
 import importlib
@@ -14,19 +15,19 @@ covered = None
 
 
 def end_execution():
-    print("Ending execution")
+    print("Ending execution", file=sys.stderr)
     call_if_exists("end_execution")
-    print("Analyses are done")
+    print("Analyses are done", file=sys.stderr)
     if covered is not None:
-        print("Storing coverage")
+        print("Storing coverage", file=sys.stderr)
         with FileLock("/tmp/dynapyt_coverage/covered.json.lock"):
             if Path("/tmp/dynapyt_coverage/covered.json").exists():
                 with open("/tmp/dynapyt_coverage/covered.json", "r") as f:
                     existing_coverage = json.load(f)
             else:
                 existing_coverage = {}
-            print(f"Previous coverage: {existing_coverage}")
-            print(f"New coverage: {covered}")
+            print(f"Previous coverage: {existing_coverage}", file=sys.stderr)
+            print(f"New coverage: {covered}", file=sys.stderr)
             for file, iids in covered.items():
                 if file not in existing_coverage:
                     existing_coverage[file] = {}
@@ -37,14 +38,14 @@ def end_execution():
                         if ana not in existing_coverage[file][iid]:
                             existing_coverage[file][iid][ana] = 0
                         existing_coverage[file][iid][ana] += count
-            print(f"Merged coverage: {existing_coverage}")
+            print(f"Merged coverage: {existing_coverage}", file=sys.stderr)
             with open("/tmp/dynapyt_coverage/covered.json", "a") as f:
                 json.dump(existing_coverage, f, indent=4)
-    raise Exception(f"coverage: {covered}")
 
 
 def set_analysis(new_analyses: List[Any]):
     global analyses, covered
+    print("Setting analysis", file=sys.stderr)
     if analyses is None:
         analyses = []
     for ana in new_analyses:
@@ -63,8 +64,6 @@ def set_analysis(new_analyses: List[Any]):
             analyses.append(ana)
     if Path("/tmp/dynapyt_coverage/").exists():
         covered = {}
-    else:
-        raise Exception("Coverage is not enabled")
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
 
