@@ -15,6 +15,7 @@ covered = None
 
 
 def end_execution():
+    global covered
     print(f"&&&&&& {str(len(covered.items()))}", file=sys.stderr)
     call_if_exists("end_execution")
     if covered is not None:
