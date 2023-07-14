@@ -15,6 +15,7 @@ covered = None
 
 
 def end_execution():
+    print(f"&&&&&& {str(len(covered.items()))}", file=sys.stderr)
     call_if_exists("end_execution")
     if covered is not None:
         with FileLock("/tmp/dynapyt_coverage/covered.json.lock"):
@@ -57,6 +58,7 @@ def set_analysis(new_analyses: List[Any]):
             analyses.append(ana)
     if Path("/tmp/dynapyt_coverage/").exists():
         covered = {}
+    print(f"@@@@ {str(len(covered.items()))}", file=sys.stderr)
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
 
@@ -90,7 +92,6 @@ def call_if_exists(f, *args):
             return_value = func(*args)
             if covered is not None and len(args) >= 2:
                 file, iid = args[0], args[1]
-                print(f"Covered {file} {iid} {analysis.__class__.__name__}", file=sys.stderr)
                 if file not in covered:
                     covered[file] = {}
                 if iid not in covered[file]:
@@ -98,6 +99,7 @@ def call_if_exists(f, *args):
                 if analysis.__class__.__name__ not in covered[file][iid]:
                     covered[file][iid][analysis.__class__.__name__] = 0
                 covered[file][iid][analysis.__class__.__name__] += 1
+    print(str(len(covered.items())), file=sys.stderr)
     return return_value
 
 
