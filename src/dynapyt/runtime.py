@@ -15,19 +15,14 @@ covered = None
 
 
 def end_execution():
-    print("Ending execution", file=sys.stderr)
     call_if_exists("end_execution")
-    print("Analyses are done", file=sys.stderr)
     if covered is not None:
-        print("Storing coverage", file=sys.stderr)
         with FileLock("/tmp/dynapyt_coverage/covered.json.lock"):
             if Path("/tmp/dynapyt_coverage/covered.json").exists():
                 with open("/tmp/dynapyt_coverage/covered.json", "r") as f:
                     existing_coverage = json.load(f)
             else:
                 existing_coverage = {}
-            print(f"Previous coverage: {existing_coverage}", file=sys.stderr)
-            print(f"New coverage: {covered}", file=sys.stderr)
             for file, iids in covered.items():
                 if file not in existing_coverage:
                     existing_coverage[file] = {}
@@ -38,14 +33,12 @@ def end_execution():
                         if ana not in existing_coverage[file][iid]:
                             existing_coverage[file][iid][ana] = 0
                         existing_coverage[file][iid][ana] += count
-            print(f"Merged coverage: {existing_coverage}", file=sys.stderr)
             with open("/tmp/dynapyt_coverage/covered.json", "a") as f:
                 json.dump(existing_coverage, f, indent=4)
 
 
 def set_analysis(new_analyses: List[Any]):
     global analyses, covered
-    print("Setting analysis", file=sys.stderr)
     if analyses is None:
         analyses = []
     for ana in new_analyses:
@@ -97,6 +90,7 @@ def call_if_exists(f, *args):
             return_value = func(*args)
             if covered is not None and len(args) >= 2:
                 file, iid = args[0], args[1]
+                print(f"Covered {file} {iid} {analysis.__class__.__name__}", file=sys.stderr)
                 if file not in covered:
                     covered[file] = {}
                 if iid not in covered[file]:
