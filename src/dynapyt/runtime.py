@@ -40,6 +40,7 @@ def end_execution():
             print(f"Merged coverage: {existing_coverage}")
             with open("/tmp/dynapyt_coverage/covered.json", "a") as f:
                 json.dump(existing_coverage, f, indent=4)
+    raise Exception(f"coverage: {covered}")
 
 
 def set_analysis(new_analyses: List[Any]):
