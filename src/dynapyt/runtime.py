@@ -63,6 +63,8 @@ def set_analysis(new_analyses: List[Any]):
             analyses.append(ana)
     if Path("/tmp/dynapyt_coverage/").exists():
         covered = {}
+    else:
+        raise Exception("Coverage is not enabled")
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
 
