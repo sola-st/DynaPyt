@@ -7,6 +7,7 @@ import importlib
 from filelock import FileLock
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
+from dynapyt.instrument.filters import START, END, SEPERATOR
 
 analyses = None
 covered = None
@@ -59,6 +60,22 @@ def set_analysis(new_analyses: List[Any]):
     signal.signal(signal.SIGTERM, end_execution)
 
 
+def filtered(func, f, args):
+    docs = func.__doc__
+    if docs is None or START not in docs:
+        return False
+    while START in docs:
+        start = docs.find(START)
+        end = docs.find(END)
+        fltr = docs[start + len(START) : end].strip()
+        patterns = fltr.split(" -> ")[1].split(SEPERATOR)
+        if fltr.startswith("only ->") and f not in patterns:
+            return True
+        elif fltr.startswith("ignore ->") and f in patterns:
+            return True
+        docs = docs[end + len(END) :].lstrip()
+    return False
+
 def call_if_exists(f, *args):
     global covered, analyses
     return_value = None
@@ -68,7 +85,7 @@ def call_if_exists(f, *args):
         set_analysis(analysis_list)
     for analysis in analyses:
         func = getattr(analysis, f, None)
-        if func is not None:
+        if func is not None and not filtered(func, f, args):
             return_value = func(*args)
             if covered is not None and len(args) >= 2:
                 file, iid = args[0], args[1]
@@ -79,6 +96,7 @@ def call_if_exists(f, *args):
                 if analysis.__class__.__name__ not in covered[file][iid]:
                     covered[file][iid][analysis.__class__.__name__] = 0
                 covered[file][iid][analysis.__class__.__name__] += 1
+                raise Exception(f"sth covered by analysis {file} {iid} {analysis.__class__.__name__}")
     return return_value
 
 
