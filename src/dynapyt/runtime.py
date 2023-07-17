@@ -36,7 +36,8 @@ def end_execution(*ignoring_args):
                         if ana not in existing_coverage[r_file][iid]:
                             existing_coverage[r_file][iid][ana] = 0
                         existing_coverage[r_file][iid][ana] += count
-            with open("/tmp/dynapyt_coverage/covered.json", "a") as f:
+            Path("/tmp/dynapyt_coverage/covered.json").unlink()
+            with open("/tmp/dynapyt_coverage/covered.json", "w") as f:
                 json.dump(existing_coverage, f, indent=4)
 
 
