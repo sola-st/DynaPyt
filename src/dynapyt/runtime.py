@@ -44,6 +44,8 @@ def set_analysis(new_analyses: List[Any]):
     global analyses, covered
     if analyses is None:
         analyses = []
+        if Path("/tmp/dynapyt_coverage/").exists():
+            covered = {}
     for ana in new_analyses:
         if isinstance(ana, str):
             conf = None
@@ -58,8 +60,6 @@ def set_analysis(new_analyses: List[Any]):
                 analyses.append(class_())
         else:
             analyses.append(ana)
-    if Path("/tmp/dynapyt_coverage/").exists():
-        covered = {}
     print(f"{os.getpid()} @@@@ {str(len(covered.items()))}", file=sys.stderr)
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
