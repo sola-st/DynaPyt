@@ -24,7 +24,7 @@ def end_execution():
             if Path("/tmp/dynapyt_coverage/covered.jsonl").exists():
                 existing_coverage = {}
                 with open("/tmp/dynapyt_coverage/covered.jsonl", "r") as f:
-                    content = f.read().split("\n")
+                    content = f.read().splitlines()
                 for c in content:
                     tmp = json.loads(c)
                     print(tmp, file=sys.stderr)
