@@ -23,7 +23,9 @@ def end_execution():
         with FileLock("/tmp/dynapyt_coverage/covered.json.lock"):
             if Path("/tmp/dynapyt_coverage/covered.json").exists():
                 with open("/tmp/dynapyt_coverage/covered.json", "r") as f:
-                    existing_coverage = json.load(f)
+                    content = f.read()
+                    print(content, file=sys.stderr)
+                    existing_coverage = json.loads(content)
                 Path("/tmp/dynapyt_coverage/covered.json").unlink()
             else:
                 existing_coverage = {}
