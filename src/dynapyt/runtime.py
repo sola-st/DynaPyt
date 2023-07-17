@@ -26,16 +26,16 @@ def end_execution():
                     existing_coverage = json.load(f)
             else:
                 existing_coverage = {}
-            for file, iids in covered.items():
-                if file not in existing_coverage:
-                    existing_coverage[file] = {}
+            for r_file, iids in covered.items():
+                if r_file not in existing_coverage:
+                    existing_coverage[r_file] = {}
                 for iid, anas in iids.items():
-                    if iid not in existing_coverage[file]:
-                        existing_coverage[file][iid] = {}
+                    if iid not in existing_coverage[r_file]:
+                        existing_coverage[r_file][iid] = {}
                     for ana, count in anas.items():
-                        if ana not in existing_coverage[file][iid]:
-                            existing_coverage[file][iid][ana] = 0
-                        existing_coverage[file][iid][ana] += count
+                        if ana not in existing_coverage[r_file][iid]:
+                            existing_coverage[r_file][iid][ana] = 0
+                        existing_coverage[r_file][iid][ana] += count
             with open("/tmp/dynapyt_coverage/covered.json", "a") as f:
                 json.dump(existing_coverage, f, indent=4)
 
@@ -93,14 +93,14 @@ def call_if_exists(f, *args):
         if func is not None and not filtered(func, f, args):
             return_value = func(*args)
             if covered is not None and len(args) >= 2:
-                file, iid = args[0], args[1]
-                if file not in covered:
-                    covered[file] = {}
-                if iid not in covered[file]:
-                    covered[file][iid] = {analysis.__class__.__name__: 0}
-                if analysis.__class__.__name__ not in covered[file][iid]:
-                    covered[file][iid][analysis.__class__.__name__] = 0
-                covered[file][iid][analysis.__class__.__name__] += 1
+                r_file, iid = args[0], args[1]
+                if r_file not in covered:
+                    covered[r_file] = {}
+                if iid not in covered[r_file]:
+                    covered[r_file][iid] = {analysis.__class__.__name__: 0}
+                if analysis.__class__.__name__ not in covered[r_file][iid]:
+                    covered[r_file][iid][analysis.__class__.__name__] = 0
+                covered[r_file][iid][analysis.__class__.__name__] += 1
     print(f"{os.getpid()} {str(len(covered.items()))}", file=sys.stderr)
     return return_value
 
