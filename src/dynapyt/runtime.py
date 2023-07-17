@@ -47,6 +47,9 @@ def set_analysis(new_analyses: List[Any]):
         analyses = []
         if Path("/tmp/dynapyt_coverage/").exists():
             covered = {}
+        signal.signal(signal.SIGINT, end_execution)
+        signal.signal(signal.SIGTERM, end_execution)
+        atexit.register(end_execution)
     for ana in new_analyses:
         if isinstance(ana, str):
             conf = None
@@ -61,9 +64,6 @@ def set_analysis(new_analyses: List[Any]):
                 analyses.append(class_())
         else:
             analyses.append(ana)
-    signal.signal(signal.SIGINT, end_execution)
-    signal.signal(signal.SIGTERM, end_execution)
-    atexit.register(end_execution)
 
 
 def filtered(func, f, args):
