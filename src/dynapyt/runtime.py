@@ -63,6 +63,7 @@ def set_analysis(new_analyses: List[Any]):
     print(f"{os.getpid()} @@@@ {str(len(covered.items()))}", file=sys.stderr)
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
+    signal.signal(signal.SIGCHLD, end_execution)
 
 
 def filtered(func, f, args):
