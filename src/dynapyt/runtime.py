@@ -26,7 +26,9 @@ def end_execution():
                 with open("/tmp/dynapyt_coverage/covered.jsonl", "r") as f:
                     content = f.read().split("\n")
                 for c in content:
-                    existing_coverage.update(json.loads(c))
+                    tmp = json.loads(c)
+                    print(tmp, file=sys.stderr)
+                    existing_coverage.update(tmp)
                 Path("/tmp/dynapyt_coverage/covered.jsonl").unlink()
             else:
                 existing_coverage = {}
@@ -86,6 +88,7 @@ def filtered(func, f, args):
             return True
         docs = docs[end + len(END) :].lstrip()
     return False
+
 
 def call_if_exists(f, *args):
     global covered, analyses
