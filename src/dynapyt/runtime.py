@@ -24,6 +24,7 @@ def end_execution():
             if Path("/tmp/dynapyt_coverage/covered.json").exists():
                 with open("/tmp/dynapyt_coverage/covered.json", "r") as f:
                     existing_coverage = json.load(f)
+                Path("/tmp/dynapyt_coverage/covered.json").unlink()
             else:
                 existing_coverage = {}
             for r_file, iids in covered.items():
@@ -36,7 +37,6 @@ def end_execution():
                         if ana not in existing_coverage[r_file][iid]:
                             existing_coverage[r_file][iid][ana] = 0
                         existing_coverage[r_file][iid][ana] += count
-            Path("/tmp/dynapyt_coverage/covered.json").unlink()
             with open("/tmp/dynapyt_coverage/covered.json", "w") as f:
                 json.dump(existing_coverage, f, indent=4)
 
