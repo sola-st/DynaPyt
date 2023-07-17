@@ -3,6 +3,7 @@ from pathlib import Path
 from sys import exc_info
 import sys
 import os
+import atexit
 import signal
 import json
 import importlib
@@ -15,9 +16,8 @@ analyses = None
 covered = None
 
 
-def end_execution(*ignoring_args):
+def end_execution():
     global covered
-    print(f"{os.getpid()} &&&&&& {str(len(covered.items()))}", file=sys.stderr)
     call_if_exists("end_execution")
     if covered is not None:
         with FileLock("/tmp/dynapyt_coverage/covered.json.lock"):
@@ -61,10 +61,9 @@ def set_analysis(new_analyses: List[Any]):
                 analyses.append(class_())
         else:
             analyses.append(ana)
-    print(f"{os.getpid()} @@@@ {str(len(covered.items()))}", file=sys.stderr)
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
-    signal.signal(signal.SIGCHLD, end_execution)
+    atexit.register(end_execution)
 
 
 def filtered(func, f, args):
@@ -90,7 +89,6 @@ def call_if_exists(f, *args):
         with open("/tmp/dynapyt_analyses.txt", "r") as af:
             analysis_list = af.read().split("\n")
         set_analysis(analysis_list)
-    print(f"{os.getpid()} *** {str(len(covered.items()))}", file=sys.stderr)
     for analysis in analyses:
         func = getattr(analysis, f, None)
         if func is not None and not filtered(func, f, args):
@@ -104,7 +102,6 @@ def call_if_exists(f, *args):
                 if analysis.__class__.__name__ not in covered[r_file][iid]:
                     covered[r_file][iid][analysis.__class__.__name__] = 0
                 covered[r_file][iid][analysis.__class__.__name__] += 1
-    print(f"{os.getpid()} ^^^ {str(len(covered.items()))}", file=sys.stderr)
     return return_value
 
 
