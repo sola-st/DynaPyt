@@ -40,7 +40,7 @@ def end_execution():
                             existing_coverage[r_file][iid][ana] = 0
                         existing_coverage[r_file][iid][ana] += count
             with open("/tmp/dynapyt_coverage/covered.json", "w") as f:
-                json.dump(existing_coverage, f, indent=4)
+                json.dump(existing_coverage, f)
 
 
 def set_analysis(new_analyses: List[Any]):
