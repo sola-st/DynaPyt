@@ -15,7 +15,7 @@ analyses = None
 covered = None
 
 
-def end_execution():
+def end_execution(*ignoring_args):
     global covered
     print(f"{os.getpid()} &&&&&& {str(len(covered.items()))}", file=sys.stderr)
     call_if_exists("end_execution")
