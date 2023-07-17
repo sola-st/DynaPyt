@@ -88,6 +88,7 @@ def call_if_exists(f, *args):
         with open("/tmp/dynapyt_analyses.txt", "r") as af:
             analysis_list = af.read().split("\n")
         set_analysis(analysis_list)
+    print(f"{os.getpid()} *** {str(len(covered.items()))}", file=sys.stderr)
     for analysis in analyses:
         func = getattr(analysis, f, None)
         if func is not None and not filtered(func, f, args):
@@ -101,7 +102,7 @@ def call_if_exists(f, *args):
                 if analysis.__class__.__name__ not in covered[r_file][iid]:
                     covered[r_file][iid][analysis.__class__.__name__] = 0
                 covered[r_file][iid][analysis.__class__.__name__] += 1
-    print(f"{os.getpid()} {str(len(covered.items()))}", file=sys.stderr)
+    print(f"{os.getpid()} ^^^ {str(len(covered.items()))}", file=sys.stderr)
     return return_value
 
 
