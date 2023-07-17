@@ -20,13 +20,14 @@ def end_execution():
     global covered
     call_if_exists("end_execution")
     if covered is not None:
-        with FileLock("/tmp/dynapyt_coverage/covered.json.lock"):
-            if Path("/tmp/dynapyt_coverage/covered.json").exists():
-                with open("/tmp/dynapyt_coverage/covered.json", "r") as f:
-                    content = f.read()
-                    print(content, file=sys.stderr)
-                    existing_coverage = json.loads(content)
-                Path("/tmp/dynapyt_coverage/covered.json").unlink()
+        with FileLock("/tmp/dynapyt_coverage/covered.jsonl.lock"):
+            if Path("/tmp/dynapyt_coverage/covered.jsonl").exists():
+                existing_coverage = {}
+                with open("/tmp/dynapyt_coverage/covered.jsonl", "r") as f:
+                    content = f.read().split("\n")
+                for c in content:
+                    existing_coverage.update(json.loads(c))
+                Path("/tmp/dynapyt_coverage/covered.jsonl").unlink()
             else:
                 existing_coverage = {}
             for r_file, iids in covered.items():
@@ -39,8 +40,10 @@ def end_execution():
                         if ana not in existing_coverage[r_file][iid]:
                             existing_coverage[r_file][iid][ana] = 0
                         existing_coverage[r_file][iid][ana] += count
-            with open("/tmp/dynapyt_coverage/covered.json", "w") as f:
-                json.dump(existing_coverage, f)
+            with open("/tmp/dynapyt_coverage/covered.jsonl", "w") as f:
+                for r_file, iids in existing_coverage.items():
+                    tmp = {r_file: iids}
+                    f.write(json.dumps(tmp) + "\n")
 
 
 def set_analysis(new_analyses: List[Any]):
