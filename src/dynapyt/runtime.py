@@ -2,6 +2,7 @@ from typing import List, Tuple, Any
 from pathlib import Path
 from sys import exc_info
 import sys
+import os
 import signal
 import json
 import importlib
@@ -16,7 +17,7 @@ covered = None
 
 def end_execution():
     global covered
-    print(f"&&&&&& {str(len(covered.items()))}", file=sys.stderr)
+    print(f"{os.getpid()} &&&&&& {str(len(covered.items()))}", file=sys.stderr)
     call_if_exists("end_execution")
     if covered is not None:
         with FileLock("/tmp/dynapyt_coverage/covered.json.lock"):
@@ -59,7 +60,7 @@ def set_analysis(new_analyses: List[Any]):
             analyses.append(ana)
     if Path("/tmp/dynapyt_coverage/").exists():
         covered = {}
-    print(f"@@@@ {str(len(covered.items()))}", file=sys.stderr)
+    print(f"{os.getpid()} @@@@ {str(len(covered.items()))}", file=sys.stderr)
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
 
@@ -100,7 +101,7 @@ def call_if_exists(f, *args):
                 if analysis.__class__.__name__ not in covered[file][iid]:
                     covered[file][iid][analysis.__class__.__name__] = 0
                 covered[file][iid][analysis.__class__.__name__] += 1
-    print(str(len(covered.items())), file=sys.stderr)
+    print(f"{os.getpid()} {str(len(covered.items()))}", file=sys.stderr)
     return return_value
 
 
