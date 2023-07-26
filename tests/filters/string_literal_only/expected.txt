@@ -1,0 +1,4 @@
+begin execution
+string literal "abc"
+26
+end execution

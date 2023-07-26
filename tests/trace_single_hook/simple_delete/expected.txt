@@ -1,0 +1,4 @@
+begin execution
+10
+deleting variable a
+end execution

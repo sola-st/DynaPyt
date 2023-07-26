@@ -46,28 +46,34 @@ An analysis is a subclass of BaseAnalysis. See the [analysis folder](src/dynapyt
 **Note:** DynaPyt instruments code in-place (it keeps a `.py.orig` for each file it instruments to keep the original code). But for more convenience in analyzing, we suggest to instrument a copy of the code under analysis.  
 To run the instrumentation on a single file:  
 ```
-python -m dynapyt.instrument.instrument --files <path to Python file> --analysis <analysis name>
+python -m dynapyt.instrument.instrument --files <path to Python file> --analysis <analysis class full dotted path>
 ```
 
 To run the instrumentation on all files in a directory:  
 ```
-python -m dynapyt.run_instrumentation --directory <path to directory> --analysis <analysis name>
+python -m dynapyt.run_instrumentation --directory <path to directory> --analysis <analysis class full dotted path>
 ```
+
+Note that instrumented files might not be portable.
 
 
 ## Running an Analysis
 
 To run an analysis:  
 ```
-python -m dynapyt.run_analysis --entry <entry file (python)> --analysis <analysis name>
+python -m dynapyt.run_analysis --entry <entry file (python)> --analysis <analysis class full dotted path>
 ```
 
 **Note:** The analysis name should either match the analysis name used for the instrumentation, or the analysis should have a subset of hooks used in the instrumentation analysis.
 
 Single command to instrument and run an analysis on a project:  
 ```
-python -m dynapyt.run_all --directory <directory of project> --entry <entry file (python)> --analysis <analysis name>
+python -m dynapyt.run_all --directory <directory of project> --entry <entry file (python)> --analysis <analysis class full dotted path>
 ```
+
+## Available Hooks
+
+Check out [this auto-generated API reference](https://sola-st.github.io/DynaPyt/) for available hooks.
 
 --------------------
 
@@ -85,7 +91,7 @@ First, download the desired project from GitHub (`git clone ...`), and put it un
 Then, if the project can be installed with just `pip install .`, ignore this step and move to the next. Otherwise, place a `myInstall.sh` script in the root directory of the project with all steps required for installing the package.  
 Finally, run
 ```
-bash ./experiment.sh <package name> <test directory> <analysis name>
+bash ./experiment.sh <package name> <test directory> <analysis class full dotted path>
 # E.g. for "rich" repository located at test/PythonRepos/rich:
 bash ./experiment.sh rich test TraceAll
 ```
@@ -104,7 +110,7 @@ cd rich
 ```
 2) Instrument all files in the project (for original execution, skip this step):
 ```
-python -m dynapyt.run_instrumentation --directory . --analysis TraceAll
+python -m dynapyt.run_instrumentation --directory . --analysis dynapyt.analyses.TraceAll.TraceAll
 ```
 3) Add an entry file (`run_all_tests.py`) that runs all tests into the root directory:
 ```python
@@ -121,7 +127,7 @@ pip install .
 5) Run tests:  
 For running the analysis:
 ```
-time python -m dynapyt.run_analysis --entry run_all_tests.py --analysis TraceAll
+time python -m dynapyt.run_analysis --entry run_all_tests.py --analysis dynapyt.analyses.TraceAll.TraceAll
 ```
 
 To replicate the results for the original execution (not instrumented and analyzed through DynaPyt), perform steps 1, 3, and 4. Then run

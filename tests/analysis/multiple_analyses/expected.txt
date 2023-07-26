@@ -1,0 +1,10 @@
+begin execution of call analysis
+begin execution of int analysis
+integer literal 10
+integer literal 20
+multiplying 10 and 20 gives 200
+pre call of print
+200
+post call of print
+end execution of call analysis
+end execution of int analysis

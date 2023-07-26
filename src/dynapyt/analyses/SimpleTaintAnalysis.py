@@ -45,7 +45,7 @@ class SimpleTaintAnalysis(BaseAnalysis):
             if id(v) in self.tainted:
                 self.tainted.add(id(value))
 
-    def pre_call(self, dyn_ast, iid, pos_args, kw_args):
+    def pre_call(self, dyn_ast: str, iid: int, function: Callable, pos_args, kw_args):
         if self.seen_sink:
             for a in pos_args:
                 if id(a) in self.tainted:
