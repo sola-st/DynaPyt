@@ -10,10 +10,12 @@ import importlib
 from filelock import FileLock
 import libcst as cst
 from dynapyt.utils.hooks import snake, get_name
+from dynapyt.instrument.IIDs import IIDs
 from dynapyt.instrument.filters import START, END, SEPERATOR
 
 analyses = None
 covered = None
+current_file = None
 
 
 def end_execution():
@@ -32,19 +34,19 @@ def end_execution():
                 Path("/tmp/dynapyt_coverage/covered.jsonl").unlink()
             else:
                 existing_coverage = {}
-            for r_file, iids in covered.items():
+            for r_file, line_nums in covered.items():
                 if r_file not in existing_coverage:
                     existing_coverage[r_file] = {}
-                for iid, anas in iids.items():
-                    if iid not in existing_coverage[r_file]:
-                        existing_coverage[r_file][iid] = {}
+                for ln, anas in line_nums.items():
+                    if ln not in existing_coverage[r_file]:
+                        existing_coverage[r_file][ln] = {}
                     for ana, count in anas.items():
-                        if ana not in existing_coverage[r_file][iid]:
-                            existing_coverage[r_file][iid][ana] = 0
-                        existing_coverage[r_file][iid][ana] += count
+                        if ana not in existing_coverage[r_file][ln]:
+                            existing_coverage[r_file][ln][ana] = 0
+                        existing_coverage[r_file][ln][ana] += count
             with open("/tmp/dynapyt_coverage/covered.jsonl", "w") as f:
-                for r_file, iids in existing_coverage.items():
-                    tmp = {r_file: iids}
+                for r_file, line_nums in existing_coverage.items():
+                    tmp = {r_file: line_nums}
                     f.write(json.dumps(tmp) + "\n")
 
 
@@ -91,7 +93,7 @@ def filtered(func, f, args):
 
 
 def call_if_exists(f, *args):
-    global covered, analyses
+    global covered, analyses, current_file
     return_value = None
     if analyses is None:
         with open("/tmp/dynapyt_analyses.txt", "r") as af:
@@ -103,13 +105,18 @@ def call_if_exists(f, *args):
             return_value = func(*args)
             if covered is not None and len(args) >= 2:
                 r_file, iid = args[0], args[1]
+                if current_file is None or current_file.file_path != r_file:
+                    current_file = IIDs(r_file)
                 if r_file not in covered:
                     covered[r_file] = {}
-                if iid not in covered[r_file]:
-                    covered[r_file][iid] = {analysis.__class__.__name__: 0}
-                if analysis.__class__.__name__ not in covered[r_file][iid]:
-                    covered[r_file][iid][analysis.__class__.__name__] = 0
-                covered[r_file][iid][analysis.__class__.__name__] += 1
+                line_no = current_file.iid_to_location[
+                    iid
+                ].start_line  # This is not accurate for multiline statements like if, for, multiline calls, etc.
+                if line_no not in covered[r_file]:
+                    covered[r_file][line_no] = {analysis.__class__.__name__: 0}
+                if analysis.__class__.__name__ not in covered[r_file][line_no]:
+                    covered[r_file][line_no][analysis.__class__.__name__] = 0
+                covered[r_file][line_no][analysis.__class__.__name__] += 1
     return return_value
 
 
