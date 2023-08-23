@@ -8,6 +8,7 @@ from libcst.metadata import (
     QualifiedNameProvider,
 )
 import libcst.matchers as m
+from libcst._types import CSTNodeT
 from libcst.matchers import call_if_not_inside, call_if_inside
 from libcst.metadata.expression_context_provider import ExpressionContext
 from libcst.metadata.scope_provider import QualifiedNameSource, ClassScope
@@ -78,14 +79,18 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         # Blacklisted nodes to append to the end of the file
         self.blacklist_nodes = [cst.Newline(value="\n")]
 
-    def __selected_by_decorators(self, hook: str, node: str) -> bool:
+    def __selected_by_decorators(self, hook: str, node: CSTNodeT) -> bool:
+        if not hasattr(node, "value"):
+            return False
+
+        node_val: str = node.value
         try:
             if (
                 "only" in self.selected_hooks[hook]
                 and len(self.selected_hooks[hook]["only"]) > 0
             ):
                 for p in self.selected_hooks[hook]["only"]:
-                    if p.match(node):
+                    if p.match(node_val):
                         return True
                 return False
             elif (
@@ -93,7 +98,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 and len(self.selected_hooks[hook]["ignore"]) > 0
             ):
                 for p in self.selected_hooks[hook]["ignore"]:
-                    if p.match(node):
+                    if p.match(node_val):
                         return False
                 return True
             else:
@@ -278,7 +283,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         if (
             ("boolean" in self.selected_hooks)
             and (updated_node.value in ["True", "False"])
-            and (self.__selected_by_decorators("boolean", original_node.value))
+            and (self.__selected_by_decorators("boolean", original_node))
         ):
             callee_name = cst.Attribute(
                 value=cst.Name(value="_rt"), attr=cst.Name(value="_bool_")
@@ -298,7 +303,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
         if (
             "read_identifier" not in self.selected_hooks
-        ) or not self.__selected_by_decorators("read_identifier", original_node.value):
+        ) or not self.__selected_by_decorators("read_identifier", original_node):
             return updated_node
         try:
             context = self.get_metadata(ExpressionContextProvider, original_node)
@@ -331,7 +336,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_Integer(self, original_node, updated_node):
         if ("integer" not in self.selected_hooks) or not self.__selected_by_decorators(
-            "integer", original_node.value
+            "integer", original_node
         ):
             return updated_node
         callee_name = cst.Attribute(
@@ -352,7 +357,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_Float(self, original_node, updated_node):
         if ("_float" not in self.selected_hooks) or not self.__selected_by_decorators(
-            "float", original_node.value
+            "float", original_node
         ):
             return updated_node
         callee_name = cst.Attribute(
@@ -374,7 +379,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_Imaginary(self, original_node, updated_node):
         if (
             "imaginary" not in self.selected_hooks
-        ) or not self.__selected_by_decorators("imaginary", original_node.value):
+        ) or not self.__selected_by_decorators("imaginary", original_node):
             return updated_node
         callee_name = cst.Attribute(
             value=cst.Name(value="_rt"), attr=cst.Name(value="_img_")
@@ -397,7 +402,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_ConcatenatedString(self, original_node, updated_node):
         if ("string" not in self.selected_hooks) or not self.__selected_by_decorators(
-            "string", original_node.value
+            "string", original_node
         ):
             return updated_node
 
@@ -427,7 +432,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_FormattedString(self, original_node, updated_node):
         self.quote = ""
         if ("string" not in self.selected_hooks) or not self.__selected_by_decorators(
-            "string", original_node.value
+            "string", original_node
         ):
             return updated_node
         callee_name = cst.Attribute(
@@ -450,7 +455,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     @call_if_inside(m.Assign() | m.AugAssign() | m.Arg() | m.BinaryOperation())
     def leave_SimpleString(self, original_node, updated_node):
         if ("string" not in self.selected_hooks) or not self.__selected_by_decorators(
-            "string", original_node.value
+            "string", original_node
         ):
             return updated_node
         callee_name = cst.Attribute(
@@ -1078,10 +1083,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             and "function_exit" not in self.selected_hooks
         ) or not (
             self.__selected_by_decorators(
-                "function_enter", function_metadata["name"].value
+                "function_enter", function_metadata["name"]
             )
             or self.__selected_by_decorators(
-                "function_exit", function_metadata["name"].value
+                "function_exit", function_metadata["name"]
             )
         ):
             return updated_node
@@ -1267,10 +1272,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 and (
                     not (
                         self.__selected_by_decorators(
-                            "pre_call", original_node.func.value
+                            "pre_call", original_node.func
                         )
                         or self.__selected_by_decorators(
-                            "post_call", original_node.func.value
+                            "post_call", original_node.func
                         )
                     )
                 )

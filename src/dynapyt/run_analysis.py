@@ -29,7 +29,10 @@ def run_analysis(
             func()
     if entry.endswith(".py"):
         sys.argv = [entry]
-        exec(open(abspath(entry)).read(), globals())
+        entry_full_path = abspath(entry)
+        globals_dict = globals().copy()
+        globals_dict["__file__"] = entry_full_path
+        exec(open(entry_full_path).read(), globals_dict)
     else:
         importlib.import_module(entry)
     _rt.end_execution()
