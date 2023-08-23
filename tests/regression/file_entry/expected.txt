@@ -1,0 +1,2 @@
+pre call of print
+<...>/program.py

@@ -8,8 +8,28 @@ import pytest
 
 from dynapyt.instrument.instrument import instrument_file
 from dynapyt.utils.hooks import get_hooks_from_analysis
+from dynapyt.run_analysis import run_analysis
 import dynapyt.runtime as rt
 from dynapyt.analyses.BaseAnalysis import BaseAnalysis
+
+
+def correct_output(expected: str, actual: str) -> bool:
+    if actual == expected or actual == expected + "\n":
+        return True
+    actual_lines = actual.strip().split("\n")
+    expected_lines = expected.strip().split("\n")
+    if len(actual_lines) != len(expected_lines):
+        return False
+    for i in range(len(actual_lines)):
+        if "<...>" in expected_lines[i]:
+            pre_ex, post_ex = expected_lines[i].split("<...>")
+            if not (
+                actual_lines[i].startswith(pre_ex) and actual_lines[i].endswith(post_ex)
+            ):
+                return False
+        elif actual_lines[i] != expected_lines[i]:
+            return False
+    return True
 
 
 def test_runner(directory_pair: Tuple[str, str], capsys):
@@ -29,12 +49,15 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     program_file = join(abs_dir, "program.py")
     orig_program_file = join(abs_dir, "program.py.orig")
     # make sure to instrument the uninstrumented version
+    run_as_file = False
     with open(program_file, "r") as file:
         src = file.read()
         if "DYNAPYT: DO NOT INSTRUMENT" in src:
             if not exists(orig_program_file):
                 pytest.fail(f"Could find only the instrumented program in {rel_dir}")
             copyfile(orig_program_file, program_file)
+        elif "# DYNAPYT: Run as file" in src:
+            run_as_file = True
 
     instrument_file(program_file, selected_hooks)
 
@@ -52,7 +75,10 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     for analysis_instance in analysis_instances:
         if hasattr(analysis_instance, "begin_execution"):
             analysis_instance.begin_execution()
-    import_module(f"{module_prefix}.program")
+    if run_as_file:
+        run_analysis(program_file, [f"{module_prefix}.analysis.TestAnalysis"])
+    else:
+        import_module(f"{module_prefix}.program")
     for analysis_instance in analysis_instances:
         if hasattr(analysis_instance, "end_execution"):
             analysis_instance.end_execution()
@@ -65,7 +91,7 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     captured = (
         capsys.readouterr()
     )  # read stdout produced by running the analyzed program
-    if captured.out != expected and captured.out != expected + "\n":
+    if not correct_output(expected, captured.out):
         pytest.fail(
             f"Output of {rel_dir} does not match expected output.\n--> Expected:\n{expected}\n--> Actual:\n{captured.out}"
         )
