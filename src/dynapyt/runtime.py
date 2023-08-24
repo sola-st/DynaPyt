@@ -2,16 +2,16 @@ from typing import List, Tuple, Any
 from pathlib import Path
 from sys import exc_info
 import sys
-import os
 import atexit
 import signal
 import json
 import importlib
 from filelock import FileLock
 import libcst as cst
-from dynapyt.utils.hooks import snake, get_name
-from dynapyt.instrument.IIDs import IIDs
-from dynapyt.instrument.filters import START, END, SEPERATOR
+from .utils.hooks import snake, get_name
+from .instrument.IIDs import IIDs
+from .instrument.filters import START, END, SEPERATOR
+from .utils.load_analysis import load_analyses
 
 analyses = None
 covered = None
@@ -59,34 +59,29 @@ def set_analysis(new_analyses: List[Any]):
         signal.signal(signal.SIGINT, end_execution)
         signal.signal(signal.SIGTERM, end_execution)
         atexit.register(end_execution)
-    for ana in new_analyses:
-        if isinstance(ana, str):
-            conf = None
-            if ":" in ana:
-                ana, conf = ana.split(":")
-            module_parts = ana.split(".")
-            module = importlib.import_module(".".join(module_parts[:-1]))
-            class_ = getattr(module, module_parts[-1])
-            if conf is not None:
-                analyses.append(class_(conf))
-            else:
-                analyses.append(class_())
-        else:
-            analyses.append(ana)
+        analyses = load_analyses(new_analyses)
 
 
 def filtered(func, f, args):
     docs = func.__doc__
     if docs is None or START not in docs:
         return False
+    if len(args) >= 2:
+        sub_args = args[2:]
+    else:
+        return False
     while START in docs:
         start = docs.find(START)
         end = docs.find(END)
         fltr = docs[start + len(START) : end].strip()
         patterns = fltr.split(" -> ")[1].split(SEPERATOR)
-        if fltr.startswith("only ->") and f not in patterns:
-            return True
-        elif fltr.startswith("ignore ->") and f in patterns:
+        if fltr.startswith("only ->") and any(
+            [getattr(arg, "__name__", repr(arg)) in patterns for arg in sub_args]
+        ):
+            return False
+        elif fltr.startswith("ignore ->") and any(
+            [getattr(arg, "__name__", repr(arg)) in patterns for arg in sub_args]
+        ):
             return True
         docs = docs[end + len(END) :].lstrip()
     return False

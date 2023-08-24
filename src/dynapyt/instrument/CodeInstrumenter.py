@@ -218,7 +218,6 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             ]
         )
         dynapyt_imports = [cst.Newline(value="\n")]
-        dynapyt_imports.append(self.__create_import(["_catch_"]))
         import_names = list(self.to_import)
         for i in range(len(updated_node.body)):
             if m.matches(updated_node.body[i], m.SimpleStatementLine()) and (
@@ -1082,12 +1081,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "function_enter" not in self.selected_hooks
             and "function_exit" not in self.selected_hooks
         ) or not (
-            self.__selected_by_decorators(
-                "function_enter", function_metadata["name"]
-            )
-            or self.__selected_by_decorators(
-                "function_exit", function_metadata["name"]
-            )
+            self.__selected_by_decorators("function_enter", function_metadata["name"])
+            or self.__selected_by_decorators("function_exit", function_metadata["name"])
         ):
             return updated_node
         enter_name = cst.Attribute(
@@ -1271,9 +1266,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 m.matches(original_node.func, m.Name())
                 and (
                     not (
-                        self.__selected_by_decorators(
-                            "pre_call", original_node.func
-                        )
+                        self.__selected_by_decorators("pre_call", original_node.func)
                         or self.__selected_by_decorators(
                             "post_call", original_node.func
                         )
