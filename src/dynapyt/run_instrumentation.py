@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Set
 import argparse
 from os import walk
 from os import path
@@ -9,7 +9,12 @@ import time
 from multiprocessing import Pool
 
 
-def instrument_dir(directory: str, analysis: List[str], use_external_dir: bool = False):
+def instrument_dir(
+    directory: str,
+    analysis: List[str],
+    use_external_dir: bool = False,
+    exclude: Set[str] = set(),
+):
     start_time = time.time()
     start = directory
     all_cmds = []
@@ -22,9 +27,12 @@ def instrument_dir(directory: str, analysis: List[str], use_external_dir: bool =
         start = str(external_path)
 
     for dir_path, dir_names, file_names in walk(start):
+        for name in dir_names:
+            if path.join(dir_path, name) in exclude:
+                dir_names.remove(name)
         for name in file_names:
-            if name.endswith(".py"):
-                file_path = path.join(dir_path, name)
+            file_path = path.join(dir_path, name)
+            if name.endswith(".py") and file_path not in exclude:
                 cmd_list = [
                     "python",
                     "-m",
