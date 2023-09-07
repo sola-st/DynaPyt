@@ -104,7 +104,47 @@ python -m dynapyt.run_analysis \
 ```
 
 ## Hook Hierarchy
+String concatenation with `+=` is slower than `"".join()`. Find cases that a string gets appended in a loop.
+
+### Implement the analysis
+1. Create a file under `tutorial-analyses/src/tutorial_analyses` called `SlowStringConcatAnalysis.py`.
+2. Implement the analysis class as a subclass of `dynapyt.analyses.BaseAnalysis`.
+3. Build the analysis: `pip install ./tutorial-analyses`
+
+### Instrument the code
+```bash
+python -m dynapyt.run_instrumentation \
+ --analysis tutorial_analyses.SlowStringConcatAnalysis.SlowStringConcatAnalysis \
+ --directory task4
+```
+
+### Run the analysis
+```bash
+python -m dynapyt.run_analysis \
+ --analysis tutorial_analyses.SlowStringConcatAnalysis.SlowStringConcatAnalysis \
+ --entry task4/main.py
+```
 
 ## Modify Execution
+Force the execution to always take the opposite branch.
+
+### Implement the analysis
+1. Create a file under `tutorial-analyses/src/tutorial_analyses` called `OppositeBranchAnalysis.py`.
+2. Implement the analysis class as a subclass of `dynapyt.analyses.BaseAnalysis`.
+3. Build the analysis: `pip install ./tutorial-analyses`
+
+### Instrument the code
+```bash
+python -m dynapyt.run_instrumentation \
+ --analysis tutorial_analyses.OppositeBranchAnalysis.OppositeBranchAnalysis \
+ --directory task5
+```
+
+### Run the analysis
+```bash
+python -m dynapyt.run_analysis \
+ --analysis tutorial_analyses.OppositeBranchAnalysis.OppositeBranchAnalysis \
+ --entry task5/main.py
+```
 
 ## Object Marking
