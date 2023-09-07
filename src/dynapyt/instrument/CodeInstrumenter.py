@@ -121,8 +121,15 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         module_name = cst.Attribute(
             value=cst.Name(value="dynapyt"), attr=cst.Name(value="runtime")
         )
-        imp_aliases = [cst.ImportAlias(name=cst.Name(value=name)) for name in names]
-        imp = cst.ImportFrom(module=module_name, names=imp_aliases)
+        # imp_aliases = [cst.ImportAlias(name=cst.Name(value=name)) for name in names]
+        # imp = cst.ImportFrom(module=module_name, names=imp_aliases)
+        imp = cst.Import(
+            names=[
+                cst.ImportAlias(
+                    name=module_name, asname=cst.AsName(cst.Name(value="_rt"))
+                )
+            ]
+        )
         stmt = cst.SimpleStatementLine(body=[imp])
         return stmt
 
@@ -211,7 +218,6 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             ]
         )
         dynapyt_imports = [cst.Newline(value="\n")]
-        dynapyt_imports.append(self.__create_import(["_catch_"]))
         import_names = list(self.to_import)
         for i in range(len(updated_node.body)):
             if m.matches(updated_node.body[i], m.SimpleStatementLine()) and (
@@ -228,7 +234,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             dynapyt_imports.append(cst.Newline(value="\n"))
         code_body = list(updated_node.body[imports_index + 1 :])
         handler_call = cst.Call(
-            func=cst.Name(value="_catch_"),
+            func=cst.Attribute(
+                value=cst.Name(value="_rt"), attr=cst.Name(value="_catch_")
+            ),
             args=[cst.Arg(cst.Name("_dynapyt_exception_"))],
         )
         handler_body = cst.IndentedBlock(
@@ -276,7 +284,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             and (updated_node.value in ["True", "False"])
             and (self.__selected_by_decorators("boolean", original_node))
         ):
-            callee_name = cst.Name(value="_bool_")
+            callee_name = cst.Attribute(
+                value=cst.Name(value="_rt"), attr=cst.Name(value="_bool_")
+            )
             self.to_import.add("_bool_")
             iid = self.__create_iid(original_node)
             ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -305,7 +315,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         if (context == ExpressionContext.LOAD) and (
             list(name_source)[0].source == QualifiedNameSource.LOCAL
         ):
-            callee_name = cst.Name(value="_read_")
+            callee_name = cst.Attribute(
+                value=cst.Name(value="_rt"), attr=cst.Name(value="_read_")
+            )
             self.to_import.add("_read_")
             iid = self.__create_iid(original_node)
             ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -326,7 +338,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "integer", original_node
         ):
             return updated_node
-        callee_name = cst.Name(value="_int_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_int_")
+        )
         self.to_import.add("_int_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -345,7 +359,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "float", original_node
         ):
             return updated_node
-        callee_name = cst.Name(value="_float_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_float_")
+        )
         self.to_import.add("_float_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -364,7 +380,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "imaginary" not in self.selected_hooks
         ) or not self.__selected_by_decorators("imaginary", original_node):
             return updated_node
-        callee_name = cst.Name(value="_img_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_img_")
+        )
         self.to_import.add("_img_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -387,7 +405,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ):
             return updated_node
 
-        callee_name = cst.Name(value="_str_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_str_")
+        )
         self.to_import.add("_str_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -414,7 +434,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "string", original_node
         ):
             return updated_node
-        callee_name = cst.Name(value="_str_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_str_")
+        )
         self.to_import.add("_str_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -435,7 +457,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "string", original_node
         ):
             return updated_node
-        callee_name = cst.Name(value="_str_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_str_")
+        )
         self.to_import.add("_str_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -453,7 +477,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_Dict(self, original_node, updated_node):
         if "dictionary" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_dict_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_dict_")
+        )
         self.to_import.add("_dict_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -485,7 +511,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_DictComp(self, original_node, updated_node):
         if "dictionary" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_dict_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_dict_")
+        )
         self.to_import.add("_dict_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -513,7 +541,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_List(self, original_node, updated_node):
         if "_list" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_list_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_list_")
+        )
         self.to_import.add("_list_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -531,7 +561,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_ListComp(self, original_node, updated_node):
         if "list" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_list_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_list_")
+        )
         self.to_import.add("_list_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -556,7 +588,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         par = self.get_metadata(ParentNodeProvider, original_node)
         if m.matches(par, m.CompFor()) and (par.target is original_node):
             return original_node
-        callee_name = cst.Name(value="_tuple_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_tuple_")
+        )
         self.to_import.add("_tuple_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -583,7 +617,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 analyze_arg = cst.Arg(value=cst.Name(value="False"))
             else:
                 analyze_arg = cst.Arg(value=cst.Name(value="True"))
-        callee_name = cst.Name(value="_delete_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_delete_")
+        )
         self.to_import.add("_delete_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -733,7 +769,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_Subscript(self, original_node, updated_node):
         if "read_subscript" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_sub_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_sub_")
+        )
         self.to_import.add("_sub_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -780,7 +818,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_Attribute(self, original_node, updated_node):
         if "read_attribute" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_attr_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_attr_")
+        )
         self.to_import.add("_attr_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -816,7 +856,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "RightShift": 11,
             "Subtract": 12,
         }
-        callee_name = cst.Name(value="_binary_op_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_binary_op_")
+        )
         self.to_import.add("_binary_op_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -843,7 +885,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ):
             return updated_node
         bool_op = {"And": 13, "Or": 14}
-        callee_name = cst.Name(value="_binary_op_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_binary_op_")
+        )
         self.to_import.add("_binary_op_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -870,7 +914,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ):
             return updated_node
         un_op = {"BitInvert": 0, "Minus": 1, "Not": 2, "Plus": 3}
-        callee_name = cst.Name(value="_unary_op_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_unary_op_")
+        )
         self.to_import.add("_unary_op_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -904,7 +950,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "IsNot": 8,
             "NotIn": 9,
         }
-        callee_name = cst.Name(value="_comp_op_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_comp_op_")
+        )
         self.to_import.add("_comp_op_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -950,7 +998,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             self.blacklist_nodes.append(cst.Newline(value="\n"))
         if "write" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_write_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_write_")
+        )
         self.to_import.add("_write_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -995,7 +1045,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "RightShiftAssign": 11,
             "SubtractAssign": 12,
         }
-        callee_name = cst.Name(value="_aug_assign_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_aug_assign_")
+        )
         self.to_import.add("_aug_assign_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1029,17 +1081,17 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "function_enter" not in self.selected_hooks
             and "function_exit" not in self.selected_hooks
         ) or not (
-            self.__selected_by_decorators(
-                "function_enter", function_metadata["name"]
-            )
-            or self.__selected_by_decorators(
-                "function_exit", function_metadata["name"]
-            )
+            self.__selected_by_decorators("function_enter", function_metadata["name"])
+            or self.__selected_by_decorators("function_exit", function_metadata["name"])
         ):
             return updated_node
-        enter_name = cst.Name(value="_func_entry_")
+        enter_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_func_entry_")
+        )
         self.to_import.add("_func_entry_")
-        exit_name = cst.Name(value="_func_exit_")
+        exit_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_func_exit_")
+        )
         self.to_import.add("_func_exit_")
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(function_metadata["iid"])))
@@ -1085,7 +1137,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_Lambda(self, original_node, updated_node):
         if "lambda" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_lambda_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_lambda_")
+        )
         self.to_import.add("_lambda_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1111,7 +1165,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_Return(self, original_node, updated_node):
         if "return" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_return_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_return_")
+        )
         self.to_import.add("_return_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1140,7 +1196,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         function_metadata = self.current_function[-1]
         if "yield" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_yield_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_yield_")
+        )
         self.to_import.add("_yield_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1182,7 +1240,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_Assert(self, original_node, updated_node):
         if "_assert" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_assert_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_assert_")
+        )
         self.to_import.add("_assert_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1206,9 +1266,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 m.matches(original_node.func, m.Name())
                 and (
                     not (
-                        self.__selected_by_decorators(
-                            "pre_call", original_node.func
-                        )
+                        self.__selected_by_decorators("pre_call", original_node.func)
                         or self.__selected_by_decorators(
                             "post_call", original_node.func
                         )
@@ -1228,7 +1286,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             "super",
             "vars",
         ]
-        callee_name = cst.Name(value="_call_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_call_")
+        )
         self.to_import.add("_call_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1320,7 +1380,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_Raise(self, original_node, updated_node):
         if "_raise" not in self.selected_hooks:
             return updated_node
-        callee_name = cst.Name(value="_raise_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_raise_")
+        )
         self.to_import.add("_raise_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1345,9 +1407,13 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         self.current_try.pop()
         if "try" not in self.selected_hooks:
             return updated_node
-        enter_name = cst.Name(value="_try_")
+        enter_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_try_")
+        )
         self.to_import.add("_try_")
-        clean_exit = cst.Name(value="_end_try_")
+        clean_exit = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_end_try_")
+        )
         self.to_import.add("_end_try_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1384,7 +1450,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_ExceptHandler(self, original_node, updated_node):
         if "exception" not in self.selected_hooks:
             return updated_node
-        exc_name = cst.Name(value="_exc_")
+        exc_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_exc_")
+        )
         self.to_import.add("_exc_")
         iid = self.current_try[-1]
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1421,7 +1489,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             if ("_break" in self.selected_hooks) and (
                 m.matches(i, m.SimpleStatementLine(body=[m.Break()]))
             ):
-                callee_name = cst.Name(value="_break_")
+                callee_name = cst.Attribute(
+                    value=cst.Name(value="_rt"), attr=cst.Name(value="_break_")
+                )
                 self.to_import.add("_break_")
                 iid = self.__create_iid(original_node)
                 ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1437,7 +1507,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             elif ("_continue" in self.selected_hooks) and (
                 m.matches(i, m.SimpleStatementLine(body=[m.Continue()]))
             ):
-                callee_name = cst.Name(value="_continue_")
+                callee_name = cst.Attribute(
+                    value=cst.Name(value="_rt"), attr=cst.Name(value="_continue_")
+                )
                 self.to_import.add("_continue_")
                 iid = self.__create_iid(original_node)
                 ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1464,14 +1536,18 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         if "enter_if" in self.selected_hooks:
-            callee_name = cst.Name(value="_enter_if_")
+            callee_name = cst.Attribute(
+                value=cst.Name(value="_rt"), attr=cst.Name(value="_enter_if_")
+            )
             self.to_import.add("_enter_if_")
             val_arg = cst.Arg(value=updated_node.test)
             call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg])
         else:
             call = updated_node.test
         if "exit_if" in self.selected_hooks:
-            end_name = cst.Name(value="_exit_if_")
+            end_name = cst.Attribute(
+                value=cst.Name(value="_rt"), attr=cst.Name(value="_exit_if_")
+            )
             self.to_import.add("_exit_if_")
             end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
             if m.matches(updated_node.body, m.SimpleStatementSuite()):
@@ -1516,7 +1592,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             and "exit_if" not in self.selected_hooks
         ):
             return updated_node
-        callee_name = cst.Name(value="_if_expr_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_if_expr_")
+        )
         self.to_import.add("_if_expr_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
@@ -1542,14 +1620,18 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         if "enter_while" in self.selected_hooks:
-            enter_name = cst.Name(value="_enter_while_")
+            enter_name = cst.Attribute(
+                value=cst.Name(value="_rt"), attr=cst.Name(value="_enter_while_")
+            )
             self.to_import.add("_enter_while_")
             enter_arg = cst.Arg(value=updated_node.test)
             enter_call = cst.Call(func=enter_name, args=[ast_arg, iid_arg, enter_arg])
         else:
             enter_call = updated_node.test
         if "exit_while" in self.selected_hooks:
-            end_name = cst.Name(value="_exit_while_")
+            end_name = cst.Attribute(
+                value=cst.Name(value="_rt"), attr=cst.Name(value="_exit_while_")
+            )
             self.to_import.add("_exit_while_")
             end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
             if updated_node.orelse != None:
@@ -1579,7 +1661,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         if "enter_for" in self.selected_hooks:
-            generator_name = cst.Name(value="_gen_")
+            generator_name = cst.Attribute(
+                value=cst.Name(value="_rt"), attr=cst.Name(value="_gen_")
+            )
             self.to_import.add("_gen_")
             iter_arg = cst.Arg(value=updated_node.iter)
             generator_call = cst.Call(
@@ -1587,7 +1671,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             )
             else_part = updated_node.orelse
         elif "exit_for" in self.selected_hooks:
-            end_name = cst.Name(value="_exit_for_")
+            end_name = cst.Attribute(
+                value=cst.Name(value="_rt"), attr=cst.Name(value="_exit_for_")
+            )
             self.to_import.add("_exit_for_")
             end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
             if updated_node.orelse != None:
@@ -1611,7 +1697,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             and "exit_for" not in self.selected_hooks
         ):
             return updated_node
-        generator_name = cst.Name(value="_gen_")
+        generator_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_gen_")
+        )
         self.to_import.add("_gen_")
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))

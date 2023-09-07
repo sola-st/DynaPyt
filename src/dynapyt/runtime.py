@@ -1,22 +1,117 @@
 from typing import List, Tuple, Any
+from pathlib import Path
 from sys import exc_info
+import sys
+import atexit
+import signal
+import json
+import importlib
+from filelock import FileLock
 import libcst as cst
-from dynapyt.utils.hooks import snake, get_name
+from .utils.hooks import snake, get_name
+from .instrument.IIDs import IIDs
+from .instrument.filters import START, END, SEPERATOR
+from .utils.load_analysis import load_analyses
 
 analyses = None
+covered = None
+current_file = None
+
+
+def end_execution():
+    global covered
+    call_if_exists("end_execution")
+    if covered is not None:
+        with FileLock("/tmp/dynapyt_coverage/covered.jsonl.lock"):
+            if Path("/tmp/dynapyt_coverage/covered.jsonl").exists():
+                existing_coverage = {}
+                with open("/tmp/dynapyt_coverage/covered.jsonl", "r") as f:
+                    content = f.read().splitlines()
+                for c in content:
+                    tmp = json.loads(c)
+                    print(tmp, file=sys.stderr)
+                    existing_coverage.update(tmp)
+                Path("/tmp/dynapyt_coverage/covered.jsonl").unlink()
+            else:
+                existing_coverage = {}
+            for r_file, line_nums in covered.items():
+                if r_file not in existing_coverage:
+                    existing_coverage[r_file] = {}
+                for ln, anas in line_nums.items():
+                    if ln not in existing_coverage[r_file]:
+                        existing_coverage[r_file][ln] = {}
+                    for ana, count in anas.items():
+                        if ana not in existing_coverage[r_file][ln]:
+                            existing_coverage[r_file][ln][ana] = 0
+                        existing_coverage[r_file][ln][ana] += count
+            with open("/tmp/dynapyt_coverage/covered.jsonl", "w") as f:
+                for r_file, line_nums in existing_coverage.items():
+                    tmp = {r_file: line_nums}
+                    f.write(json.dumps(tmp) + "\n")
 
 
 def set_analysis(new_analyses: List[Any]):
-    global analyses
-    analyses = new_analyses
+    global analyses, covered
+    if analyses is None:
+        analyses = []
+        if Path("/tmp/dynapyt_coverage/").exists():
+            covered = {}
+        signal.signal(signal.SIGINT, end_execution)
+        signal.signal(signal.SIGTERM, end_execution)
+        atexit.register(end_execution)
+        analyses = load_analyses(new_analyses)
+
+
+def filtered(func, f, args):
+    docs = func.__doc__
+    if docs is None or START not in docs:
+        return False
+    if len(args) >= 2:
+        sub_args = args[2:]
+    else:
+        return False
+    while START in docs:
+        start = docs.find(START)
+        end = docs.find(END)
+        fltr = docs[start + len(START) : end].strip()
+        patterns = fltr.split(" -> ")[1].split(SEPERATOR)
+        if fltr.startswith("only ->") and any(
+            [getattr(arg, "__name__", repr(arg)) in patterns for arg in sub_args]
+        ):
+            return False
+        elif fltr.startswith("ignore ->") and any(
+            [getattr(arg, "__name__", repr(arg)) in patterns for arg in sub_args]
+        ):
+            return True
+        docs = docs[end + len(END) :].lstrip()
+    return False
 
 
 def call_if_exists(f, *args):
-    global analyses
+    global covered, analyses, current_file
     return_value = None
+    if analyses is None:
+        with open("/tmp/dynapyt_analyses.txt", "r") as af:
+            analysis_list = af.read().split("\n")
+        set_analysis(analysis_list)
     for analysis in analyses:
-        func = getattr(analysis, f, lambda *args: None)
-        return_value = func(*args)
+        func = getattr(analysis, f, None)
+        if func is not None and not filtered(func, f, args):
+            return_value = func(*args)
+            if covered is not None and len(args) >= 2:
+                r_file, iid = args[0], args[1]
+                if current_file is None or current_file.file_path != r_file:
+                    current_file = IIDs(r_file)
+                if r_file not in covered:
+                    covered[r_file] = {}
+                line_no = current_file.iid_to_location[
+                    iid
+                ].start_line  # This is not accurate for multiline statements like if, for, multiline calls, etc.
+                if line_no not in covered[r_file]:
+                    covered[r_file][line_no] = {analysis.__class__.__name__: 0}
+                if analysis.__class__.__name__ not in covered[r_file][line_no]:
+                    covered[r_file][line_no][analysis.__class__.__name__] = 0
+                covered[r_file][line_no][analysis.__class__.__name__] += 1
     return return_value
 
 

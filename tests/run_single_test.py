@@ -69,6 +69,7 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     # analyze
     # class_ = getattr(module, "TestAnalysis")
     analysis_instances = [class_[1]() for class_ in analysis_classes]
+    rt.analyses = None
     rt.set_analysis(analysis_instances)
     captured = capsys.readouterr()  # clear stdout
     # print(f"Before analysis: {captured.out}")  # for debugging purposes

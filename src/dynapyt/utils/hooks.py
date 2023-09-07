@@ -11,6 +11,7 @@ import keyword
 import importlib
 
 from ..instrument.filters import START, END, SEPERATOR, get_details
+from .load_analysis import load_analyses
 
 
 def snake(x):
@@ -63,10 +64,8 @@ def get_used_leaves(
 def get_hooks_from_analysis(classes: List[str]) -> Dict[str, Dict[str, List[str]]]:
     try:
         methods = {}
-        for cls in classes:
-            module = importlib.import_module(".".join(cls.split(".")[:-1]))
-            class_ = getattr(module, cls.split(".")[-1])
-            instance = class_()
+        analyses = load_analyses(classes)
+        for instance in analyses:
             methods.update(
                 {
                     func: get_details(getattr(instance, func))
