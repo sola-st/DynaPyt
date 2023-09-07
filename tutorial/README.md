@@ -8,7 +8,6 @@ Table of contents:
 - Task 3: [Dynamic call graph](#dynamic-call-graph)
 - Task 4: [Analysis hook hierarchy](#hook-hierarchy)
 - Task 5: [Modify execution](#modify-execution)
-- Task 6: [Object marking](#object-marking)
 
 ## Setup
 To isolate the packages that you install during this tutorial either [use Docker](#docker), or [use a virtual environment](#virtual-environment).
@@ -146,5 +145,3 @@ python -m dynapyt.run_analysis \
  --analysis tutorial_analyses.OppositeBranchAnalysis.OppositeBranchAnalysis \
  --entry task5/main.py
 ```
-
-## Object Marking
