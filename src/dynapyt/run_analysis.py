@@ -31,6 +31,7 @@ def run_analysis(
         sys.argv = [entry]
         entry_full_path = abspath(entry)
         globals_dict = globals().copy()
+        sys.path.insert(0, str(Path(entry_full_path).parent))
         globals_dict["__file__"] = entry_full_path
         exec(open(entry_full_path).read(), globals_dict)
     else:
