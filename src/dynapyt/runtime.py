@@ -16,10 +16,14 @@ from .utils.load_analysis import load_analyses
 analyses = None
 covered = None
 current_file = None
+end_execution_called = False
 
 
 def end_execution():
-    global covered
+    global covered, end_execution_called
+    if end_execution_called:
+        return
+    end_execution_called = True
     call_if_exists("end_execution")
     if covered is not None:
         with FileLock("/tmp/dynapyt_coverage/covered.jsonl.lock"):
