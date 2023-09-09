@@ -10,8 +10,15 @@ class SlowStringConcatAnalysis(BaseAnalysis):
         self.threshold = 5
 
     def enter_for(self, dyn_ast: str, iid: int, next_value, iterable: Iterable):
-        self.in_loop.append((dyn_ast, iid))
-        self.concat_count.append(0)
+        if (
+            self.in_loop
+            and self.in_loop[-1][0] == dyn_ast
+            and self.in_loop[-1][1] == iid
+        ):
+            pass
+        else:
+            self.in_loop.append((dyn_ast, iid))
+            self.concat_count.append(0)
 
     def exit_for(self, dyn_ast: str, iid: int):
         curr = self.in_loop.pop()
@@ -21,7 +28,7 @@ class SlowStringConcatAnalysis(BaseAnalysis):
 
     def add_assign(self, dyn_ast: str, iid: int, lhs, rhs):
         if self.in_loop:
-            if isinstance(lhs, str) and isinstance(rhs, str):
+            if isinstance(rhs, str):
                 self.concat_count[-1] += 1
             if self.concat_count[-1] >= self.threshold:
                 print(f"Possible slow string concatenation in {dyn_ast} at {iid}")

@@ -75,14 +75,4 @@ class CallGraphAnalysis(BaseAnalysis):
         DynaPyt hook for end of execution
         """
         # to avoid serialization failures in converting dict to json
-        try:
-            logging.info(json.dumps(self.graph))
-        except Exception:
-            logging.info("{")
-            for idx, key in enumerate(self.graph):
-                values = ['"{}"'.format(x) for x in self.graph[key]]
-                if not idx == (len(self.graph.keys()) - 1):
-                    logging.info('"{}" : {}, '.format(key, values))
-                else:
-                    logging.info('"{}" : {}'.format(key, values))
-            logging.info("}")
+        print(self.graph)
