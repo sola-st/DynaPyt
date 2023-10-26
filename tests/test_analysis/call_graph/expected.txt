@@ -1,0 +1,14 @@
+foo
+bar
+{
+  "test_analysis.call_graph.program": [
+    "test_analysis.call_graph.program.foo"
+  ],
+  "test_analysis.call_graph.program.foo": [
+    "builtins.print",
+    "test_analysis.call_graph.program.bar"
+  ],
+  "test_analysis.call_graph.program.bar": [
+    "builtins.print"
+  ]
+}
