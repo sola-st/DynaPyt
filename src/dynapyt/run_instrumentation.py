@@ -47,19 +47,6 @@ def instrument_dir(
     print("#################### Instrumentation took " + str(time.time() - start_time))
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--directory", help="Directory of the project to analyze")
-parser.add_argument(
-    "--analysis", help="Analysis class(es) (full dotted path)", nargs="+"
-)
-parser.add_argument(
-    "--external_dir",
-    help="Place instrumented files in another directory",
-    dest="external_dir",
-    action="store_true",
-)
-
-
 def process_files(cmd_list, file_path):
     comp_proc = run(cmd_list)
     if comp_proc.returncode != 0:
@@ -67,6 +54,22 @@ def process_files(cmd_list, file_path):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--directory", help="Directory of the project to analyze", required=True
+    )
+    parser.add_argument(
+        "--analysis",
+        help="Analysis class(es) (full dotted path)",
+        nargs="+",
+        required=True,
+    )
+    parser.add_argument(
+        "--external_dir",
+        help="Place instrumented files in another directory",
+        dest="external_dir",
+        action="store_true",
+    )
     args = parser.parse_args()
     start = args.directory
     analysis = args.analysis

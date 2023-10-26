@@ -8,16 +8,6 @@ import re
 from shutil import copyfile
 from dynapyt.utils.hooks import get_hooks_from_analysis
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--files",
-    help="Python files to instrument or .txt file with all file paths",
-    nargs="+",
-)
-parser.add_argument(
-    "--analysis", help="Analysis class(es) (full dotted path)", nargs="+"
-)
-
 
 def gather_files(files_arg):
     if len(files_arg) == 1 and files_arg[0].endswith(".txt"):
@@ -70,6 +60,19 @@ def instrument_file(file_path, selected_hooks):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--files",
+        help="Python files to instrument or .txt file with all file paths",
+        nargs="+",
+        required=True,
+    )
+    parser.add_argument(
+        "--analysis",
+        help="Analysis class(es) (full dotted path)",
+        nargs="+",
+        required=True,
+    )
     args = parser.parse_args()
     files = gather_files(args.files)
     analysis = args.analysis

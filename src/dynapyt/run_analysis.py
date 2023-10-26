@@ -39,13 +39,14 @@ def run_analysis(
     _rt.end_execution()
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--entry", help="Entry file for execution")
-parser.add_argument("--analysis", help="Analysis class name(s)", nargs="+")
-parser.add_argument("--name", help="Associates a given name with current run")
-parser.add_argument("--coverage", help="Enables coverage", action="store_true")
-
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--entry", help="Entry file for execution", required=True)
+    parser.add_argument(
+        "--analysis", help="Analysis class name(s)", nargs="+", required=True
+    )
+    parser.add_argument("--name", help="Associates a given name with current run")
+    parser.add_argument("--coverage", help="Enables coverage", action="store_true")
     args = parser.parse_args()
     name = args.name
     analyses = args.analysis

@@ -5,17 +5,6 @@ from os import path
 import time
 from multiprocessing import Pool
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--directory", help="Directory of the project to analyze")
-parser.add_argument("--entry", help="Entry module of the execution")
-parser.add_argument(
-    "--analysis", help="Analysis class(es) (full dotted path)", nargs="+"
-)
-parser.add_argument(
-    "--skip-instrumentation", help="Skip instrumentation", action="store_true"
-)
-parser.add_argument("--time-limit", help="Time limit for instrumentation in minutes")
-
 
 def process_files(cmd_list, file_path):
     comp_proc = run(cmd_list)
@@ -25,6 +14,23 @@ def process_files(cmd_list, file_path):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--directory", help="Directory of the project to analyze", required=True
+    )
+    parser.add_argument("--entry", help="Entry module of the execution", required=True)
+    parser.add_argument(
+        "--analysis",
+        help="Analysis class(es) (full dotted path)",
+        nargs="+",
+        required=True,
+    )
+    parser.add_argument(
+        "--skip-instrumentation", help="Skip instrumentation", action="store_true"
+    )
+    parser.add_argument(
+        "--time-limit", help="Time limit for instrumentation in minutes"
+    )
     args = parser.parse_args()
     start = args.directory
     analysis = args.analysis
