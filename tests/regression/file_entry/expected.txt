@@ -1,2 +1,2 @@
 pre call of print
-<...>/program.py
+<...>program.py

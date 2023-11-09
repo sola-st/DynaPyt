@@ -14,7 +14,7 @@ from libcst.metadata.expression_context_provider import ExpressionContext
 from libcst.metadata.scope_provider import QualifiedNameSource, ClassScope
 from ..utils.hooks import snake
 from .IIDs import IIDs
-import os
+from pathlib import Path
 
 
 class CodeInstrumenter(m.MatcherDecoratableTransformer):
@@ -30,7 +30,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def __init__(self, src, file_path, iids: IIDs, selected_hooks):
         super().__init__()
         self.source = src
-        self.file_path = file_path
+        self.file_path = str(Path(file_path).resolve())
         self.iids = iids
         self.name_stack = []
         self.current_try = []
@@ -185,10 +185,14 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return lambda_expr
 
     def __as_string(self, s):
-        if hasattr(self, "quote") and self.quote == '"':
-            return "'" + s + "'"
+        if "\\" in s:
+            raw = "r"
         else:
-            return '"' + s + '"'
+            raw = ""
+        if hasattr(self, "quote") and self.quote == '"':
+            return raw + "'" + s + "'"
+        else:
+            return raw + '"' + s + '"'
 
     def visit_Annotation(self, node):
         return False
@@ -203,7 +207,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_Module(self, original_node: cst.Module, updated_node: cst.Module):
         imports_index = -1
-        abs_path = os.path.abspath(self.file_path)
+        abs_path = Path(self.file_path).resolve()
         parse_to_ast = cst.BinaryOperation(
             left=cst.SimpleString(value=self.__as_string(str(abs_path))),
             operator=cst.Add(),
