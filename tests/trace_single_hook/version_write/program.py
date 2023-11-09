@@ -1,4 +1,4 @@
 import os
 
-with open("/".join(__file__.split("/")[:-1]) + "/__init__.py", "r") as f:
+with open(os.sep.join(__file__.split(os.sep)[:-1]) + f"{os.sep}__init__.py", "r") as f:
     exec(f.read())

@@ -3,7 +3,7 @@ import logging
 import libcst.matchers as m
 from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 from dynapyt.utils.nodeLocator import get_parent_by_type
-import json
+import os
 from inspect import getmodule
 
 
@@ -42,7 +42,7 @@ class CallGraphAnalysis(BaseAnalysis):
             callee = temp
 
         # file name
-        key = dyn_ast.replace(".py.orig", "").replace("/", ".")
+        key = dyn_ast.replace(".py.orig", "").replace(os.sep, ".")
         # format = "file"
 
         if caller is None:

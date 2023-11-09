@@ -5,7 +5,7 @@ import sys
 import atexit
 import signal
 import json
-import importlib
+import tempfile
 from filelock import FileLock
 import libcst as cst
 from .utils.hooks import snake, get_name
@@ -26,16 +26,19 @@ def end_execution():
     end_execution_called = True
     call_if_exists("end_execution")
     if covered is not None:
-        with FileLock("/tmp/dynapyt_coverage/covered.jsonl.lock"):
-            if Path("/tmp/dynapyt_coverage/covered.jsonl").exists():
+        coverage_file = (
+            Path(tempfile.gettempdir()) / "dynapyt_coverage" / "covered.jsonl"
+        )
+        with FileLock(f"{str(coverage_file)}.lock"):
+            if coverage_file.exists():
                 existing_coverage = {}
-                with open("/tmp/dynapyt_coverage/covered.jsonl", "r") as f:
+                with open(str(coverage_file), "r") as f:
                     content = f.read().splitlines()
                 for c in content:
                     tmp = json.loads(c)
                     print(tmp, file=sys.stderr)
                     existing_coverage.update(tmp)
-                Path("/tmp/dynapyt_coverage/covered.jsonl").unlink()
+                coverage_file.unlink()
             else:
                 existing_coverage = {}
             for r_file, line_nums in covered.items():
@@ -48,7 +51,7 @@ def end_execution():
                         if ana not in existing_coverage[r_file][ln]:
                             existing_coverage[r_file][ln][ana] = 0
                         existing_coverage[r_file][ln][ana] += count
-            with open("/tmp/dynapyt_coverage/covered.jsonl", "w") as f:
+            with open(str(coverage_file), "w") as f:
                 for r_file, line_nums in existing_coverage.items():
                     tmp = {r_file: line_nums}
                     f.write(json.dumps(tmp) + "\n")
@@ -58,7 +61,8 @@ def set_analysis(new_analyses: List[Any]):
     global analyses, covered
     if analyses is None:
         analyses = []
-        if Path("/tmp/dynapyt_coverage/").exists():
+        coverage_dir = Path(tempfile.gettempdir()) / "dynapyt_coverage"
+        if coverage_dir.exists():
             covered = {}
         signal.signal(signal.SIGINT, end_execution)
         signal.signal(signal.SIGTERM, end_execution)
@@ -95,7 +99,8 @@ def call_if_exists(f, *args):
     global covered, analyses, current_file
     return_value = None
     if analyses is None:
-        with open("/tmp/dynapyt_analyses.txt", "r") as af:
+        analyses_file = Path(tempfile.gettempdir()) / "dynapyt_analyses.txt"
+        with open(str(analyses_file), "r") as af:
             analysis_list = af.read().split("\n")
         set_analysis(analysis_list)
     for analysis in analyses:

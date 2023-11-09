@@ -1,5 +1,5 @@
 from typing import Callable, Tuple, Dict
-import logging
+import os
 import libcst.matchers as m
 from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 from dynapyt.utils.nodeLocator import get_parent_by_type
@@ -44,7 +44,7 @@ class TestAnalysis(BaseAnalysis):
             callee = temp
 
         # file name
-        key = dyn_ast.replace(".py.orig", "").replace("/", ".").split("tests.")[1]
+        key = dyn_ast.replace(".py.orig", "").replace(os.sep, ".").split("tests.")[1]
         # format = "file"
 
         if caller is None:
