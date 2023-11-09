@@ -14,7 +14,7 @@ from libcst.metadata.expression_context_provider import ExpressionContext
 from libcst.metadata.scope_provider import QualifiedNameSource, ClassScope
 from ..utils.hooks import snake
 from .IIDs import IIDs
-import os
+from pathlib import Path
 
 
 class CodeInstrumenter(m.MatcherDecoratableTransformer):
@@ -203,7 +203,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_Module(self, original_node: cst.Module, updated_node: cst.Module):
         imports_index = -1
-        abs_path = os.path.abspath(self.file_path)
+        abs_path = Path(self.file_path).resolve()
         parse_to_ast = cst.BinaryOperation(
             left=cst.SimpleString(value=self.__as_string(str(abs_path))),
             operator=cst.Add(),
