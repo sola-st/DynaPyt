@@ -185,6 +185,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return lambda_expr
 
     def __as_string(self, s):
+        if "\\" in s:
+            s = "r" + s
         if hasattr(self, "quote") and self.quote == '"':
             return "'" + s + "'"
         else:
