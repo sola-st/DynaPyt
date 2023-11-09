@@ -30,7 +30,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def __init__(self, src, file_path, iids: IIDs, selected_hooks):
         super().__init__()
         self.source = src
-        self.file_path = file_path
+        self.file_path = str(Path(file_path).resolve())
         self.iids = iids
         self.name_stack = []
         self.current_try = []
