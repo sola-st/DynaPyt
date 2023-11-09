@@ -186,11 +186,13 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def __as_string(self, s):
         if "\\" in s:
-            s = "r" + s
-        if hasattr(self, "quote") and self.quote == '"':
-            return "'" + s + "'"
+            raw = "r"
         else:
-            return '"' + s + '"'
+            raw = ""
+        if hasattr(self, "quote") and self.quote == '"':
+            return raw + "'" + s + "'"
+        else:
+            return raw + '"' + s + '"'
 
     def visit_Annotation(self, node):
         return False
