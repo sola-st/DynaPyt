@@ -1,6 +1,7 @@
 from importlib import import_module
 from os import sep, remove
 from os.path import join, exists
+from pathlib import Path
 from shutil import copyfile, move
 from inspect import getmembers, isclass
 from typing import Tuple
@@ -46,8 +47,8 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     )
 
     # instrument
-    program_file = join(abs_dir, "program.py")
-    orig_program_file = join(abs_dir, "program.py.orig")
+    program_file = str(Path(abs_dir) / "program.py")
+    orig_program_file = str(Path(abs_dir) / "program.py.orig")
     # make sure to instrument the uninstrumented version
     run_as_file = False
     with open(program_file, "r") as file:
