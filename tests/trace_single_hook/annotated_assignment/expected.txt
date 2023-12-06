@@ -1,0 +1,5 @@
+begin execution
+Writing 10 to [('a',)]
+read value 10
+Writing 10 to [('b',)]
+end execution

@@ -279,7 +279,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return new_node
 
     # Lowest level
-    @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.AnnAssign())
+    @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.Annotation())
     def leave_Name(self, original_node, updated_node):
         if updated_node.value in self.blacklist_names:
             return updated_node
@@ -818,7 +818,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             rpar=original_node.rpar,
         )
 
-    @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.AnnAssign())
+    @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.Annotation())
     def leave_Attribute(self, original_node, updated_node):
         if "read_attribute" not in self.selected_hooks:
             return updated_node
