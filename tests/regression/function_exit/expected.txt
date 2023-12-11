@@ -1,0 +1,5 @@
+begin execution
+Exiting function foo with result 1
+Exiting function bar with result 1
+Exiting function bar with result None
+end execution

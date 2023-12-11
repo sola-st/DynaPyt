@@ -1120,10 +1120,12 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         function_metadata = self.current_function.pop()
         if (
             "function_enter" not in self.selected_hooks
-            and "function_exit" not in self.selected_hooks
+            and "implicit_return" not in self.selected_hooks
         ) or not (
             self.__selected_by_decorators("function_enter", function_metadata["name"])
-            or self.__selected_by_decorators("function_exit", function_metadata["name"])
+            or self.__selected_by_decorators(
+                "implicit_return", function_metadata["name"]
+            )
         ):
             return updated_node
         enter_name = cst.Attribute(
@@ -1204,7 +1206,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(body=new_stmt)
 
     def leave_Return(self, original_node, updated_node):
-        if "return" not in self.selected_hooks:
+        if "_return" not in self.selected_hooks:
             return updated_node
         callee_name = cst.Attribute(
             value=cst.Name(value="_rt"), attr=cst.Name(value="_return_")
