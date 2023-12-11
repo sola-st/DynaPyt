@@ -772,6 +772,32 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "   Yielding", value)
 
+    def implicit_return(
+        self, dyn_ast: str, iid: int, function_iid: int, function_name: str, value: Any
+    ) -> Any:
+        """Hook for exiting a function without a return or yield (by reaching the end of function body).
+
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid: int
+            ID unique to the current file, referring to the function definition.
+
+        function_iid: int
+            ID unique to the current file, referring to the function definition.
+
+        function_name: str
+            Name of the function exiting.
+
+        value : Any
+            The value returned (None).
+
+        """
+        self.log(iid, "   Exiting function")
+
     # Function Call
 
     def pre_call(
