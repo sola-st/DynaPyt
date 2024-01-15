@@ -8,4 +8,10 @@ if condition evaluates to True
 foo is equal to 50
 done with control flow statement
 done with if statement
+enter control flow event with condition False
+if condition evaluates to False
+enter control flow event with condition False
+if condition evaluates to False
+done with control flow statement
+done with if statement
 end execution
