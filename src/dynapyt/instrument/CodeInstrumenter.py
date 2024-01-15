@@ -1606,19 +1606,22 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                     + [cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])]
                 )
 
-            if updated_node.orelse is None:
-                new_orelse_body = [
-                    cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])
-                ]
-            elif m.matches(updated_node.orelse.body, m.SimpleStatementSuite()):
-                new_orelse_body = list(updated_node.orelse.body.body) + [
-                    cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])
-                ]
+            if not m.matches(updated_node.orelse, m.If()):
+                if updated_node.orelse is None:
+                    new_orelse_body = [
+                        cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])
+                    ]
+                elif m.matches(updated_node.orelse.body, m.SimpleStatementSuite()):
+                    new_orelse_body = list(updated_node.orelse.body.body) + [
+                        cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])
+                    ]
+                else:
+                    new_orelse_body = list(updated_node.orelse.body.body) + [
+                        cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])
+                    ]
+                new_orelse = cst.Else(body=cst.IndentedBlock(body=new_orelse_body))
             else:
-                new_orelse_body = list(updated_node.orelse.body.body) + [
-                    cst.SimpleStatementLine(body=[cst.Expr(value=end_call)])
-                ]
-            new_orelse = cst.Else(body=cst.IndentedBlock(body=new_orelse_body))
+                new_orelse = updated_node.orelse
         else:
             new_body = updated_node.body
             new_orelse = updated_node.orelse
