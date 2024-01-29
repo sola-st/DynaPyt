@@ -31,6 +31,11 @@ while condition evaluates to True
 0
 enter control flow event with condition False
 while condition evaluates to False
+done!
 done with control flow statement
 done with while statement
+enter control flow event with condition True
+while condition evaluates to True
+9
+enter control flow event with condition True
 end execution

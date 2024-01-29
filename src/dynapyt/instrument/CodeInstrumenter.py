@@ -1680,8 +1680,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             )
             self.to_import.add("_exit_while_")
             end_call = cst.Call(func=end_name, args=[ast_arg, iid_arg])
-            if updated_node.orelse != None:
-                old_else = updated_node.orelse.body.body
+            if updated_node.orelse is not None:
+                old_else = list(updated_node.orelse.body.body)
             else:
                 old_else = []
             else_part = cst.Else(
