@@ -1,7 +1,6 @@
 import logging
 from types import TracebackType
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
-import libcst as cst
 import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
 from ..utils.nodeLocator import get_node_by_location

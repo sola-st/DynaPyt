@@ -8,7 +8,6 @@ except ImportError:
 import json
 import builtins
 import keyword
-import importlib
 
 from ..instrument.filters import START, END, SEPERATOR, get_details
 from .load_analysis import load_analyses
