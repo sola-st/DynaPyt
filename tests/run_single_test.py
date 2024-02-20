@@ -68,22 +68,19 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
         instrument_file(join(abs_dir, "__init__.py"), selected_hooks)
 
     # analyze
-    # class_ = getattr(module, "TestAnalysis")
-    analysis_instances = [class_[1]() for class_ in analysis_classes]
-    rt.analyses = None
-    rt.set_analysis(analysis_instances)
     captured = capsys.readouterr()  # clear stdout
     # print(f"Before analysis: {captured.out}")  # for debugging purposes
-    for analysis_instance in analysis_instances:
-        if hasattr(analysis_instance, "begin_execution"):
-            analysis_instance.begin_execution()
     if run_as_file:
         run_analysis(program_file, [f"{module_prefix}.analysis.TestAnalysis"])
     else:
-        import_module(f"{module_prefix}.program")
-    for analysis_instance in analysis_instances:
-        if hasattr(analysis_instance, "end_execution"):
-            analysis_instance.end_execution()
+        run_analysis(
+            f"{module_prefix}.program",
+            [
+                f"{module_prefix}.analysis.{ac[0]}"
+                for ac in analysis_classes
+                if not ac[0].endswith("BaseAnalysis")
+            ],
+        )
 
     # check output
     expected_file = join(abs_dir, "expected.txt")

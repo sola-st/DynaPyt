@@ -15,20 +15,19 @@ from .utils.load_analysis import load_analyses
 
 analyses = None
 covered = None
+coverage_path = None
 current_file = None
 end_execution_called = False
 
 
 def end_execution():
-    global covered, end_execution_called
+    global covered, coverage_path, end_execution_called
     if end_execution_called:
         return
     end_execution_called = True
     call_if_exists("end_execution")
     if covered is not None:
-        coverage_file = (
-            Path(tempfile.gettempdir()) / "dynapyt_coverage" / "covered.jsonl"
-        )
+        coverage_file = coverage_path / "covered.jsonl"
         with FileLock(f"{str(coverage_file)}.lock"):
             if coverage_file.exists():
                 existing_coverage = {}
@@ -59,15 +58,25 @@ def end_execution():
 
 def set_analysis(new_analyses: List[Any]):
     global analyses, covered
-    if analyses is None:
-        analyses = []
-        coverage_dir = Path(tempfile.gettempdir()) / "dynapyt_coverage"
-        if coverage_dir.exists():
-            covered = {}
-        signal.signal(signal.SIGINT, end_execution)
-        signal.signal(signal.SIGTERM, end_execution)
-        atexit.register(end_execution)
-        analyses = load_analyses(new_analyses)
+    analyses = []
+    signal.signal(signal.SIGINT, end_execution)
+    signal.signal(signal.SIGTERM, end_execution)
+    atexit.register(end_execution)
+    analyses = load_analyses(new_analyses)
+
+
+def set_coverage(coverage_path: Path):
+    if coverage_path is not None:
+        global covered
+        covered = {}
+        coverage_path.mkdir(exist_ok=True)
+        coverage_file = coverage_path / "covered.jsonl"
+        if coverage_file.exists():
+            with open(str(coverage_file), "r") as f:
+                content = f.read().splitlines()
+            for c in content:
+                tmp = json.loads(c)
+                covered.update(tmp)
 
 
 def filtered(func, f, args):

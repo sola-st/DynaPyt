@@ -3,20 +3,31 @@ import argparse
 import importlib
 from os.path import abspath
 from tempfile import gettempdir
-from shutil import rmtree
 import sys
 from pathlib import Path
 from . import runtime as _rt
 
 
 def run_analysis(
-    entry: str, analyses: List[str], name: str = None, coverage: bool = False
+    entry: str,
+    analyses: List[str],
+    name: str = None,
+    coverage: bool = False,
+    coverage_dir: str = None,
 ):
-    coverage_dir = Path(gettempdir()) / "dynapyt_coverage"
+    global _rt
+    _rt = importlib.reload(_rt)
+
     if coverage:
-        coverage_dir.mkdir(exist_ok=True)
+        if coverage_dir is None:
+            coverage_path = Path(gettempdir()) / "dynapyt_coverage"
+            coverage_path.mkdir(exist_ok=True)
+        else:
+            coverage_path = Path(coverage)
+            coverage_path.mkdir(exist_ok=True)
+        _rt.set_coverage(coverage_path)
     else:
-        rmtree(str(coverage_dir), ignore_errors=True)
+        _rt.set_coverage(None)
 
     analyses_file = Path(gettempdir()) / "dynapyt_analyses.txt"
     if analyses_file.exists():
@@ -38,6 +49,8 @@ def run_analysis(
         globals_dict["__file__"] = entry_full_path
         exec(open(entry_full_path).read(), globals_dict)
     else:
+        if importlib.util.find_spec(entry) is None:
+            raise ValueError(f"Could not find entry {entry}")
         importlib.import_module(entry)
     _rt.end_execution()
 
