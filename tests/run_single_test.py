@@ -40,7 +40,7 @@ def correct_coverage(expected: str, actual: str) -> bool:
     if len(actual_lines) != len(expected_lines):
         return False
     for i in range(len(actual_lines)):
-        actual_line = json.loads(actual_lines[i])
+        actual_line = json.loads(actual_lines[i].replace("\\\\", "/"))
         expected_line = json.loads(expected_lines[i])
         for f, cov in actual_line.items():
             file_path = f.split("/tests/")[1]
