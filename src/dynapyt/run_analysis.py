@@ -23,7 +23,7 @@ def run_analysis(
             coverage_path = Path(gettempdir()) / "dynapyt_coverage"
             coverage_path.mkdir(exist_ok=True)
         else:
-            coverage_path = Path(coverage)
+            coverage_path = Path(coverage_dir)
             coverage_path.mkdir(exist_ok=True)
         _rt.set_coverage(coverage_path)
     else:
