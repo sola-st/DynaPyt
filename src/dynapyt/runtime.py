@@ -27,17 +27,15 @@ def end_execution():
     end_execution_called = True
     call_if_exists("end_execution")
     if covered is not None:
-        coverage_file = coverage_path / "covered.jsonl"
-        with FileLock(f"{str(coverage_file)}.lock"):
-            if coverage_file.exists():
+        with FileLock(f"{str(coverage_path)}.lock"):
+            if coverage_path.exists():
                 existing_coverage = {}
-                with open(str(coverage_file), "r") as f:
+                with open(str(coverage_path), "r") as f:
                     content = f.read().splitlines()
                 for c in content:
                     tmp = json.loads(c)
-                    print(tmp, file=sys.stderr)
                     existing_coverage.update(tmp)
-                coverage_file.unlink()
+                coverage_path.unlink()
             else:
                 existing_coverage = {}
             for r_file, line_nums in covered.items():
@@ -50,7 +48,7 @@ def end_execution():
                         if ana not in existing_coverage[r_file][ln]:
                             existing_coverage[r_file][ln][ana] = 0
                         existing_coverage[r_file][ln][ana] += count
-            with open(str(coverage_file), "w") as f:
+            with open(str(coverage_path), "w") as f:
                 for r_file, line_nums in existing_coverage.items():
                     tmp = {r_file: line_nums}
                     f.write(json.dumps(tmp) + "\n")
@@ -65,18 +63,19 @@ def set_analysis(new_analyses: List[Any]):
     analyses = load_analyses(new_analyses)
 
 
-def set_coverage(coverage_path: Path):
-    if coverage_path is not None:
-        global covered
+def set_coverage(coverage_dir: Path):
+    global covered, coverage_path
+    if coverage_dir is not None:
         covered = {}
-        coverage_path.mkdir(exist_ok=True)
-        coverage_file = coverage_path / "covered.jsonl"
-        if coverage_file.exists():
-            with open(str(coverage_file), "r") as f:
-                content = f.read().splitlines()
-            for c in content:
-                tmp = json.loads(c)
-                covered.update(tmp)
+        coverage_dir.mkdir(exist_ok=True)
+        coverage_path = coverage_dir / "covered.jsonl"
+        if coverage_path.exists():
+            coverage_path.unlink()
+            # with open(str(coverage_path), "r") as f:
+            #     content = f.read().splitlines()
+            # for c in content:
+            #     tmp = json.loads(c)
+            #     covered.update(tmp)
 
 
 def filtered(func, f, args):

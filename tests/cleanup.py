@@ -26,3 +26,8 @@ for dirty_file in dirty_files:
         shutil.rmtree(Path(*(dirty_file.parts[:-1])) / "__pycache__")
     if dirty_file.exists():
         dirty_file.unlink()
+
+dirty_files = here.glob("**/covered.jsonl*")
+for dirty_file in dirty_files:
+    if dirty_file.exists():
+        dirty_file.unlink()
