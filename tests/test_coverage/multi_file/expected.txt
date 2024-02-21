@@ -1,0 +1,7 @@
+begin execution
+pre call baz
+pre call bar
+pre call foo
+pre call print
+216
+end execution

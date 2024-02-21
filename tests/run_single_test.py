@@ -35,8 +35,8 @@ def correct_output(expected: str, actual: str) -> bool:
 
 
 def correct_coverage(expected: str, actual: str) -> bool:
-    actual_lines = actual.strip().split("\n")
-    expected_lines = expected.strip().split("\n")
+    actual_lines = sorted(actual.strip().split("\n"))
+    expected_lines = sorted(expected.strip().split("\n"))
     if len(actual_lines) != len(expected_lines):
         return False
     for i in range(len(actual_lines)):
@@ -75,20 +75,24 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
         coverage_dir = None
 
     # instrument
-    program_file = str(Path(abs_dir) / "program.py")
-    orig_program_file = str(Path(abs_dir) / "program.py.orig")
-    # make sure to instrument the uninstrumented version
-    run_as_file = False
-    with open(program_file, "r") as file:
-        src = file.read()
-        if "DYNAPYT: DO NOT INSTRUMENT" in src:
-            if not exists(orig_program_file):
-                pytest.fail(f"Could find only the instrumented program in {rel_dir}")
-            copyfile(orig_program_file, program_file)
-        elif "# DYNAPYT: Run as file" in src:
-            run_as_file = True
+    program_files = [str(f) for f in Path(abs_dir).glob("program*.py")]
+    for program_file in program_files:
+        # program_file = str(Path(abs_dir) / "program.py")
+        orig_program_file = program_file + ".orig"
+        # make sure to instrument the uninstrumented version
+        run_as_file = False
+        with open(program_file, "r") as file:
+            src = file.read()
+            if "DYNAPYT: DO NOT INSTRUMENT" in src:
+                if not exists(orig_program_file):
+                    pytest.fail(
+                        f"Could find only the instrumented program in {rel_dir}"
+                    )
+                copyfile(orig_program_file, program_file)
+            elif "# DYNAPYT: Run as file" in src:
+                run_as_file = True
 
-    instrument_file(program_file, selected_hooks)
+        instrument_file(program_file, selected_hooks)
 
     if exists(join(abs_dir, "__init__.py")) and not exists(
         join(abs_dir, "__init__.py.orig")
@@ -143,8 +147,10 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
 
     # restore uninstrumented program and remove temporary files
     try:
-        move(orig_program_file, program_file)
-        remove(join(abs_dir, "program-dynapyt.json"))
+        for program_file in program_files:
+            orig_program_file = program_file + ".orig"
+            move(orig_program_file, program_file)
+            remove(join(abs_dir, f"{program_file[:-3]}-dynapyt.json"))
         if cov:
             remove(join(abs_dir, "covered.jsonl"))
             remove(join(abs_dir, "covered.jsonl.lock"))
