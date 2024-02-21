@@ -147,8 +147,10 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
 
     # restore uninstrumented program and remove temporary files
     try:
-        move(orig_program_file, program_file)
-        remove(join(abs_dir, "program-dynapyt.json"))
+        for program_file in program_files:
+            orig_program_file = program_file + ".orig"
+            move(orig_program_file, program_file)
+            remove(join(abs_dir, f"{program_file[:-3]}-dynapyt.json"))
         if cov:
             remove(join(abs_dir, "covered.jsonl"))
             remove(join(abs_dir, "covered.jsonl.lock"))
