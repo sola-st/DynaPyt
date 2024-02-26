@@ -4,8 +4,13 @@ import importlib
 from os.path import abspath
 from tempfile import gettempdir
 import sys
+import uuid
+import json
 from pathlib import Path
 from . import runtime as _rt
+from .utils.runtimeUtils import merge_coverage
+
+session_id = str(uuid.uuid4())
 
 
 def run_analysis(
@@ -20,16 +25,16 @@ def run_analysis(
 
     if coverage:
         if coverage_dir is None:
-            coverage_path = Path(gettempdir()) / "dynapyt_coverage"
+            coverage_path = Path(gettempdir()) / f"dynapyt_coverage-{session_id}"
             coverage_path.mkdir(exist_ok=True)
         else:
-            coverage_path = Path(coverage_dir)
+            coverage_path = Path(coverage_dir) / f"dynapyt_coverage-{session_id}"
             coverage_path.mkdir(exist_ok=True)
         _rt.set_coverage(coverage_path)
     else:
         _rt.set_coverage(None)
 
-    analyses_file = Path(gettempdir()) / "dynapyt_analyses.txt"
+    analyses_file = Path(gettempdir()) / f"dynapyt_analyses-{session_id}.txt"
     if analyses_file.exists():
         analyses_file.unlink()
     with open(str(analyses_file), "w") as f:
@@ -53,6 +58,18 @@ def run_analysis(
             raise ValueError(f"Could not find entry {entry}")
         importlib.import_module(entry)
     _rt.end_execution()
+
+    # read all files in coverage directory and merge them
+    analysis_coverage = {}
+    if coverage:
+        for cov_file in coverage_path.glob("coverage-*.json"):
+            with open(coverage_path / cov_file, "r") as f:
+                new_coverage = json.load(f)
+                analysis_coverage = merge_coverage(analysis_coverage, new_coverage)
+        with open(coverage_path / "coverage.json", "w") as f:
+            json.dump(analysis_coverage, f)
+
+    return session_id
 
 
 if __name__ == "__main__":

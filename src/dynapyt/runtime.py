@@ -1,23 +1,24 @@
 from typing import List, Tuple, Any
 from pathlib import Path
 from sys import exc_info
-import sys
+import uuid
 import atexit
 import signal
 import json
 import tempfile
-from filelock import FileLock
 import libcst as cst
 from .utils.hooks import snake, get_name
 from .instrument.IIDs import IIDs
 from .instrument.filters import START, END, SEPERATOR
-from .utils.load_analysis import load_analyses
+from .utils.runtimeUtils import load_analyses
 
 analyses = None
 covered = None
 coverage_path = None
 current_file = None
 end_execution_called = False
+engine_id = str(uuid.uuid4())
+session_id = None
 
 
 def end_execution():
@@ -27,31 +28,8 @@ def end_execution():
     end_execution_called = True
     call_if_exists("end_execution")
     if covered is not None:
-        with FileLock(f"{str(coverage_path)}.lock"):
-            if coverage_path.exists():
-                existing_coverage = {}
-                with open(str(coverage_path), "r") as f:
-                    content = f.read().splitlines()
-                for c in content:
-                    tmp = json.loads(c)
-                    existing_coverage.update(tmp)
-                coverage_path.unlink()
-            else:
-                existing_coverage = {}
-            for r_file, line_nums in covered.items():
-                if r_file not in existing_coverage:
-                    existing_coverage[r_file] = {}
-                for ln, anas in line_nums.items():
-                    if ln not in existing_coverage[r_file]:
-                        existing_coverage[r_file][ln] = {}
-                    for ana, count in anas.items():
-                        if ana not in existing_coverage[r_file][ln]:
-                            existing_coverage[r_file][ln][ana] = 0
-                        existing_coverage[r_file][ln][ana] += count
-            with open(str(coverage_path), "w") as f:
-                for r_file, line_nums in existing_coverage.items():
-                    tmp = {r_file: line_nums}
-                    f.write(json.dumps(tmp) + "\n")
+        with open(str(coverage_path), "w") as f:
+            json.dump(covered, f)
 
 
 def set_analysis(new_analyses: List[Any]):
@@ -64,18 +42,14 @@ def set_analysis(new_analyses: List[Any]):
 
 
 def set_coverage(coverage_dir: Path):
-    global covered, coverage_path
+    global covered, coverage_path, session_id
     if coverage_dir is not None:
         covered = {}
+        session_id = str(coverage_dir).split("-")[-1]
         coverage_dir.mkdir(exist_ok=True)
-        coverage_path = coverage_dir / "covered.jsonl"
+        coverage_path = coverage_dir / f"coverage-{engine_id}.json"
         if coverage_path.exists():
             coverage_path.unlink()
-            # with open(str(coverage_path), "r") as f:
-            #     content = f.read().splitlines()
-            # for c in content:
-            #     tmp = json.loads(c)
-            #     covered.update(tmp)
 
 
 def filtered(func, f, args):
@@ -107,7 +81,9 @@ def call_if_exists(f, *args):
     global covered, analyses, current_file
     return_value = None
     if analyses is None:
-        analyses_file = Path(tempfile.gettempdir()) / "dynapyt_analyses.txt"
+        analyses_file = (
+            Path(tempfile.gettempdir()) / f"dynapyt_analyses-{session_id}.txt"
+        )
         with open(str(analyses_file), "r") as af:
             analysis_list = af.read().split("\n")
         set_analysis(analysis_list)
@@ -124,11 +100,12 @@ def call_if_exists(f, *args):
                 line_no = current_file.iid_to_location[
                     iid
                 ].start_line  # This is not accurate for multiline statements like if, for, multiline calls, etc.
+                analysis_class_name = analysis.__class__.__name__
                 if line_no not in covered[r_file]:
-                    covered[r_file][line_no] = {analysis.__class__.__name__: 0}
-                if analysis.__class__.__name__ not in covered[r_file][line_no]:
-                    covered[r_file][line_no][analysis.__class__.__name__] = 0
-                covered[r_file][line_no][analysis.__class__.__name__] += 1
+                    covered[r_file][line_no] = {analysis_class_name: 0}
+                if analysis_class_name not in covered[r_file][line_no]:
+                    covered[r_file][line_no][analysis_class_name] = 0
+                covered[r_file][line_no][analysis_class_name] += 1
     return return_value
 
 
