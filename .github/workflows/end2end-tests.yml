@@ -21,6 +21,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install hatch
           pip install pytest
       - name: Install DynaPyt
         run: |
