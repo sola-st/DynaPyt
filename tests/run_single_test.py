@@ -37,7 +37,7 @@ def correct_output(expected: str, actual: str) -> bool:
 
 def correct_coverage(expected: str, actual: str) -> bool:
     actual_cov = {
-        k.replace("\\\\", "/").split("/tests/")[1]: v
+        k.replace("\\", "/").replace("//", "/").split("/tests/")[1]: v
         for k, v in json.loads(actual).items()
     }
     expected_cov = json.loads(expected)
