@@ -24,6 +24,7 @@ hooks.remove("asts")
 hooks.remove("_get_ast")
 hooks.remove("location_to_iid")
 hooks.remove("log")
+hooks.remove("conf")
 traceall_hooks = set(hooks)
 
 with open(
