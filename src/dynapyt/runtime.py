@@ -1,23 +1,33 @@
+"""
+This module is DynaPyt's runtime engine.
+It is not supposed to be used directly, but rather to be used by the instrumented code.
+"""
+
 from typing import List, Tuple, Any
 from pathlib import Path
 from sys import exc_info
-import sys
+import uuid
 import atexit
 import signal
 import json
-import tempfile
-from filelock import FileLock
+import sys
+import os
+from importlib import reload
+from tempfile import gettempdir
 import libcst as cst
 from .utils.hooks import snake, get_name
 from .instrument.IIDs import IIDs
 from .instrument.filters import START, END, SEPERATOR
-from .utils.load_analysis import load_analyses
+from .utils.runtimeUtils import load_analyses
 
 analyses = None
 covered = None
 coverage_path = None
 current_file = None
 end_execution_called = False
+engine_id = str(uuid.uuid4())
+session_id = os.environ.get("DYNAPYT_SESSION_ID", None)
+analyses_file = Path(gettempdir()) / f"dynapyt_analyses-{session_id}.txt"
 
 
 def end_execution():
@@ -27,55 +37,47 @@ def end_execution():
     end_execution_called = True
     call_if_exists("end_execution")
     if covered is not None:
-        with FileLock(f"{str(coverage_path)}.lock"):
-            if coverage_path.exists():
-                existing_coverage = {}
-                with open(str(coverage_path), "r") as f:
-                    content = f.read().splitlines()
-                for c in content:
-                    tmp = json.loads(c)
-                    existing_coverage.update(tmp)
-                coverage_path.unlink()
-            else:
-                existing_coverage = {}
-            for r_file, line_nums in covered.items():
-                if r_file not in existing_coverage:
-                    existing_coverage[r_file] = {}
-                for ln, anas in line_nums.items():
-                    if ln not in existing_coverage[r_file]:
-                        existing_coverage[r_file][ln] = {}
-                    for ana, count in anas.items():
-                        if ana not in existing_coverage[r_file][ln]:
-                            existing_coverage[r_file][ln][ana] = 0
-                        existing_coverage[r_file][ln][ana] += count
-            with open(str(coverage_path), "w") as f:
-                for r_file, line_nums in existing_coverage.items():
-                    tmp = {r_file: line_nums}
-                    f.write(json.dumps(tmp) + "\n")
+        with open(str(coverage_path), "w") as f:
+            json.dump(covered, f)
 
 
-def set_analysis(new_analyses: List[Any]):
-    global analyses, covered
+def set_analysis():
+    global analyses, analyses_file, end_execution_called
+    if end_execution_called:
+        reload(sys.modules[__name__])
+        return
     analyses = []
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
     atexit.register(end_execution)
+    if analyses_file.exists():
+        with open(str(analyses_file), "r") as af:
+            new_analyses = af.read().split("\n")
+    else:
+        raise Exception("Analyses file not found")
     analyses = load_analyses(new_analyses)
+    for analysis in analyses:
+        if hasattr(analysis, "begin_execution"):
+            analysis.begin_execution()
 
 
-def set_coverage(coverage_dir: Path):
-    global covered, coverage_path
+set_analysis()
+
+
+def set_coverage(coverage_dir: str):
+    global covered, coverage_path, session_id
+    print(f"Setting coverage for {coverage_dir}", file=sys.stderr)
     if coverage_dir is not None:
+        coverage_dir = Path(coverage_dir)
         covered = {}
+        session_id = str(coverage_dir).split("-")[-1]
         coverage_dir.mkdir(exist_ok=True)
-        coverage_path = coverage_dir / "covered.jsonl"
+        coverage_path = coverage_dir / f"coverage-{engine_id}.json"
         if coverage_path.exists():
             coverage_path.unlink()
-            # with open(str(coverage_path), "r") as f:
-            #     content = f.read().splitlines()
-            # for c in content:
-            #     tmp = json.loads(c)
-            #     covered.update(tmp)
+
+
+set_coverage(os.environ.get("DYNAPYT_COVERAGE", None))
 
 
 def filtered(func, f, args):
@@ -104,13 +106,8 @@ def filtered(func, f, args):
 
 
 def call_if_exists(f, *args):
-    global covered, analyses, current_file
+    global covered, analyses, current_file, session_id
     return_value = None
-    if analyses is None:
-        analyses_file = Path(tempfile.gettempdir()) / "dynapyt_analyses.txt"
-        with open(str(analyses_file), "r") as af:
-            analysis_list = af.read().split("\n")
-        set_analysis(analysis_list)
     for analysis in analyses:
         func = getattr(analysis, f, None)
         if func is not None and not filtered(func, f, args):
@@ -124,11 +121,13 @@ def call_if_exists(f, *args):
                 line_no = current_file.iid_to_location[
                     iid
                 ].start_line  # This is not accurate for multiline statements like if, for, multiline calls, etc.
+                #               Also for exit control flow hooks, the entry would be marked as covered.
+                analysis_class_name = analysis.__class__.__name__
                 if line_no not in covered[r_file]:
-                    covered[r_file][line_no] = {analysis.__class__.__name__: 0}
-                if analysis.__class__.__name__ not in covered[r_file][line_no]:
-                    covered[r_file][line_no][analysis.__class__.__name__] = 0
-                covered[r_file][line_no][analysis.__class__.__name__] += 1
+                    covered[r_file][line_no] = {analysis_class_name: 0}
+                if analysis_class_name not in covered[r_file][line_no]:
+                    covered[r_file][line_no][analysis_class_name] = 0
+                covered[r_file][line_no][analysis_class_name] += 1
     return return_value
 
 

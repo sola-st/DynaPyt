@@ -10,7 +10,7 @@ import builtins
 import keyword
 
 from ..instrument.filters import START, END, SEPERATOR, get_details
-from .load_analysis import load_analyses
+from .runtimeUtils import load_analyses
 
 
 def snake(x):

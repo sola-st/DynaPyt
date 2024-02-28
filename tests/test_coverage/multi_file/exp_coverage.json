@@ -1,0 +1,4 @@
+{
+    "test_coverage/multi_file/program.py.orig": {"8": {"TestAnalysis": 2}, "5": {"TestAnalysis": 1}},
+    "test_coverage/multi_file/program2.py.orig": {"6": {"TestAnalysis": 1}}
+}

@@ -27,7 +27,12 @@ for dirty_file in dirty_files:
     if dirty_file.exists():
         dirty_file.unlink()
 
-dirty_files = here.glob("**/covered.jsonl*")
+dirty_files = here.glob("**/coverage*.json")
 for dirty_file in dirty_files:
     if dirty_file.exists():
         dirty_file.unlink()
+
+dirty_dirs = here.glob("**/dynapyt_coverage-*")
+for dirty_dir in dirty_dirs:
+    if dirty_dir.exists():
+        shutil.rmtree(dirty_dir)

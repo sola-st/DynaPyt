@@ -24,10 +24,6 @@ def gather_files(files_arg):
 
 
 def instrument_code(src, file_path, iids, selected_hooks):
-    if "DYNAPYT: DO NOT INSTRUMENT" in src:
-        print(f"{file_path} is already instrumented -- skipping it")
-        return None
-
     try:
         ast = cst.parse_module(src)
         ast_wrapper = cst.metadata.MetadataWrapper(ast)
@@ -44,6 +40,9 @@ def instrument_code(src, file_path, iids, selected_hooks):
 def instrument_file(file_path, selected_hooks):
     with open(file_path, "r") as file:
         src = file.read()
+    if "DYNAPYT: DO NOT INSTRUMENT" in src:
+        print(f"{file_path} is already instrumented -- skipping it")
+        return
     iids = IIDs(file_path)
 
     instrumented_code = instrument_code(src, file_path, iids, selected_hooks)

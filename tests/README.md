@@ -11,3 +11,8 @@ Run all tests with:
 ```
 pytest tests
 ```
+
+Run tests on a sub-directory with:
+```
+pytest --only=<sub-directory from tests> tests
+```
