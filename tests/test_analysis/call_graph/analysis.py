@@ -8,8 +8,8 @@ from inspect import getmodule
 
 
 class TestAnalysis(BaseAnalysis):
-    def __init__(self):
-        super(TestAnalysis, self).__init__()
+    def __init__(self, conf: str | None = None):
+        super().__init__(conf)
         self.graph = {}
 
     """

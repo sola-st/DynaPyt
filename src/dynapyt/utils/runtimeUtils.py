@@ -9,7 +9,9 @@ def load_analyses(analyses: List[Any]) -> List[BaseAnalysis]:
         if isinstance(ana, str):
             conf = None
             if ":" in ana:
-                ana, conf = ana.split(":")
+                parts = ana.split(":")
+                ana = parts[0]
+                conf = ":".join(parts[1:])
             module_parts = ana.split(".")
             module = importlib.import_module(".".join(module_parts[:-1]))
             class_ = getattr(module, module_parts[-1])

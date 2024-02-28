@@ -3,6 +3,7 @@ myenv
 *~
 *.json
 !src/dynapyt/utils/hierarchy.json
+!*tests/**/*.json
 __pycache__
 workspace.code-workspace
 *.egg-info

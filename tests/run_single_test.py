@@ -1,8 +1,10 @@
+import sys
 from importlib import import_module
-from os import sep, remove
+from os import sep, remove, environ
 from os.path import join, exists
 from pathlib import Path
 from shutil import copyfile, move, rmtree
+from tempfile import gettempdir
 from inspect import getmembers, isclass
 from typing import Tuple
 import json
@@ -44,6 +46,10 @@ def correct_coverage(expected: str, actual: str) -> bool:
 
 def test_runner(directory_pair: Tuple[str, str], capsys):
     abs_dir, rel_dir = directory_pair
+
+    if "dynapyt.runtime" in sys.modules:
+        # runtime_module = sys.modules["dynapyt.runtime"]
+        del sys.modules["dynapyt.runtime"]
 
     # gather hooks used by the analysis
     module_prefix = rel_dir.replace(sep, ".")
@@ -109,6 +115,9 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
             coverage_dir=coverage_dir,
         )
 
+    if "DYNAPYT_COVERAGE" in environ:
+        del environ["DYNAPYT_COVERAGE"]
+
     # check output
     expected_file = join(abs_dir, "expected.txt")
     with open(expected_file, "r") as file:
@@ -144,12 +153,16 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
         if cov:
             cov_dirs = Path(coverage_dir).glob("dynapyt_coverage-*")
             for cov_dir in cov_dirs:
-                rmtree(cov_dir)
+                rmtree(coverage_dir / cov_dir)
         if exists(join(abs_dir, "__init__.py")) and exists(
             join(abs_dir, "__init__.py.orig")
         ):
             move(join(abs_dir, "__init__.py.orig"), join(abs_dir, "__init__.py"))
             remove(join(abs_dir, "__init__-dynapyt.json"))
+        if (Path(gettempdir()) / f"dynapyt_analyses-{session_id}.txt").exists():
+            (Path(gettempdir()) / f"dynapyt_analyses-{session_id}.txt").unlink()
+        if (Path(gettempdir()) / f"dynapyt_output-{session_id}").exists():
+            rmtree(Path(gettempdir()) / f"dynapyt_output-{session_id}")
     except FileNotFoundError as fe:
         print(f"File not found {fe} in {rel_dir}")
     except Exception as e:

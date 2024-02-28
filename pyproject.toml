@@ -42,3 +42,17 @@ packages = [
 include = [
     "/src",
 ]
+
+[project.optional-dependencies]
+end2end = [
+    "pytest-xdist",
+    "fire",
+]
+
+[tool.hatch.envs.end2end]
+dependencies = [
+    "pytest",
+    "fire",
+]
+[tool.hatch.envs.end2end.scripts]
+run = "bash end2end_tests/scripts/run_single_project.sh simple-with-pytest simple_with_pytest tests"

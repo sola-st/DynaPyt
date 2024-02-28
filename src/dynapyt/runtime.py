@@ -5,7 +5,10 @@ import uuid
 import atexit
 import signal
 import json
-import tempfile
+import sys
+import os
+from importlib import reload
+from tempfile import gettempdir
 import libcst as cst
 from .utils.hooks import snake, get_name
 from .instrument.IIDs import IIDs
@@ -18,7 +21,8 @@ coverage_path = None
 current_file = None
 end_execution_called = False
 engine_id = str(uuid.uuid4())
-session_id = None
+session_id = os.environ.get("DYNAPYT_SESSION_ID", None)
+analyses_file = Path(gettempdir()) / f"dynapyt_analyses-{session_id}.txt"
 
 
 def end_execution():
@@ -32,24 +36,43 @@ def end_execution():
             json.dump(covered, f)
 
 
-def set_analysis(new_analyses: List[Any]):
-    global analyses, covered
+def set_analysis():
+    global analyses, analyses_file, end_execution_called
+    if end_execution_called:
+        reload(sys.modules[__name__])
+        return
     analyses = []
     signal.signal(signal.SIGINT, end_execution)
     signal.signal(signal.SIGTERM, end_execution)
     atexit.register(end_execution)
+    if analyses_file.exists():
+        with open(str(analyses_file), "r") as af:
+            new_analyses = af.read().split("\n")
+    else:
+        raise Exception("Analyses file not found")
     analyses = load_analyses(new_analyses)
+    for analysis in analyses:
+        if hasattr(analysis, "begin_execution"):
+            analysis.begin_execution()
 
 
-def set_coverage(coverage_dir: Path):
+set_analysis()
+
+
+def set_coverage(coverage_dir: str | None):
     global covered, coverage_path, session_id
+    print(f"Setting coverage for {coverage_dir}", file=sys.stderr)
     if coverage_dir is not None:
+        coverage_dir = Path(coverage_dir)
         covered = {}
         session_id = str(coverage_dir).split("-")[-1]
         coverage_dir.mkdir(exist_ok=True)
         coverage_path = coverage_dir / f"coverage-{engine_id}.json"
         if coverage_path.exists():
             coverage_path.unlink()
+
+
+set_coverage(os.environ.get("DYNAPYT_COVERAGE", None))
 
 
 def filtered(func, f, args):
@@ -78,15 +101,8 @@ def filtered(func, f, args):
 
 
 def call_if_exists(f, *args):
-    global covered, analyses, current_file
+    global covered, analyses, current_file, session_id
     return_value = None
-    if analyses is None:
-        analyses_file = (
-            Path(tempfile.gettempdir()) / f"dynapyt_analyses-{session_id}.txt"
-        )
-        with open(str(analyses_file), "r") as af:
-            analysis_list = af.read().split("\n")
-        set_analysis(analysis_list)
     for analysis in analyses:
         func = getattr(analysis, f, None)
         if func is not None and not filtered(func, f, args):

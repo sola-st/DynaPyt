@@ -2,9 +2,6 @@ from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 
 
 class TestAnalysis(BaseAnalysis):
-    def __init__(self):
-        super().__init__()
-
     def begin_execution(self):
         print("begin execution")
 

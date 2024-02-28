@@ -1,63 +1,83 @@
+from shutil import rmtree
 from typing import List
 import argparse
 import importlib
+import os
 from os.path import abspath
 from tempfile import gettempdir
 import sys
 import uuid
 import json
 from pathlib import Path
-from . import runtime as _rt
 from .utils.runtimeUtils import merge_coverage
 
 session_id = str(uuid.uuid4())
+os.environ["DYNAPYT_SESSION_ID"] = session_id
 
 
 def run_analysis(
     entry: str,
     analyses: List[str],
-    name: str = None,
+    name: str | None = None,
+    output_dir: str | None = None,
     coverage: bool = False,
-    coverage_dir: str = None,
+    coverage_dir: str | None = None,
+    script: str | None = None,
 ):
-    global _rt
-    _rt = importlib.reload(_rt)
-
     if coverage:
         if coverage_dir is None:
-            coverage_path = Path(gettempdir()) / f"dynapyt_coverage-{session_id}"
-            coverage_path.mkdir(exist_ok=True)
-        else:
-            coverage_path = Path(coverage_dir) / f"dynapyt_coverage-{session_id}"
-            coverage_path.mkdir(exist_ok=True)
-        _rt.set_coverage(coverage_path)
-    else:
-        _rt.set_coverage(None)
+            coverage_dir = gettempdir()
+        coverage_path = Path(coverage_dir) / f"dynapyt_coverage-{session_id}"
+        os.environ["DYNAPYT_COVERAGE"] = str(coverage_path)
 
     analyses_file = Path(gettempdir()) / f"dynapyt_analyses-{session_id}.txt"
     if analyses_file.exists():
         analyses_file.unlink()
+    if output_dir is None:
+        output_dir = Path(gettempdir()) / f"dynapyt_output-{session_id}"
+    else:
+        output_dir = Path(output_dir) / f"dynapyt_output-{session_id}"
+    if not output_dir.exists():
+        output_dir.mkdir()
+    else:
+        rmtree(output_dir)
+        output_dir.mkdir()
+    analyses = [f"{a}:{str(output_dir)}" for a in analyses]
     with open(str(analyses_file), "w") as f:
         f.write("\n".join(analyses))
 
-    _rt.set_analysis(analyses)
-
-    for analysis in _rt.analyses:
-        func = getattr(analysis, "begin_execution", None)
-        if func is not None:
-            func()
-    if entry.endswith(".py"):
+    if script is None and not entry.endswith(".py"):
+        if importlib.util.find_spec(entry) is None:
+            raise ValueError(f"Could not find entry {entry}")
+        importlib.import_module(entry)
+    else:
         sys.argv = [entry]
         entry_full_path = abspath(entry)
         globals_dict = globals().copy()
         sys.path.insert(0, str(Path(entry_full_path).parent))
         globals_dict["__file__"] = entry_full_path
-        exec(open(entry_full_path).read(), globals_dict)
+        if script is not None:
+            exec(script, globals_dict)
+        elif entry.endswith(".py"):
+            exec(open(entry_full_path).read(), globals_dict)
+
+    # print(sys.modules.keys())
+    if "dynapyt.runtime" in sys.modules:
+        runtime_module = sys.modules["dynapyt.runtime"]
+        runtime_module.end_execution()
+        del sys.modules["dynapyt.runtime"]
     else:
-        if importlib.util.find_spec(entry) is None:
-            raise ValueError(f"Could not find entry {entry}")
-        importlib.import_module(entry)
-    _rt.end_execution()
+        print(sys.modules.keys())
+
+    # read all files in output directory and merge them
+    analysis_output = []
+    for output_file in output_dir.glob("output-*.json"):
+        with open(output_dir / output_file, "r") as f:
+            new_output = json.load(f)
+            analysis_output.append(new_output)
+        (output_dir / output_file).unlink()
+    with open(output_dir / "output.json", "w") as f:
+        json.dump(analysis_output, f, indent=2)
 
     # read all files in coverage directory and merge them
     analysis_coverage = {}
@@ -66,6 +86,7 @@ def run_analysis(
             with open(coverage_path / cov_file, "r") as f:
                 new_coverage = json.load(f)
                 analysis_coverage = merge_coverage(analysis_coverage, new_coverage)
+            (coverage_path / cov_file).unlink()
         with open(coverage_path / "coverage.json", "w") as f:
             json.dump(analysis_coverage, f)
 
