@@ -6,7 +6,7 @@ from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 
 
 class Analysis(BaseAnalysis):
-    def __init__(self, output_dir: str | None = None):
+    def __init__(self, output_dir: str = None):
         self.output_dir = output_dir
         self.output = []
 

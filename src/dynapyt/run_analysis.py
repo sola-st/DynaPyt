@@ -18,11 +18,11 @@ os.environ["DYNAPYT_SESSION_ID"] = session_id
 def run_analysis(
     entry: str,
     analyses: List[str],
-    name: str | None = None,
-    output_dir: str | None = None,
+    name: str = None,
+    output_dir: str = None,
     coverage: bool = False,
-    coverage_dir: str | None = None,
-    script: str | None = None,
+    coverage_dir: str = None,
+    script: str = None,
 ):
     if coverage:
         if coverage_dir is None:

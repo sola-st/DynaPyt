@@ -59,7 +59,7 @@ def set_analysis():
 set_analysis()
 
 
-def set_coverage(coverage_dir: str | None):
+def set_coverage(coverage_dir: str):
     global covered, coverage_path, session_id
     print(f"Setting coverage for {coverage_dir}", file=sys.stderr)
     if coverage_dir is not None:
