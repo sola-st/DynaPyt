@@ -1,32 +1,37 @@
-[
-    [
-        "begin execution",
-        "1 ADD 1 = 2",
-        "end execution"
-    ],
-    [
-        "begin execution",
-        "2 ADD 1 = 3",
-        "end execution"
-    ],
-    [
-        "begin execution",
-        "1 Multiply 2 = 2",
-        "end execution"
-    ],
-    [
-        "begin execution",
-        "2 Multiply 2 = 4",
-        "end execution"
-    ],
-    [
-        "begin execution",
-        "1 ADD 2 = 3",
-        "end execution"
-    ],
-    [
-        "begin execution",
-        "2 ADD 3 = 5",
-        "end execution"
+{
+    "config": {
+        "workers": 6
+    },
+    "output": [
+        [
+            "begin execution",
+            "1 Add 1 = 2",
+            "end execution"
+        ],
+        [
+            "begin execution",
+            "2 Add 1 = 3",
+            "end execution"
+        ],
+        [
+            "begin execution",
+            "1 Multiply 2 = 2",
+            "end execution"
+        ],
+        [
+            "begin execution",
+            "2 Multiply 2 = 4",
+            "end execution"
+        ],
+        [
+            "begin execution",
+            "1 Add 2 = 3",
+            "end execution"
+        ],
+        [
+            "begin execution",
+            "2 Add 3 = 5",
+            "end execution"
+        ]
     ]
-]
+}

@@ -61,13 +61,10 @@ def run_analysis(
         elif entry.endswith(".py"):
             exec(open(entry_full_path).read(), globals_dict)
 
-    # print(sys.modules.keys())
     if "dynapyt.runtime" in sys.modules:
         runtime_module = sys.modules["dynapyt.runtime"]
         runtime_module.end_execution()
         del sys.modules["dynapyt.runtime"]
-    else:
-        print(sys.modules.keys())
 
     # read all files in output directory and merge them
     analysis_output = []

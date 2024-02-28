@@ -10,6 +10,8 @@ from dynapyt.run_analysis import run_analysis
 from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 from dynapyt.utils.hooks import get_hooks_from_analysis
 
+here = Path(__file__).parent
+
 
 def match_output(actual: list[list], expected: list[list]) -> bool:
     if len(actual) != len(expected):
@@ -23,6 +25,15 @@ def match_output(actual: list[list], expected: list[list]) -> bool:
         if not found:
             return False
     return True
+
+
+def match_coverage(actual: dict, expected: dict) -> bool:
+    return expected == {
+        k[len(str((here / ".." / "projects").resolve())) + 1 :]
+        .replace("\\", "/")
+        .replace("//", "/"): v
+        for k, v in actual.items()
+    }
 
 
 def run_project(project_path: str, module_name: str, path_to_tests: str):
@@ -42,8 +53,17 @@ def run_project(project_path: str, module_name: str, path_to_tests: str):
     for code_file in project_dir.rglob("*.py"):
         instrument_file(str(project_dir / code_file), selected_hooks)
 
+    expected_output = Path(project_dir) / "expected_output.json"
+    with open(expected_output, "r") as f:
+        expected = json.load(f)
+    if "config" in expected:
+        workers = expected["config"]["workers"]
+        expected = expected["output"]
+    else:
+        workers = "auto"
+
     # Run the analysis by running the tests
-    test_code = f"import pytest\npytest.main(['-n', 'auto', '--dist', 'worksteal', '--import-mode=importlib', '{str(project_dir/path_to_tests)}'])"
+    test_code = f"import pytest\npytest.main(['-n', '{workers}', '--dist', 'worksteal', '--import-mode=importlib', '{str(project_dir/path_to_tests)}'])"
     cov_dir = Path(gettempdir()) / "dynapyt_coverage"
     cov_dir.mkdir(exist_ok=True)
     session_id = run_analysis(
@@ -55,13 +75,12 @@ def run_project(project_path: str, module_name: str, path_to_tests: str):
         script=test_code,
     )
 
+    failed = ""
+
     # Check if the output matches the expected output
     output_file = Path(project_dir) / f"dynapyt_output-{session_id}" / "output.json"
-    expected_output = Path(project_dir) / "expected_output.json"
     with open(output_file, "r") as f:
         actual = json.load(f)
-    with open(expected_output, "r") as f:
-        expected = json.load(f)
     if not match_output(actual, expected):
         failed = f"Output does not match expected output: {actual} != {expected}"
     output_file.unlink()
@@ -73,7 +92,7 @@ def run_project(project_path: str, module_name: str, path_to_tests: str):
         actual = json.load(f)
     with open(expected_coverage, "r") as f:
         expected = json.load(f)
-    if actual != expected:
+    if not match_coverage(actual, expected):
         failed = f"Coverage does not match expected coverage: {actual} != {expected}"
     coverage_file.unlink()
 
@@ -89,6 +108,7 @@ def run_project(project_path: str, module_name: str, path_to_tests: str):
             project_dir / Path(*(code_file.parts[:-1])) / (code_file.name[:-8] + ".py")
         )
         code_file.rename(correct_file)
+    rmtree(str(Path(project_dir) / f"dynapyt_output-{session_id}"))
     rmtree(cov_dir)
     if failed:
         raise ValueError(failed)
