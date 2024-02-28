@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 from shutil import rmtree
 from inspect import getmembers, isclass
-from importlib import import_module, invalidate_caches
+from importlib import import_module
 from tempfile import gettempdir
 from dynapyt.instrument.instrument import instrument_file
 from dynapyt.run_analysis import run_analysis

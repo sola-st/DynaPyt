@@ -23,7 +23,33 @@ def run_analysis(
     coverage: bool = False,
     coverage_dir: str = None,
     script: str = None,
-):
+) -> str:
+    """
+    The main function to run the analysis on instrumented code.
+    This function also merges the output and coverage files from different analyses and/or processes.
+
+    Parameters:
+    ----------
+    entry: str
+        The entry file or module for execution
+    analyses: List[str]
+        The list of analysis classes (full access path)
+    name: str
+        Optional name to associate with the run
+    output_dir: str
+        Optional output directory
+    coverage: bool
+        Enable analysis coverage (False by default)
+    coverage_dir: str
+        Optional coverage directory
+    script: str
+        Optional script to execute. Note that if script is provided, entry will be ignored.
+
+    Returns:
+    -------
+    str
+        The session id for the current run
+    """
     if coverage:
         if coverage_dir is None:
             coverage_dir = gettempdir()

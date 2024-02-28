@@ -1,3 +1,8 @@
+"""
+This module is DynaPyt's runtime engine.
+It is not supposed to be used directly, but rather to be used by the instrumented code.
+"""
+
 from typing import List, Tuple, Any
 from pathlib import Path
 from sys import exc_info
@@ -116,6 +121,7 @@ def call_if_exists(f, *args):
                 line_no = current_file.iid_to_location[
                     iid
                 ].start_line  # This is not accurate for multiline statements like if, for, multiline calls, etc.
+                #               Also for exit control flow hooks, the entry would be marked as covered.
                 analysis_class_name = analysis.__class__.__name__
                 if line_no not in covered[r_file]:
                     covered[r_file][line_no] = {analysis_class_name: 0}
