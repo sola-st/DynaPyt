@@ -5,7 +5,7 @@ from ..instrument.IIDs import IIDs, Location
 
 class BaseAnalysis:
 
-    def __init__(self, conf: str = None) -> None:
+    def __init__(self, conf: str = None, output_dir: str = None) -> None:
         self.asts = {}
         self.conf = conf
 

@@ -11,12 +11,12 @@ def load_analyses(analyses: List[Any]) -> List[BaseAnalysis]:
             if ";" in ana:
                 parts = ana.split(";")
                 ana = parts[0]
-                conf = tuple(parts[1:])
+                conf = {p.split("=")[0]: p.split("=")[1] for p in parts[1:]}
             module_parts = ana.split(".")
             module = importlib.import_module(".".join(module_parts[:-1]))
             class_ = getattr(module, module_parts[-1])
             if conf is not None:
-                res_analyses.append(class_(*conf))
+                res_analyses.append(class_(**conf))
             else:
                 res_analyses.append(class_())
         elif isinstance(ana, BaseAnalysis):

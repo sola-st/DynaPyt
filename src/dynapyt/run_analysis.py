@@ -68,7 +68,7 @@ def run_analysis(
     else:
         rmtree(output_dir)
         output_dir.mkdir()
-    analyses = [f"{a};{str(output_dir)}" for a in analyses]
+    analyses = [f"{a};output_dir={str(output_dir)}" for a in analyses]
     with open(str(analyses_file), "w") as f:
         f.write("\n".join(analyses))
 
