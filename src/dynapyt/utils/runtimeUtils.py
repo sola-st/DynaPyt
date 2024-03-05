@@ -8,8 +8,8 @@ def load_analyses(analyses: List[Any]) -> List[BaseAnalysis]:
     for ana in analyses:
         if isinstance(ana, str):
             conf = None
-            if ":" in ana:
-                parts = ana.split(":")
+            if ";" in ana:
+                parts = ana.split(";")
                 ana = parts[0]
                 conf = tuple(parts[1:])
             module_parts = ana.split(".")
