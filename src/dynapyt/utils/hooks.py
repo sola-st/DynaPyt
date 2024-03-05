@@ -13,6 +13,12 @@ from ..instrument.filters import START, END, SEPERATOR, get_details
 from .runtimeUtils import load_analyses
 
 
+def get_name(s):
+    if (s in dir(builtins)) or (keyword.iskeyword(s)):
+        return "_" + s
+    return s
+
+
 def snake(x):
     res = ""
     for i in range(len(x) - 1):
@@ -20,13 +26,7 @@ def snake(x):
         if ("a" <= x[i] <= "z") and ("A" <= x[i + 1] <= "Z"):
             res += "_"
     res += x[-1]
-    return res.lower()
-
-
-def get_name(s):
-    if (s in dir(builtins)) or (keyword.iskeyword(s)):
-        return "_" + s
-    return s
+    return get_name(res.lower())
 
 
 def all_leaves(root):

@@ -1,0 +1,5 @@
+begin execution
+Comparing 10 Is 10 = True
+Comparing 10 In [1, 10, 100] = True
+Comparing 10 NotIn [1, 2, 3] = True
+end execution
