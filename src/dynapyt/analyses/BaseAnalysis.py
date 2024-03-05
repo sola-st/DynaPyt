@@ -8,6 +8,7 @@ class BaseAnalysis:
     def __init__(self, conf: str = None, output_dir: str = None) -> None:
         self.asts = {}
         self.conf = conf
+        self.output_dir = output_dir
 
     def _get_ast(self, filepath: str) -> cst.CSTNodeT:
         if not path.exists(filepath):
