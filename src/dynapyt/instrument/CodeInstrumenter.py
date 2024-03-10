@@ -38,12 +38,16 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         self.current_function = []
         self.selected_hooks = {
             hook: {
-                "only": [re.compile(p) for p in details["only"]]
-                if "only" in details
-                else [],
-                "ignore": [re.compile(p) for p in details["ignore"]]
-                if "ignore" in details
-                else [],
+                "only": (
+                    [re.compile(p) for p in details["only"]]
+                    if "only" in details
+                    else []
+                ),
+                "ignore": (
+                    [re.compile(p) for p in details["ignore"]]
+                    if "ignore" in details
+                    else []
+                ),
             }
             for hook, details in selected_hooks.items()
         }
@@ -1037,7 +1041,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             self.blacklist_nodes.append(cst.SimpleStatementLine(body=[original_node]))
             self.blacklist_nodes.append(cst.Newline(value="\n"))
         if "write" not in self.selected_hooks or original_node.value is None:
-            return updated_node
+            return original_node
         callee_name = cst.Attribute(
             value=cst.Name(value="_rt"), attr=cst.Name(value="_write_")
         )
@@ -1053,7 +1057,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             value=cst.List(
                 elements=[
                     cst.Element(
-                        self.__wrap_in_lambda(original_node.target, updated_node.target)
+                        self.__wrap_in_lambda(
+                            original_node.target, original_node.target
+                        )
                     )
                 ]
             )
@@ -1061,10 +1067,11 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg, left_arg])
         if m.matches(updated_node.value, m.Yield()):
             return updated_node.with_changes(
-                value=updated_node.value.with_changes(value=call)
+                target=original_node.target,
+                value=updated_node.value.with_changes(value=call),
             )
         else:
-            return updated_node.with_changes(value=call)
+            return updated_node.with_changes(target=original_node.target, value=call)
 
     def leave_AugAssign(self, original_node, updated_node):
         if ("write" not in self.selected_hooks) and (
