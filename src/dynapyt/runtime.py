@@ -94,11 +94,11 @@ def filtered(func, f, args):
         fltr = docs[start + len(START) : end].strip()
         patterns = fltr.split(" -> ")[1].split(SEPERATOR)
         if fltr.startswith("only ->") and any(
-            [getattr(arg, "__name__", repr(arg)) in patterns for arg in sub_args]
+            [getattr(arg, "__name__", None) in patterns for arg in sub_args]
         ):
             return False
         elif fltr.startswith("ignore ->") and any(
-            [getattr(arg, "__name__", repr(arg)) in patterns for arg in sub_args]
+            [getattr(arg, "__name__", None) in patterns for arg in sub_args]
         ):
             return True
         docs = docs[end + len(END) :].lstrip()
