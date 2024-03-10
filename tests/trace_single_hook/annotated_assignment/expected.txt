@@ -2,4 +2,8 @@ begin execution
 Writing 10 to [('a',)]
 read value 10
 Writing 10 to [('b',)]
+read value <class 'trace_single_hook.annotated_assignment.program.X'>
+Writing 10 to [('x',)]
+Writing <trace_single_hook.annotated_assignment.program.X object at <...>> to [('c',)]
+Writing hello to [('c', 'y')]
 end execution
