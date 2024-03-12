@@ -1346,20 +1346,44 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         positional_args = cst.Arg(
             value=cst.List(
                 elements=[
-                    cst.Element(
-                        value=cst.Tuple(
-                            elements=[
-                                cst.Element(
-                                    value=cst.SimpleString(
-                                        value=self.__as_string(a.star)
-                                    )
-                                ),
-                                cst.Element(
-                                    value=a.with_changes(
-                                        comma=cst.MaybeSentinel.DEFAULT, star=""
-                                    )
-                                ),
-                            ]
+                    (
+                        cst.Element(
+                            value=cst.Tuple(
+                                elements=[
+                                    cst.Element(
+                                        value=cst.SimpleString(
+                                            value=self.__as_string(a.star)
+                                        )
+                                    ),
+                                    cst.Element(
+                                        value=a.with_changes(
+                                            comma=cst.MaybeSentinel.DEFAULT, star=""
+                                        )
+                                    ),
+                                ]
+                            )
+                        )
+                        if not m.matches(a.value, m.GeneratorExp())
+                        else cst.Element(
+                            value=cst.Tuple(
+                                elements=[
+                                    cst.Element(
+                                        value=cst.SimpleString(
+                                            value=self.__as_string(a.star)
+                                        )
+                                    ),
+                                    cst.Element(
+                                        value=a.with_changes(
+                                            comma=cst.MaybeSentinel.DEFAULT,
+                                            star="",
+                                            value=a.value.with_changes(
+                                                lpar=[cst.LeftParen()],
+                                                rpar=[cst.RightParen()],
+                                            ),
+                                        )
+                                    ),
+                                ]
+                            )
                         )
                     )
                     for a in updated_node.args
@@ -1390,8 +1414,6 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 m.matches(original_node.func, m.Name())
                 and original_node.func.value in site_sensitive_functions
             )
-        ) or (
-            any(a for a in updated_node.args if m.matches(a.value, m.GeneratorExp()))
         ):
             call_arg = cst.Arg(value=updated_node)
             only_post = cst.Arg(value=cst.Name("True"))

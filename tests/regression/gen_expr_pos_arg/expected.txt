@@ -1,0 +1,5 @@
+begin execution
+pre call of join with pos args (<generator object <genexpr> at <...>,) and kw args {}
+pre call of print with pos args ('h.e.l.l.o',) and kw args {}
+h.e.l.l.o
+end execution
