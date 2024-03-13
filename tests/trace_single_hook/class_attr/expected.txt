@@ -1,0 +1,6 @@
+begin execution
+Writing test to [('foo',)]
+test
+Writing <trace_single_hook.class_attr.program.X object at <...>> to [('x',)]
+test
+end execution
