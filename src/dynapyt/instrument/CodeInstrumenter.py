@@ -159,6 +159,13 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 try:
                     name_source = self.get_metadata(QualifiedNameProvider, n)
                     n_scope = self.get_metadata(ScopeProvider, n)
+                    defined_earlier = False
+                    for item in n_scope[n.value]:
+                        temp_pos = self.get_metadata(PositionProvider, item.node)
+                        orig_pos = self.get_metadata(PositionProvider, original_node)
+                        if temp_pos.start.line < orig_pos.start.line:
+                            defined_earlier = True
+                            break
                 except KeyError:
                     name_source = []
                     n_scope = None
@@ -167,6 +174,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                     and (my_scope == n_scope)
                     and (len(list(name_source)) > 0)
                     and (list(name_source)[0].source == QualifiedNameSource.LOCAL)
+                    and (defined_earlier)
                 ):
                     parameters.append(
                         cst.Param(
