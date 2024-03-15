@@ -38,8 +38,12 @@ def instrument_code(src, file_path, iids, selected_hooks):
 
 
 def instrument_file(file_path, selected_hooks):
-    with open(file_path, "r") as file:
-        src = file.read()
+    try:
+        with open(file_path, "r") as file:
+            src = file.read()
+    except (UnicodeDecodeError, ValueError):
+        print(f"Error reading {file_path} -- skipping it")
+        return
     if "DYNAPYT: DO NOT INSTRUMENT" in src:
         print(f"{file_path} is already instrumented -- skipping it")
         return
