@@ -54,7 +54,7 @@ def set_analysis():
         with open(str(analyses_file), "r") as af:
             new_analyses = af.read().split("\n")
     else:
-        raise Exception("Analyses file not found")
+        raise Exception(f"Analyses file not found: {str(analyses_file)}")
     analyses = load_analyses(new_analyses)
     for analysis in analyses:
         if hasattr(analysis, "begin_execution"):
