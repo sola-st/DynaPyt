@@ -250,34 +250,36 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         if len(import_names) > 0:
             dynapyt_imports.append(self.__create_import(import_names))
             dynapyt_imports.append(cst.Newline(value="\n"))
-        code_body = list(updated_node.body[imports_index + 1 :])
-        handler_call = cst.Call(
-            func=cst.Attribute(
-                value=cst.Name(value="_rt"), attr=cst.Name(value="_catch_")
-            ),
-            args=[cst.Arg(cst.Name("_dynapyt_exception_"))],
-        )
-        handler_body = cst.IndentedBlock(
-            body=[cst.SimpleStatementLine(body=[cst.Expr(value=handler_call)])]
-        )
-        try_body = cst.Try(
-            body=cst.IndentedBlock(body=code_body),
-            handlers=[
-                cst.ExceptHandler(
-                    body=handler_body,
-                    type=cst.Name(value="Exception"),
-                    name=cst.AsName(cst.Name(value="_dynapyt_exception_")),
-                )
-            ],
-        )
-        new_body = (
-            list(updated_node.body[: imports_index + 1])
-            + dynapyt_imports
-            + [get_ast]
-            + [try_body]
-            + self.blacklist_nodes
-        )
-        return updated_node.with_changes(body=new_body)
+            code_body = list(updated_node.body[imports_index + 1 :])
+            handler_call = cst.Call(
+                func=cst.Attribute(
+                    value=cst.Name(value="_rt"), attr=cst.Name(value="_catch_")
+                ),
+                args=[cst.Arg(cst.Name("_dynapyt_exception_"))],
+            )
+            handler_body = cst.IndentedBlock(
+                body=[cst.SimpleStatementLine(body=[cst.Expr(value=handler_call)])]
+            )
+            try_body = cst.Try(
+                body=cst.IndentedBlock(body=code_body),
+                handlers=[
+                    cst.ExceptHandler(
+                        body=handler_body,
+                        type=cst.Name(value="Exception"),
+                        name=cst.AsName(cst.Name(value="_dynapyt_exception_")),
+                    )
+                ],
+            )
+            new_body = (
+                list(updated_node.body[: imports_index + 1])
+                + dynapyt_imports
+                + [get_ast]
+                + [try_body]
+                + self.blacklist_nodes
+            )
+            return updated_node.with_changes(body=new_body)
+        else:
+            return updated_node
 
     def visit_ClassDef(self, node):
         self.current_class.append(node.name.value)

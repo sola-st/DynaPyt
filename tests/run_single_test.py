@@ -16,7 +16,9 @@ from dynapyt.run_analysis import run_analysis
 from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 
 
-def correct_output(expected: str, actual: str) -> bool:
+def correct_output(expected: str, actual: str, exception: Exception) -> bool:
+    if exception:
+        actual += f"# Exception: {str(exception)}"
     if actual == expected or actual == expected + "\n":
         return True
     actual_lines = actual.strip().split("\n")
@@ -46,6 +48,8 @@ def correct_coverage(expected: str, actual: str) -> bool:
 
 def test_runner(directory_pair: Tuple[str, str], capsys):
     abs_dir, rel_dir = directory_pair
+
+    exception = None
 
     if "dynapyt.runtime" in sys.modules:
         # runtime_module = sys.modules["dynapyt.runtime"]
@@ -96,24 +100,27 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     # analyze
     captured = capsys.readouterr()  # clear stdout
     # print(f"Before analysis: {captured.out}")  # for debugging purposes
-    if run_as_file:
-        session_id = run_analysis(
-            program_file,
-            [f"{module_prefix}.analysis.TestAnalysis"],
-            coverage=cov,
-            coverage_dir=coverage_dir,
-        )
-    else:
-        session_id = run_analysis(
-            f"{module_prefix}.program",
-            [
-                f"{module_prefix}.analysis.{ac[0]}"
-                for ac in analysis_classes
-                if not ac[0].endswith("BaseAnalysis")
-            ],
-            coverage=cov,
-            coverage_dir=coverage_dir,
-        )
+    try:
+        if run_as_file:
+            session_id = run_analysis(
+                program_file,
+                [f"{module_prefix}.analysis.TestAnalysis"],
+                coverage=cov,
+                coverage_dir=coverage_dir,
+            )
+        else:
+            session_id = run_analysis(
+                f"{module_prefix}.program",
+                [
+                    f"{module_prefix}.analysis.{ac[0]}"
+                    for ac in analysis_classes
+                    if not ac[0].endswith("BaseAnalysis")
+                ],
+                coverage=cov,
+                coverage_dir=coverage_dir,
+            )
+    except Exception as e:
+        exception = e
 
     if "DYNAPYT_COVERAGE" in environ:
         del environ["DYNAPYT_COVERAGE"]
@@ -126,7 +133,7 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     captured = (
         capsys.readouterr()
     )  # read stdout produced by running the analyzed program
-    if not correct_output(expected, captured.out):
+    if not correct_output(expected, captured.out, exception):
         pytest.fail(
             f"Output of {rel_dir} does not match expected output.\n--> Expected:\n{expected}\n--> Actual:\n{captured.out}"
         )
