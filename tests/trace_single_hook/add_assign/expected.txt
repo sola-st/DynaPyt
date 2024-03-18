@@ -1,0 +1,6 @@
+begin execution
+add_assign: 1 += 2
+3
+add_assign: test += test
+testtest
+end execution

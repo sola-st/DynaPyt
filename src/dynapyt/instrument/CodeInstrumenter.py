@@ -161,6 +161,8 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                     n_scope = self.get_metadata(ScopeProvider, n)
                     defined_earlier = False
                     for item in n_scope[n.value]:
+                        if not hasattr(item, "node"):
+                            continue
                         temp_pos = self.get_metadata(PositionProvider, item.node)
                         orig_pos = self.get_metadata(PositionProvider, original_node)
                         if temp_pos.start.line < orig_pos.start.line:
