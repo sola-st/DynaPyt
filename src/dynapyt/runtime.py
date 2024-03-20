@@ -118,10 +118,13 @@ def call_if_exists(f, *args):
                     current_file = IIDs(r_file)
                 if r_file not in covered:
                     covered[r_file] = {}
-                line_no = current_file.iid_to_location[
-                    iid
-                ].start_line  # This is not accurate for multiline statements like if, for, multiline calls, etc.
-                #               Also for exit control flow hooks, the entry would be marked as covered.
+                try:
+                    line_no = current_file.iid_to_location[
+                        iid
+                    ].start_line  # This is not accurate for multiline statements like if, for, multiline calls, etc.
+                    #               Also for exit control flow hooks, the entry would be marked as covered.
+                except KeyError:
+                    line_no = 0
                 analysis_class_name = analysis.__class__.__name__
                 if line_no not in covered[r_file]:
                     covered[r_file][line_no] = {analysis_class_name: 0}
