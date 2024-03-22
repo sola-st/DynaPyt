@@ -1025,7 +1025,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        if m.matches(updated_node.value, m.Yield()):
+        if m.matches(updated_node.value, m.Yield(value=m.From())):
+            val_arg = cst.Arg(value=updated_node.value.value.item)
+        elif m.matches(updated_node.value, m.Yield()):
             val_arg = cst.Arg(value=updated_node.value.value)
         else:
             val_arg = cst.Arg(value=updated_node.value)
@@ -1038,7 +1040,13 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             )
         )
         call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, val_arg, left_arg])
-        if m.matches(updated_node.value, m.Yield()):
+        if m.matches(updated_node.value, m.Yield(value=m.From())):
+            return updated_node.with_changes(
+                value=updated_node.value.with_changes(
+                    value=updated_node.value.value.with_changes(item=call)
+                )
+            )
+        elif m.matches(updated_node.value, m.Yield()):
             return updated_node.with_changes(
                 value=updated_node.value.with_changes(value=call)
             )

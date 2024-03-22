@@ -1,0 +1,11 @@
+begin execution
+Writing range(0, 3)
+Writing 0
+0
+Writing range(0, 3)
+Writing 0
+0
+Writing range(0, 3)
+Writing 0
+0
+end execution
