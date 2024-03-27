@@ -3,4 +3,6 @@ add_assign: 1 += 2
 3
 add_assign: test += test
 testtest
+add_assign: 1 += 1
+2
 end execution
