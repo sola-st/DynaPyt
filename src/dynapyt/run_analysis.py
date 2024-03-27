@@ -127,4 +127,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
     name = args.name
     analyses = args.analysis
-    run_analysis(args.entry, analyses, name, args.coverage)
+    run_analysis(
+        entry=args.entry,
+        analyses=analyses,
+        name=name,
+        coverage=args.coverage
+    )
