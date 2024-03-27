@@ -855,6 +855,8 @@ class TraceAll(BaseAnalysis):
         self, dyn_ast: str, iid: int, function: Callable, pos_args: Tuple, kw_args: Dict
     ):
         """Hook called before a function call happens.
+        This hook is not called for a set of special functions.
+        These special functions are 'breakpoint', 'dir', 'eval', 'exec', 'globals', 'help', 'locals', 'super', 'vars'.
 
 
         Parameters
@@ -887,6 +889,9 @@ class TraceAll(BaseAnalysis):
         kw_args: Dict,
     ) -> Any:
         """Hook called after a function call.
+        Note: For a set of functions, that cannot be called from DynaPyt's runtime engine, the 'call' argument is not 'Callable', but is the resulting value.
+        These special functions are 'breakpoint', 'dir', 'eval', 'exec', 'globals', 'help', 'locals', 'super', 'vars'.
+        To check for these cases, you can check 'result is call', and if it is True, then it is one of these special functions.
 
 
         Parameters
