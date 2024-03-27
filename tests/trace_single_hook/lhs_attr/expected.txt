@@ -1,0 +1,4 @@
+Reading attribute a from <trace_single_hook.lhs_attr.program.X object at <...>> with value 2
+2
+Reading attribute b from <trace_single_hook.lhs_attr.program.X object at <...>> with value hello
+hello

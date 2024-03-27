@@ -826,10 +826,15 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         )
         return cst.Expr(value=call)
 
-    @call_if_not_inside(m.AssignTarget() | m.AnnAssign())
+    @call_if_not_inside(m.AssignTarget())
     def leave_Subscript(self, original_node, updated_node):
         if "read_subscript" not in self.selected_hooks:
             return updated_node
+        par = self.get_metadata(ParentNodeProvider, original_node)
+        if m.matches(par, m.AugAssign(target=original_node)) or m.matches(
+            par, m.AnnAssign(target=original_node)
+        ):
+            return original_node
         callee_name = cst.Attribute(
             value=cst.Name(value="_rt"), attr=cst.Name(value="_sub_")
         )
@@ -875,10 +880,15 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             rpar=original_node.rpar,
         )
 
-    @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom() | m.Annotation())
+    @call_if_not_inside(m.AssignTarget() | m.Import() | m.ImportFrom())
     def leave_Attribute(self, original_node, updated_node):
         if "read_attribute" not in self.selected_hooks:
             return updated_node
+        par = self.get_metadata(ParentNodeProvider, original_node)
+        if m.matches(par, m.AugAssign(target=original_node)) or m.matches(
+            par, m.AnnAssign(target=original_node)
+        ):
+            return original_node
         callee_name = cst.Attribute(
             value=cst.Name(value="_rt"), attr=cst.Name(value="_attr_")
         )
