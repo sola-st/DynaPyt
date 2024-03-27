@@ -143,7 +143,7 @@ def _write_(dyn_ast, iid, right, left):
     call_if_exists("memory_access", dyn_ast, iid, right)
     new_left = left
     res = call_if_exists("write", dyn_ast, iid, new_left, right)
-    if res != None:
+    if res is not None:
         return res
     return right
 
@@ -205,9 +205,9 @@ def _aug_assign_(dyn_ast, iid, left, opr, right):
     result_low = call_if_exists(
         get_name(snake(operator[opr])), dyn_ast, iid, left, right
     )
-    if result_low != None:
+    if result_low is not None:
         right = result_low
-    elif result_high != None:
+    elif result_high is not None:
         right = result_high
     return right
 
@@ -296,9 +296,9 @@ def _binary_op_(dyn_ast, iid, left, opr, right):
     result_low = call_if_exists(
         get_name(snake(bin_op[opr])), dyn_ast, iid, left, right, result
     )
-    if result_low != None:
+    if result_low is not None:
         return result_low
-    elif result_high != None:
+    elif result_high is not None:
         return result_high
     return result
 
@@ -321,9 +321,9 @@ def _unary_op_(dyn_ast, iid, opr, right):
     result_low = call_if_exists(
         get_name(snake(un_op[opr])), dyn_ast, iid, right, result
     )
-    if result_low != None:
+    if result_low is not None:
         return result_low
-    elif result_high != None:
+    elif result_high is not None:
         return result_high
     return result
 
@@ -370,9 +370,9 @@ def _comp_op_(dyn_ast, iid, left, comparisons):
         result_low = call_if_exists(
             get_name(snake(comp_op[op])), dyn_ast, iid, l, r, tmp
         )
-        if result_low != None:
+        if result_low is not None:
             tmp = result_low
-        elif result_high != None:
+        elif result_high is not None:
             tmp = result_high
         result = result and tmp
         l = r
@@ -410,9 +410,9 @@ def _bool_(dyn_ast, iid, val):
     call_if_exists("runtime_event", dyn_ast, iid)
     res_high = call_if_exists("literal", dyn_ast, iid, val)
     res_low = call_if_exists("boolean", dyn_ast, iid, val)
-    if res_low != None:
+    if res_low is not None:
         return res_low
-    elif res_high != None:
+    elif res_high is not None:
         return res_high
     return val
 
@@ -421,9 +421,9 @@ def _int_(dyn_ast, iid, val):
     call_if_exists("runtime_event", dyn_ast, iid)
     res_high = call_if_exists("literal", dyn_ast, iid, val)
     res_low = call_if_exists("integer", dyn_ast, iid, val)
-    if res_low != None:
+    if res_low is not None:
         return res_low
-    elif res_high != None:
+    elif res_high is not None:
         return res_high
     return val
 
@@ -432,9 +432,9 @@ def _float_(dyn_ast, iid, val):
     call_if_exists("runtime_event", dyn_ast, iid)
     res_high = call_if_exists("literal", dyn_ast, iid, val)
     res_low = call_if_exists("float", dyn_ast, iid, val)
-    if res_low != None:
+    if res_low is not None:
         return res_low
-    elif res_high != None:
+    elif res_high is not None:
         return res_high
     return val
 
@@ -443,9 +443,9 @@ def _str_(dyn_ast, iid, val):
     call_if_exists("runtime_event", dyn_ast, iid)
     res_high = call_if_exists("literal", dyn_ast, iid, val)
     res_low = call_if_exists("string", dyn_ast, iid, val)
-    if res_low != None:
+    if res_low is not None:
         return res_low
-    elif res_high != None:
+    elif res_high is not None:
         return res_high
     return val
 
@@ -454,9 +454,9 @@ def _img_(dyn_ast, iid, val):
     call_if_exists("runtime_event", dyn_ast, iid)
     res_high = call_if_exists("literal", dyn_ast, iid, val)
     res_low = call_if_exists("imaginary", dyn_ast, iid, val)
-    if res_low != None:
+    if res_low is not None:
         return res_low
-    elif res_high != None:
+    elif res_high is not None:
         return res_high
     return val
 
@@ -464,7 +464,7 @@ def _img_(dyn_ast, iid, val):
 def _literal_(dyn_ast, iid, val):
     call_if_exists("runtime_event", dyn_ast, iid)
     res = call_if_exists("literal", dyn_ast, iid, val)
-    return res if res != None else val
+    return res if res is not None else val
 
 
 def _dict_(dyn_ast, iid, val):
@@ -475,16 +475,24 @@ def _dict_(dyn_ast, iid, val):
             value.update(v)
         else:
             value.update({v[0]: v[1]})
-    call_if_exists("literal", dyn_ast, iid, value)
-    res = call_if_exists("dictionary", dyn_ast, iid, val, value)
-    return res if res != None else value
+    res_high = call_if_exists("literal", dyn_ast, iid, value)
+    res_low = call_if_exists("dictionary", dyn_ast, iid, val, value)
+    if res_low is not None:
+        return res_low
+    elif res_high is not None:
+        return res_high
+    return value
 
 
 def _list_(dyn_ast, iid, val):
     call_if_exists("runtime_event", dyn_ast, iid)
-    call_if_exists("literal", dyn_ast, iid, val)
-    res = call_if_exists("_list", dyn_ast, iid, val)
-    return res if res != None else val
+    res_high = call_if_exists("literal", dyn_ast, iid, val)
+    res_low = call_if_exists("_list", dyn_ast, iid, val)
+    if res_low is not None:
+        return res_low
+    elif res_high is not None:
+        return res_high
+    return val
 
 
 def _tuple_(dyn_ast, iid, val):
@@ -543,7 +551,7 @@ def _attr_(dyn_ast, iid, base, attr):
     call_if_exists("memory_access", dyn_ast, iid, val)
     call_if_exists("read", dyn_ast, iid, val)
     result = call_if_exists("read_attribute", dyn_ast, iid, base, attr, val)
-    return result if result != None else val
+    return result if result is not None else val
 
 
 def _sub_(dyn_ast, iid, base, sl):
@@ -555,7 +563,7 @@ def _sub_(dyn_ast, iid, base, sl):
     call_if_exists("memory_access", dyn_ast, iid, val)
     call_if_exists("read", dyn_ast, iid, val)
     result = call_if_exists("read_subscript", dyn_ast, iid, base, sl, val)
-    return result if result != None else val
+    return result if result is not None else val
 
 
 def _try_(dyn_ast, iid):
@@ -604,7 +612,7 @@ def _read_(dyn_ast, iid, var_arg):
     call_if_exists("memory_access", dyn_ast, iid, value)
     call_if_exists("read", dyn_ast, iid, value)
     result = call_if_exists("read_identifier", dyn_ast, iid, value)
-    return result if result != None else value
+    return result if result is not None else value
 
 
 def _if_expr_(dyn_ast, iid, condition, true_val, false_val):
@@ -650,9 +658,9 @@ def _return_(dyn_ast, iid, function_iid, function_name, return_val=None):
     result_low = call_if_exists(
         "_return", dyn_ast, iid, function_iid, function_name, return_val
     )  # return needs both its own iid and the function iid
-    if result_low != None:
+    if result_low is not None:
         return result_low
-    elif result_high != None:
+    elif result_high is not None:
         return result_high
     return return_val
 
@@ -666,9 +674,9 @@ def _yield_(dyn_ast, iid, function_iid, function_name, return_val=None):
     result_low = call_if_exists(
         "_yield", dyn_ast, iid, function_iid, function_name, return_val
     )
-    if result_low != None:
+    if result_low is not None:
         return result_low
-    elif result_high != None:
+    elif result_high is not None:
         return result_high
     return return_val
 
@@ -690,14 +698,14 @@ def _break_(dyn_ast, iid):
     call_if_exists("runtime_event", dyn_ast, iid)
     call_if_exists("control_flow_event", dyn_ast, iid)
     result = call_if_exists("_break", dyn_ast, iid)
-    return result if result != None else True
+    return result if result is not None else True
 
 
 def _continue_(dyn_ast, iid):
     call_if_exists("runtime_event", dyn_ast, iid)
     call_if_exists("control_flow_event", dyn_ast, iid)
     result = call_if_exists("_continue", dyn_ast, iid)
-    return result if result != None else True
+    return result if result is not None else True
 
 
 def _enter_if_(dyn_ast, iid, condition):
