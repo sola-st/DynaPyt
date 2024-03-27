@@ -491,8 +491,27 @@ def _tuple_(dyn_ast, iid, val):
     call_if_exists("runtime_event", dyn_ast, iid)
     value = tuple(val)
     call_if_exists("literal", dyn_ast, iid, value)
-    call_if_exists("_tuple", dyn_ast, iid, val, value)
-    return value
+    res = call_if_exists("_tuple", dyn_ast, iid, val, value)
+    return res if res is not None else value
+
+
+def _set_(dyn_ast, iid, val):
+    call_if_exists("runtime_event", dyn_ast, iid)
+    value = set(val)
+    call_if_exists("literal", dyn_ast, iid, value)
+    res = call_if_exists("_set", dyn_ast, iid, val, value)
+    return res if res is not None else value
+
+
+def _none_(dyn_ast, iid, val):
+    call_if_exists("runtime_event", dyn_ast, iid)
+    res_high = call_if_exists("literal", dyn_ast, iid, val)
+    res_low = call_if_exists("none", dyn_ast, iid, val)
+    if res_low is not None:
+        return res_low
+    elif res_high is not None:
+        return res_high
+    return val
 
 
 def _delete_(dyn_ast, iid, del_target: List[Tuple[Any, Any, bool]], analyze: bool):

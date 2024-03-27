@@ -321,6 +321,27 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             return call
 
         if (
+            ("none" in self.selected_hooks)
+            and (updated_node.value == "None")
+            and (self.__selected_by_decorators("None", original_node))
+        ):
+            callee_name = cst.Attribute(
+                value=cst.Name(value="_rt"), attr=cst.Name(value="_none_")
+            )
+            self.to_import.add("_none_")
+            iid = self.__create_iid(original_node)
+            ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
+            iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+            val_arg = cst.Arg(value=updated_node)
+            call = cst.Call(
+                func=callee_name,
+                args=[ast_arg, iid_arg, val_arg],
+                lpar=original_node.lpar,
+                rpar=original_node.rpar,
+            )
+            return call
+
+        if (
             "read_identifier" not in self.selected_hooks
         ) or not self.__selected_by_decorators("read_identifier", original_node):
             return updated_node
@@ -616,6 +637,26 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         elements_arg = [cst.Element(e.value) for e in updated_node.elements]
+        val_arg = cst.Arg(value=cst.List(elements=elements_arg))
+        call = cst.Call(
+            func=callee_name,
+            args=[ast_arg, iid_arg, val_arg],
+            lpar=original_node.lpar,
+            rpar=original_node.rpar,
+        )
+        return call
+
+    def leave_Set(self, original_node, updated_node):
+        if "_set" not in self.selected_hooks:
+            return updated_node
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_set_")
+        )
+        self.to_import.add("_set_")
+        iid = self.__create_iid(original_node)
+        ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        elements_arg = updated_node.elements
         val_arg = cst.Arg(value=cst.List(elements=elements_arg))
         call = cst.Call(
             func=callee_name,

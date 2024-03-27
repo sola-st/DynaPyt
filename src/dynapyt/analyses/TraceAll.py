@@ -247,6 +247,58 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "Tuple", "items:", items)
 
+    def _set(self, dyn_ast: str, iid: int, items: List[Any], value: set) -> set:
+        """Hook for a set.
+
+        E.g. `{1, 2, 3}`
+        or `{i for i in range(10)}`
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid : int
+            Unique ID of the syntax tree node.
+
+        items : List[Any]
+            The lis of items in the set.
+
+        value : set
+            The set itself.
+
+
+        Returns
+        -------
+        set
+            If provided, overwrites the value of the set.
+
+        """
+        self.log(iid, "Set", "items:", items)
+
+    def none(self, dyn_ast: str, iid: int, value: Any) -> Any:
+        """Hook for None literals.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid : int
+            Unique ID of the syntax tree node.
+
+        value : Any
+            The value of the None literal.
+
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the value of the None literal.
+
+        """
+        self.log(iid, "None", "value:", value)
+
     # Operations
 
     def operation(

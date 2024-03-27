@@ -1,0 +1,24 @@
+begin execution
+literal 1
+literal 1.2
+literal hello
+literal True
+literal 1
+literal 2
+literal 3
+literal [1, 2, 3]
+literal 1
+literal 2
+literal 3
+literal (1, 2, 3)
+literal 1
+literal 2
+literal 3
+literal {1, 2, 3}
+literal a
+literal 1
+literal b
+literal 2
+literal {'a': 1, 'b': 2}
+literal None
+end execution

@@ -1,105 +1,107 @@
 {
     "runtime_event": {
-        "begin_execution": { },
-        "end_execution": { },
-        "uncaught_exception": { },
+        "begin_execution": {},
+        "end_execution": {},
+        "uncaught_exception": {},
         "literal": {
-            "integer": { },
-            "_float": { },
-            "imaginary": { },
-            "boolean": { },
-            "string": { },
-            "dictionary": { },
-            "_list": { },
-            "_tuple": { }
+            "integer": {},
+            "_float": {},
+            "imaginary": {},
+            "boolean": {},
+            "string": {},
+            "dictionary": {},
+            "_list": {},
+            "_tuple": {},
+            "_set": {},
+            "none": {}
         },
         "operation": {
             "binary_operation": {
                 "augmented_assignment": {
-                    "add_assign": { },
-                    "bit_and_assign": { },
-                    "bit_or_assign": { },
-                    "bit_xor_assign": { },
-                    "divide_assign": { },
-                    "floor_divide_assign": { },
-                    "left_shift_assign": { },
-                    "matrix_multiply_assign": { },
-                    "modulo_assign": { },
-                    "multiply_assign": { },
-                    "power_assign": { },
-                    "right_shift_assign": { },
-                    "subtract_assign": { }
+                    "add_assign": {},
+                    "bit_and_assign": {},
+                    "bit_or_assign": {},
+                    "bit_xor_assign": {},
+                    "divide_assign": {},
+                    "floor_divide_assign": {},
+                    "left_shift_assign": {},
+                    "matrix_multiply_assign": {},
+                    "modulo_assign": {},
+                    "multiply_assign": {},
+                    "power_assign": {},
+                    "right_shift_assign": {},
+                    "subtract_assign": {}
                 },
-                "add": { },
-                "bit_and": { },
-                "bit_or": { },
-                "bit_xor": { },
-                "divide": { },
-                "floor_divide": { },
-                "left_shift": { },
-                "matrix_multiply": { },
-                "modulo": { },
-                "multiply": { },
-                "power": { },
-                "right_shift": { },
-                "subtract": { },
-                "_and": { },
-                "_or": { }
+                "add": {},
+                "bit_and": {},
+                "bit_or": {},
+                "bit_xor": {},
+                "divide": {},
+                "floor_divide": {},
+                "left_shift": {},
+                "matrix_multiply": {},
+                "modulo": {},
+                "multiply": {},
+                "power": {},
+                "right_shift": {},
+                "subtract": {},
+                "_and": {},
+                "_or": {}
             },
             "unary_operation": {
-                "bit_invert": { },
-                "minus": { },
-                "_not": { },
-                "plus": { }
+                "bit_invert": {},
+                "minus": {},
+                "_not": {},
+                "plus": {}
             },
             "comparison": {
-                "equal": { },
-                "greater_than": { },
-                "greater_than_equal": { },
-                "_in": { },
-                "_is": { },
-                "less_than": { },
-                "less_than_equal": { },
-                "not_equal": { },
-                "is_not": { },
-                "not_in": { }
+                "equal": {},
+                "greater_than": {},
+                "greater_than_equal": {},
+                "_in": {},
+                "_is": {},
+                "less_than": {},
+                "less_than_equal": {},
+                "not_equal": {},
+                "is_not": {},
+                "not_in": {}
             }
         },
         "control_flow_event": {
             "enter_control_flow": {
-                "enter_if": { },
-                "enter_for": { },
-                "enter_while": { }
+                "enter_if": {},
+                "enter_for": {},
+                "enter_while": {}
             },
             "exit_control_flow": {
-                "exit_if": { },
-                "exit_for": { },
-                "exit_while": { }
+                "exit_if": {},
+                "exit_for": {},
+                "exit_while": {}
             },
-            "_assert" : { },
-            "_raise": { },
-            "enter_try": { },
-            "clean_exit_try": { },
-            "exception": { },
-            "pre_call": { },
-            "post_call": { },
-            "_break": { },
-            "_continue": { },
-            "function_enter": { },
+            "_assert": {},
+            "_raise": {},
+            "enter_try": {},
+            "clean_exit_try": {},
+            "exception": {},
+            "pre_call": {},
+            "post_call": {},
+            "_break": {},
+            "_continue": {},
+            "function_enter": {},
             "function_exit": {
-                "_return": { },
-                "_yield": { },
-                "implicit_return": { }
+                "_return": {},
+                "_yield": {},
+                "implicit_return": {}
             }
         },
         "memory_access": {
             "read": {
-                "read_identifier": { },
-                "read_subscript": { },
-                "read_attribute": { }
+                "read_identifier": {},
+                "read_subscript": {},
+                "read_attribute": {}
             },
-            "write": { },
-            "delete": { }
+            "write": {},
+            "delete": {}
         }
     }
 }
