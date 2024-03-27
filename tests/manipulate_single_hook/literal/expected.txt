@@ -1,3 +1,14 @@
 literal hook called: 5
 literal hook called: 99
 abc
+literal hook called: a
+literal hook called: 1
+literal hook called: b
+literal hook called: 2
+literal hook called: {'a': 1, 'b': 2}
+abc
+literal hook called: 1
+literal hook called: 2
+literal hook called: 3
+literal hook called: [1, 2, 3]
+abc

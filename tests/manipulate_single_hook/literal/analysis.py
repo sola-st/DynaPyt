@@ -7,3 +7,7 @@ class TestAnalysis(BaseAnalysis):
         print(f"literal hook called: {val}")
         if val == 5:
             return "abc"
+        if isinstance(val, dict):
+            return "abc"
+        if isinstance(val, list):
+            return "abc"
