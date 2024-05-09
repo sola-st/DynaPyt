@@ -3,8 +3,8 @@ from .BaseAnalysis import BaseAnalysis
 from typing import Any
 
 class MemoryAccessAnalysis(BaseAnalysis):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.danger_of_recursion = False
         logging.basicConfig(filename='output.log', format='%(message)s', encoding='utf-8', level=logging.INFO)
     

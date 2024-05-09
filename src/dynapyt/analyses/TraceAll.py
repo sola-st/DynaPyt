@@ -11,8 +11,8 @@ class TraceAll(BaseAnalysis):
     .. include:: ../../../docs/hooks.md
     """
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.INFO)
         handler = logging.FileHandler("output.log", "w", "utf-8")

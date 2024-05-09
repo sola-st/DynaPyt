@@ -3,8 +3,8 @@ from collections import defaultdict
 from .BaseAnalysis import BaseAnalysis
 
 class MLMemoryAnalysis(BaseAnalysis):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.in_ctrl_flow = []
         self.threshold = 3
         self.memory_leak = defaultdict(lambda: 0)
