@@ -5,8 +5,8 @@ from aiopg.connection import Cursor
 
 class SimpleTaintAnalysis(BaseAnalysis):
     
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, **kwargs) -> None:
+        super().__init__(**kwargs)
         self.tainted = set()
         self.seen_source = False
         self.seen_sink = False

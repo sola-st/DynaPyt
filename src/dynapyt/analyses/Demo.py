@@ -2,7 +2,8 @@ from typing import Optional
 from .BaseAnalysis import BaseAnalysis
 
 class Demo(BaseAnalysis):
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.branches = dict()
 
     def enter_control_flow(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:

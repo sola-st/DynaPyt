@@ -2,7 +2,8 @@
 from .BaseAnalysis import BaseAnalysis
 
 class KeyInListAnalysis(BaseAnalysis):
-    def __init__(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
         self.threshold = 100
 
     def _in(self, dyn_ast, iid, left, right, result):
