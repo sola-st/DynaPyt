@@ -1,0 +1,6 @@
+begin execution
+entered try block
+print statement inside try block
+10
+clean exit try block
+end execution

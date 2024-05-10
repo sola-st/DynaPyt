@@ -1,0 +1,10 @@
+begin execution
+control flow event
+entered try block
+control flow event
+print statement inside try block
+control flow event
+10
+control flow event
+clean exit try block
+end execution

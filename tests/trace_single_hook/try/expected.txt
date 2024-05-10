@@ -1,0 +1,5 @@
+begin execution
+entered try block
+print statement inside try block
+an exception occurred
+end execution
