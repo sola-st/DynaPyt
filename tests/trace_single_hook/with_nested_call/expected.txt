@@ -1,0 +1,26 @@
+begin execution
+pre call:  foo
+pre call:  realpath
+post call:  realpath
+pre call:  dirname
+post call:  dirname
+pre call:  join
+post call:  join
+post call:  foo
+pre call:  open
+post call:  open
+with statement entered
+pre call:  readline
+post call:  readline
+pre call:  print
+Line read from expected.txt: begin execution
+
+post call:  print
+pre call:  print
+content has been read from the file
+post call:  print
+with statement exited
+pre call:  print
+file has been closed
+post call:  print
+end execution

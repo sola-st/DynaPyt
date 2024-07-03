@@ -1,0 +1,47 @@
+begin execution
+runtime event
+runtime event
+runtime event
+runtime event
+runtime event
+control flow event
+runtime event
+control flow event
+runtime event
+runtime event
+runtime event
+runtime event
+runtime event
+runtime event
+control flow event
+runtime event
+runtime event
+runtime event
+runtime event
+control flow event
+runtime event
+control flow event
+with statement entered
+runtime event
+runtime event
+runtime event
+control flow event
+runtime event
+runtime event
+runtime event
+runtime event
+control flow event
+Line read from expected.txt:  begin execution
+
+runtime event
+runtime event
+control flow event
+content has been read from the file
+runtime event
+control flow event
+with statement exited
+runtime event
+runtime event
+control flow event
+file has been closed
+end execution

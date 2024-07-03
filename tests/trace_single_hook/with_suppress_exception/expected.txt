@@ -1,0 +1,11 @@
+begin execution
+with statement entered
+__enter__
+inside with block
+hello world
+__exit__
+exc_type:  <class 'Exception'>
+exc_value:  exception raised inside with statement block
+with statement exited
+no exception raised
+end execution

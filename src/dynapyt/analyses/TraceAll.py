@@ -1,6 +1,6 @@
 import logging
 from types import TracebackType
-from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
+from typing import Any, Callable, ContextManager, Dict, Iterable, List, Optional, Tuple, Union
 import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
 from ..utils.nodeLocator import get_node_by_location
@@ -1380,3 +1380,42 @@ class TraceAll(BaseAnalysis):
     def end_execution(self) -> None:
         """Hook for the end of execution."""
         self.log(-1, "Execution ended")
+
+    def enter_with(self, dyn_ast: str, iid: int, ctx_manager: ContextManager) -> None:
+        """Hook for entering a with statement.
+
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid : int
+            Unique ID of the syntax tree node.
+
+        func : ContextManager
+            The context manager.
+
+        """
+        self.log(iid, "Entered with")
+
+    def exit_with(self, dyn_ast: str, iid: int, is_suppressed: bool, exc_value):
+        """Hook for exiting a with statement.
+        
+        
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+            
+        iid : int
+            Unique ID of the syntax tree node.
+
+        is_suppressed : bool
+            Whether the exception, if any, inside the with block should be suppressed or not.
+
+        exc_value : Any
+            The exception value, if any, raised inside the with block.
+            
+        """
+        self.log(iid, "Exited with")

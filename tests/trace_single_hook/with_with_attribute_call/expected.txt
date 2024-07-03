@@ -1,0 +1,11 @@
+begin execution
+pre call:  Foo
+post call:  Foo
+pre call:  bar
+post call:  bar
+with statement entered
+pre call:  print
+hello world
+post call:  print
+with statement exited
+end execution

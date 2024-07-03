@@ -1,0 +1,8 @@
+begin execution
+with statement entered
+Line read from expected.txt:  begin execution
+
+content has been read from the file
+with statement exited
+file has been closed
+end execution
