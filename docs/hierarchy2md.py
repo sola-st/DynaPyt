@@ -57,17 +57,23 @@ def to_string_list(root):
     if len(root.items()) == 0:
         return []
     res = []
+    its = len(root.items())
+    count = 0
     for k, v in root.items():
+        count += 1
         if len(v.items()) > 0:
-            res.append("└ " + k)
+            res.append(f"└ [{k}](#TraceAll.{k})  ")
             inner_res = to_string_list(v)
             for i in range(len(inner_res)):
-                inner_res[i] = "│ " + inner_res[i]
+                inner_res[i] = (
+                    ("│ " + "&nbsp; " * 3) if count < its else "&nbsp; " * 5
+                ) + inner_res[i]
             res.extend(inner_res)
         else:
-            res.append("└ " + k)
+            res.append(f"└ [{k}](#TraceAll.{k})  ")
     return res
 
 
 with open(Path(__file__).parent.resolve() / "hooks.md", "w") as f:
-    f.write("```bash\n" + "\n".join(to_string_list(hierarchy)) + "\n```\n")
+    # f.write("```\n" + "\n".join(to_string_list(hierarchy)) + "\n```\n")
+    f.write("\n".join(to_string_list(hierarchy)) + "\n")
