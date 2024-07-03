@@ -82,6 +82,8 @@
             "_raise": {},
             "enter_try": {},
             "clean_exit_try": {},
+            "enter_with": {},
+            "exit_with": {},
             "exception": {},
             "pre_call": {},
             "post_call": {},

@@ -3,6 +3,7 @@ This module is DynaPyt's runtime engine.
 It is not supposed to be used directly, but rather to be used by the instrumented code.
 """
 
+from contextlib import contextmanager
 from typing import List, Tuple, Any
 from pathlib import Path
 from sys import exc_info
@@ -806,3 +807,30 @@ def _gen_(dyn_ast, iid, iterator):
             _enter_for_(dyn_ast, iid, e, iterator)
             _exit_for_(dyn_ast, iid)
             return
+
+        
+
+@contextmanager
+def _enter_with_(dyn_ast, iid, ctx_manager_arg):
+    call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
+    call_if_exists("enter_with", dyn_ast, iid, ctx_manager_arg)
+    is_suppressed = False
+    ctx_manager = ctx_manager_arg
+    return_value = ctx_manager.__enter__()
+
+    try:
+        yield return_value
+    except Exception as e:
+        is_suppressed = ctx_manager.__exit__(type(e), e, e.__traceback__)
+        if not is_suppressed:
+            call_if_exists("runtime_event", dyn_ast, iid)
+            call_if_exists("control_flow_event", dyn_ast, iid)
+            call_if_exists("exit_with", dyn_ast, iid, False, e)
+            raise
+    else:
+        ctx_manager.__exit__(None, None, None)
+        
+    call_if_exists("runtime_event", dyn_ast, iid)
+    call_if_exists("control_flow_event", dyn_ast, iid)
+    call_if_exists("exit_with", dyn_ast, iid, is_suppressed, None)
