@@ -65,7 +65,7 @@ def to_string_list(root):
                 inner_res[i] = "│ " + inner_res[i]
             res.extend(inner_res)
         else:
-            res.append("└ " + k)
+            res.append("└ `" + k + "`")
     return res
 
 
