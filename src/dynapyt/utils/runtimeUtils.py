@@ -1,4 +1,6 @@
 import importlib
+import json
+from pathlib import Path
 from typing import List, Any
 from ..analyses.BaseAnalysis import BaseAnalysis
 
@@ -38,3 +40,46 @@ def merge_coverage(base_coverage: dict, new_coverage: dict) -> dict:
                     base_coverage[cov_file][line][analysis] = 0
                 base_coverage[cov_file][line][analysis] += count
     return base_coverage
+
+
+def gather_coverage(coverage_path: Path) -> None:
+    analysis_coverage = {}
+    for cov_file in coverage_path.glob("coverage-*.json"):
+        with open(coverage_path / cov_file, "r") as f:
+            new_coverage = json.load(f)
+            analysis_coverage = merge_coverage(analysis_coverage, new_coverage)
+        (coverage_path / cov_file).unlink()
+    with open(coverage_path / "coverage.json", "w") as f:
+        json.dump(analysis_coverage, f)
+
+
+def gather_output(output_dir: Path) -> None:
+    analysis_output = []
+    for output_file in output_dir.glob("output-*.json"):
+        with open(output_dir / output_file, "r") as f:
+            new_output = json.load(f)
+            analysis_output.append(new_output)
+        (output_dir / output_file).unlink()
+    with open(output_dir / "output.json", "w") as f:
+        json.dump(analysis_output, f, indent=2)
+
+
+def match_output(actual: list[list], expected: list[list]) -> bool:
+    if len(actual) != len(expected):
+        return False
+    for i in range(len(actual)):
+        found = False
+        for j in range(len(expected)):
+            if "\n".join(actual[i]) == "\n".join(expected[j]):
+                found = True
+                break
+        if not found:
+            return False
+    return True
+
+
+def match_coverage(actual: dict, expected: dict) -> bool:
+    return expected == {
+        k.replace("\\", "/").replace("//", "/").split("/projects/")[-1]: v
+        for k, v in actual.items()
+    }

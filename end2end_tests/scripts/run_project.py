@@ -9,31 +9,9 @@ from dynapyt.instrument.instrument import instrument_file
 from dynapyt.run_analysis import run_analysis
 from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 from dynapyt.utils.hooks import get_hooks_from_analysis
+from dynapyt.utils.runtimeUtils import match_output, match_coverage
 
 here = Path(__file__).parent
-
-
-def match_output(actual: list[list], expected: list[list]) -> bool:
-    if len(actual) != len(expected):
-        return False
-    for i in range(len(actual)):
-        found = False
-        for j in range(len(expected)):
-            if "\n".join(actual[i]) == "\n".join(expected[j]):
-                found = True
-                break
-        if not found:
-            return False
-    return True
-
-
-def match_coverage(actual: dict, expected: dict) -> bool:
-    return expected == {
-        k[len(str((here / ".." / "projects").resolve())) + 1 :]
-        .replace("\\", "/")
-        .replace("//", "/"): v
-        for k, v in actual.items()
-    }
 
 
 def run_project(project_path: str, module_name: str, path_to_tests: str):

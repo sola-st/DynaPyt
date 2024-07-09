@@ -39,7 +39,7 @@ pip install .
 
 ## Implementing an Analysis
 
-An analysis is a subclass of BaseAnalysis. See the [analysis folder](src/dynapyt/analyses) for examples. To add your own analysis, add a file with a new analysis class to this folder. The name of the class is refered to as \<analysis name\> below.
+An analysis is a subclass of BaseAnalysis. See the [analysis folder](src/dynapyt/analyses) for examples.
 
 ## Instrumenting Python Code
 
@@ -70,6 +70,15 @@ Single command to instrument and run an analysis on a project:
 ```
 python -m dynapyt.run_all --directory <directory of project> --entry <entry file (python)> --analysis <analysis class full dotted path>
 ```
+
+### New
+You can now run your code directly and the analyses get triggered. This allows for running tests using test frameworks like tox. To run the analysis in this mode:
+1. Instrument your code with the appropriate analysis.
+2. Set the environment variable `DYNAPYT_SESSION_ID` to a unique ID (e.g. using uuid).
+3. Create a file in your OS's temporary directory named `dynapyt_analyses-<unique ID from 2.>.txt` and list the analyses you want, one per line.
+4. If you want to collect analysis coverage, set `DYNAPYT_COVERAGE` environment variable to the coverage directory.
+5. Run your code as you did before.
+6. To merge coverage and outputs run `python -m dynapyt.post_run --coverage_dir=<coverage directory> --output_dir=<output directory>`. The coverage will be stored in `<coverage_dir>/coverage.json` and the outputs will be stored in `<output_dir>/output.json`.
 
 ## Available Hooks
 

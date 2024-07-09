@@ -3,7 +3,7 @@ name: end2end tests
 on: [push]
 
 jobs:
-  build:
+  test:
 
     strategy:
       matrix:
