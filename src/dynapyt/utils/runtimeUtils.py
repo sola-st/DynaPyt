@@ -1,4 +1,6 @@
 import importlib
+import json
+from pathlib import Path
 from typing import List, Any
 from ..analyses.BaseAnalysis import BaseAnalysis
 
@@ -38,3 +40,14 @@ def merge_coverage(base_coverage: dict, new_coverage: dict) -> dict:
                     base_coverage[cov_file][line][analysis] = 0
                 base_coverage[cov_file][line][analysis] += count
     return base_coverage
+
+
+def gather_coverage(coverage_path: Path) -> None:
+    analysis_coverage = {}
+    for cov_file in coverage_path.glob("coverage-*.json"):
+        with open(coverage_path / cov_file, "r") as f:
+            new_coverage = json.load(f)
+            analysis_coverage = merge_coverage(analysis_coverage, new_coverage)
+        (coverage_path / cov_file).unlink()
+    with open(coverage_path / "coverage.json", "w") as f:
+        json.dump(analysis_coverage, f)

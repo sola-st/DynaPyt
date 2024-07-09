@@ -127,12 +127,9 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         )
         # imp_aliases = [cst.ImportAlias(name=cst.Name(value=name)) for name in names]
         # imp = cst.ImportFrom(module=module_name, names=imp_aliases)
-        imp = cst.Import(
-            names=[
-                cst.ImportAlias(
-                    name=module_name, asname=cst.AsName(cst.Name(value="_rt"))
-                )
-            ]
+        imp = cst.ImportFrom(
+            module=module_name,
+            names=[cst.ImportAlias(name=cst.Name(value="RuntimeEngine"))],
         )
         stmt = cst.SimpleStatementLine(body=[imp])
         return stmt
@@ -249,6 +246,16 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
         if len(import_names) > 0:
             dynapyt_imports.append(self.__create_import(import_names))
+            dynapyt_imports.append(
+                cst.SimpleStatementLine(
+                    body=[
+                        cst.Assign(
+                            targets=[cst.AssignTarget(cst.Name("_rt"))],
+                            value=cst.Call(func=cst.Name(value="RuntimeEngine")),
+                        )
+                    ]
+                )
+            )
             dynapyt_imports.append(cst.Newline(value="\n"))
             code_body = list(updated_node.body[imports_index + 1 :])
             handler_call = cst.Call(
@@ -1548,14 +1555,15 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_Try(self, original_node, updated_node):
         self.current_try.pop()
-        if ("enter_try" not in self.selected_hooks) and \
-            ("clean_exit_try" not in self.selected_hooks):
+        if ("enter_try" not in self.selected_hooks) and (
+            "clean_exit_try" not in self.selected_hooks
+        ):
             return updated_node
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        
-        if ("enter_try" in self.selected_hooks):
+
+        if "enter_try" in self.selected_hooks:
             enter_name = cst.Attribute(
                 value=cst.Name(value="_rt"), attr=cst.Name(value="_try_")
             )
@@ -1568,11 +1576,11 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         else:
             new_body = updated_node.body
 
-        if ("clean_exit_try" in self.selected_hooks):
+        if "clean_exit_try" in self.selected_hooks:
             clean_exit = cst.Attribute(
                 value=cst.Name(value="_rt"), attr=cst.Name(value="_end_try_")
             )
-            self.to_import.add("_end_try_") 
+            self.to_import.add("_end_try_")
 
             end_call = cst.Call(func=clean_exit, args=[ast_arg, iid_arg])
             if updated_node.orelse != None:
@@ -1597,7 +1605,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             return updated_node.with_changes(
                 body=new_body, handlers=[new_handler], orelse=else_part
             )
-        
+
         return updated_node.with_changes(body=new_body, orelse=else_part)
 
     def leave_ExceptHandler(self, original_node, updated_node):
@@ -1868,20 +1876,17 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             iter=generator_call, target=original_node.target
         )
 
-
-    def leave_With(
-        self, original_node, updated_node
-    ):
+    def leave_With(self, original_node, updated_node):
         if (
             "enter_with" not in self.selected_hooks
             and "exit_with" not in self.selected_hooks
         ):
             return updated_node
-        
+
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        
+
         ctx_manager_arg = cst.Arg(value=updated_node.items[0].item)
         callee_name = cst.Attribute(
             value=cst.Name(value="_rt"), attr=cst.Name(value="_enter_with_")
@@ -1891,10 +1896,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         with_item = cst.WithItem(
             item=call,
             asname=updated_node.items[0].asname,
-            comma=updated_node.items[0].comma
+            comma=updated_node.items[0].comma,
         )
         with_items = [with_item]
 
         return updated_node.with_changes(
-            items = with_items,
+            items=with_items,
         )

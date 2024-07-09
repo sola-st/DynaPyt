@@ -9,10 +9,11 @@ import sys
 import uuid
 import json
 from pathlib import Path
-from .utils.runtimeUtils import merge_coverage
+from .utils.runtimeUtils import gather_coverage
 
-session_id = str(uuid.uuid4())
-os.environ["DYNAPYT_SESSION_ID"] = session_id
+session_id = os.environ.get("DYNAPYT_SESSION_ID")
+if session_id is None:
+    os.environ["DYNAPYT_SESSION_ID"] = session_id = str(uuid.uuid4())
 
 
 def run_analysis(
@@ -87,11 +88,6 @@ def run_analysis(
         elif entry.endswith(".py"):
             exec(open(entry_full_path).read(), globals_dict)
 
-    if "dynapyt.runtime" in sys.modules:
-        runtime_module = sys.modules["dynapyt.runtime"]
-        runtime_module.end_execution()
-        del sys.modules["dynapyt.runtime"]
-
     # read all files in output directory and merge them
     analysis_output = []
     for output_file in output_dir.glob("output-*.json"):
@@ -103,15 +99,8 @@ def run_analysis(
         json.dump(analysis_output, f, indent=2)
 
     # read all files in coverage directory and merge them
-    analysis_coverage = {}
     if coverage:
-        for cov_file in coverage_path.glob("coverage-*.json"):
-            with open(coverage_path / cov_file, "r") as f:
-                new_coverage = json.load(f)
-                analysis_coverage = merge_coverage(analysis_coverage, new_coverage)
-            (coverage_path / cov_file).unlink()
-        with open(coverage_path / "coverage.json", "w") as f:
-            json.dump(analysis_coverage, f)
+        gather_coverage(coverage_path)
 
     return session_id
 
@@ -127,9 +116,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     name = args.name
     analyses = args.analysis
-    run_analysis(
-        entry=args.entry,
-        analyses=analyses,
-        name=name,
-        coverage=args.coverage
-    )
+    run_analysis(entry=args.entry, analyses=analyses, name=name, coverage=args.coverage)
