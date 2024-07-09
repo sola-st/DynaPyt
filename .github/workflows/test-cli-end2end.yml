@@ -1,4 +1,4 @@
-name: tests
+name: Tests CLI end2end
 
 on: [push]
 
@@ -7,8 +7,8 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
-        os: ["ubuntu-latest", "windows-latest", "macos-latest"]
+        python-version: ["3.10", "3.11", "3.12"]
+        os: ["ubuntu-latest"]
     
     runs-on: ${{ matrix.os }}
 
@@ -21,10 +21,11 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          pip install hatch
           pip install pytest
       - name: Install DynaPyt
         run: |
-          pip install .
-      - name: Test with pytest
+          pip install -e .
+      - name: Run the test script
         run: |
-          pytest tests
+          hatch run end2end:cli

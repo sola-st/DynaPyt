@@ -69,7 +69,7 @@ class RuntimeEngine:
         atexit.register(self.end_execution)
         if self.analyses_file.exists():
             with open(str(self.analyses_file), "r") as af:
-                new_analyses = af.read().split("\n")
+                new_analyses = af.read().strip().split("\n")
         else:
             raise Exception(f"Analyses file not found: {str(self.analyses_file)}")
         self.analyses = load_analyses(new_analyses)

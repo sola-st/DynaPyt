@@ -56,3 +56,4 @@ dependencies = [
 ]
 [tool.hatch.envs.end2end.scripts]
 run = "bash end2end_tests/scripts/run_single_project.sh simple-with-pytest simple_with_pytest tests"
+cli = "bash end2end_tests/scripts/run_cli.sh simple-with-pytest simple_with_pytest \"pytest -n 6 tests\""

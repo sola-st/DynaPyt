@@ -9,7 +9,7 @@ import sys
 import uuid
 import json
 from pathlib import Path
-from .utils.runtimeUtils import gather_coverage
+from .utils.runtimeUtils import gather_coverage, gather_output
 
 session_id = os.environ.get("DYNAPYT_SESSION_ID")
 if session_id is None:
@@ -89,14 +89,7 @@ def run_analysis(
             exec(open(entry_full_path).read(), globals_dict)
 
     # read all files in output directory and merge them
-    analysis_output = []
-    for output_file in output_dir.glob("output-*.json"):
-        with open(output_dir / output_file, "r") as f:
-            new_output = json.load(f)
-            analysis_output.append(new_output)
-        (output_dir / output_file).unlink()
-    with open(output_dir / "output.json", "w") as f:
-        json.dump(analysis_output, f, indent=2)
+    gather_output(output_dir)
 
     # read all files in coverage directory and merge them
     if coverage:
