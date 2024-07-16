@@ -8,7 +8,7 @@ from ..analyses.BaseAnalysis import BaseAnalysis
 def load_analyses(analyses: List[Any]) -> List[BaseAnalysis]:
     res_analyses = []
     for ana in analyses:
-        if isinstance(ana, str):
+        if isinstance(ana, str) and "." in ana:
             conf = None
             if ";" in ana:
                 parts = ana.split(";")
