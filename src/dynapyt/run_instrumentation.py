@@ -19,6 +19,10 @@ def instrument_dir(
     start = directory
     all_cmds = []
 
+    if isinstance(analysis, str) and Path(analysis).exists():
+        with open(analysis, "r") as f:
+            analysis = [ana.strip() for ana in f.read().split("\n")]
+
     if use_external_dir:
         external_path = Path(start) / "dynapyt_analysis"
         # create new folder /dynapyt_analysis on same level as specified directory
