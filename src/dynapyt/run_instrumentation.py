@@ -19,9 +19,11 @@ def instrument_dir(
     start = directory
     all_cmds = []
 
-    if isinstance(analysis, str) and Path(analysis).exists():
+    try:
         with open(analysis, "r") as f:
             analysis = [ana.strip() for ana in f.read().split("\n")]
+    except FileNotFoundError:
+        pass
 
     if use_external_dir:
         external_path = Path(start) / "dynapyt_analysis"
