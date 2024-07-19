@@ -71,6 +71,10 @@ if __name__ == "__main__":
         required=True,
     )
     parser.add_argument(
+        "--analysisFile",
+        help="Analysis file with list of analysis classes",
+    )
+    parser.add_argument(
         "--external_dir",
         help="Place instrumented files in another directory",
         dest="external_dir",
@@ -79,5 +83,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     start = args.directory
     analysis = args.analysis
+    if args.analysisFile:
+        analysis = args.analysisFile
     use_external_dir = args.external_dir
     instrument_dir(start, analysis, use_external_dir)
