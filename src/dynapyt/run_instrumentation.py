@@ -68,7 +68,6 @@ if __name__ == "__main__":
         "--analysis",
         help="Analysis class(es) (full dotted path)",
         nargs="+",
-        required=True,
     )
     parser.add_argument(
         "--analysisFile",
