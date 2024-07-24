@@ -1358,7 +1358,7 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Caught", caught, "from", exceptions)
 
     def enter_with(self, dyn_ast: str, iid: int, ctx_manager: ContextManager) -> None:
-        """Hook for entering a with statement.
+        """Hook for entering a with item.
 
 
         Parameters
@@ -1376,7 +1376,7 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Entered with")
 
     def exit_with(self, dyn_ast: str, iid: int, is_suppressed: bool, exc_value):
-        """Hook for exiting a with statement.
+        """Hook for exiting a with item.
 
 
         Parameters

@@ -1,0 +1,18 @@
+begin execution
+with statement entered
+ContextManagerOne: __enter__
+with statement entered
+ContextManagerTwo: __enter__
+inside with block
+context manager one
+context manager two
+ContextManagerTwo: __exit__
+exc_type:  <class 'Exception'>
+exc_value:  exception raised inside with statement block
+with statement exited
+ContextManagerOne: __exit__
+exc_type:  <class 'Exception'>
+exc_value:  exception raised inside with statement block
+with statement exited
+exception caught:  exception raised inside with statement block
+end execution

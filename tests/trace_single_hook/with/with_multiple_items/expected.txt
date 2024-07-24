@@ -1,0 +1,12 @@
+begin execution
+with statement entered
+with statement entered
+Line read from expected.txt:  begin execution
+
+Line read from analysis.py:  from dynapyt.analyses.BaseAnalysis import BaseAnalysis
+
+content has been read from the files
+with statement exited
+with statement exited
+file has been closed
+end execution
