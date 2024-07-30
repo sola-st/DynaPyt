@@ -1,6 +1,5 @@
-import sys
 from importlib import import_module
-from os import sep, remove, environ
+from os import sep, remove
 from os.path import join, exists
 from pathlib import Path
 from shutil import copyfile, move, rmtree
@@ -123,10 +122,6 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
             )
     except Exception as e:
         exception = e
-
-    from dynapyt.runtime import RuntimeEngine
-
-    RuntimeEngine().end_execution()
 
     # check output
     expected_file = join(abs_dir, "expected.txt")

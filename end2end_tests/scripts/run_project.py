@@ -10,6 +10,7 @@ from dynapyt.run_analysis import run_analysis
 from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 from dynapyt.utils.hooks import get_hooks_from_analysis
 from dynapyt.utils.runtimeUtils import match_output, match_coverage
+from dynapyt.post_run import post_run
 
 here = Path(__file__).parent
 
@@ -51,6 +52,11 @@ def run_project(project_path: str, module_name: str, path_to_tests: str):
         coverage=True,
         coverage_dir=cov_dir,
         script=test_code,
+    )
+
+    post_run(
+        str(cov_dir / f"dynapyt_coverage-{session_id}"),
+        str(Path(project_dir) / f"dynapyt_output-{session_id}"),
     )
 
     failed = ""

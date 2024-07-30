@@ -62,6 +62,19 @@ def instrument_file(file_path, selected_hooks):
     print(f"Done with {file_path}")
 
 
+def instrument_files(files, analyses):
+    selected_hooks = get_hooks_from_analysis(analyses)
+    if len(files) < 2:
+        for file_path in files:
+            instrument_file(file_path, selected_hooks)
+    else:
+        arg_list = []
+        for file_path in files:
+            arg_list.append((file_path, selected_hooks))
+        with Pool(maxtasksperchild=5) as p:
+            p.starmap(instrument_file, arg_list)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -78,14 +91,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     files = gather_files(args.files)
-    analysis = args.analysis
-    selected_hooks = get_hooks_from_analysis(args.analysis)
-    if len(files) < 2:
-        for file_path in files:
-            instrument_file(file_path, selected_hooks)
-    else:
-        arg_list = []
-        for file_path in files:
-            arg_list.append((file_path, selected_hooks))
-        with Pool() as p:
-            p.starmap(instrument_file, arg_list)
+    instrument_files(files, args.analysis)

@@ -7,6 +7,8 @@ import shutil
 from subprocess import run
 import time
 from multiprocessing import Pool
+from dynapyt.utils.hooks import get_hooks_from_analysis
+from dynapyt.instrument.instrument import instrument_files
 
 
 def instrument_dir(
@@ -19,11 +21,9 @@ def instrument_dir(
     start = directory
     all_cmds = []
 
-    try:
+    if isinstance(analysis, str) and Path(analysis).exists():
         with open(analysis, "r") as f:
             analysis = [ana.strip() for ana in f.read().split("\n")]
-    except FileNotFoundError:
-        pass
 
     if use_external_dir:
         external_path = Path(start) / "dynapyt_analysis"
@@ -32,24 +32,8 @@ def instrument_dir(
         shutil.copytree(start, external_path)
         start = str(external_path)
 
-    for dir_path, dir_names, file_names in walk(start):
-        for name in dir_names:
-            if path.join(dir_path, name) in exclude:
-                dir_names.remove(name)
-        for name in file_names:
-            file_path = path.join(dir_path, name)
-            if name.endswith(".py") and file_path not in exclude:
-                cmd_list = [
-                    "python",
-                    "-m",
-                    "dynapyt.instrument.instrument",
-                    "--files",
-                    file_path,
-                    "--analysis",
-                ] + analysis
-                all_cmds.append((cmd_list, file_path))
-    with Pool(maxtasksperchild=5) as p:
-        p.starmap(process_files, all_cmds)
+    files = [str(f.resolve()) for f in Path(start).rglob("*.py") if f not in exclude]
+    instrument_files(files, analysis)
     print("#################### Instrumentation took " + str(time.time() - start_time))
 
 

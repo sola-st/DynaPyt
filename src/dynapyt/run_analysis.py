@@ -10,10 +10,7 @@ import uuid
 import json
 from pathlib import Path
 from .utils.runtimeUtils import gather_coverage, gather_output
-
-session_id = os.environ.get("DYNAPYT_SESSION_ID")
-if session_id is None:
-    os.environ["DYNAPYT_SESSION_ID"] = session_id = str(uuid.uuid4())
+from .runtime import RuntimeEngine
 
 
 def run_analysis(
@@ -51,11 +48,14 @@ def run_analysis(
     str
         The session id for the current run
     """
+    os.environ["DYNAPYT_SESSION_ID"] = session_id = str(uuid.uuid4())
     if coverage:
         if coverage_dir is None:
             coverage_dir = gettempdir()
         coverage_path = Path(coverage_dir) / f"dynapyt_coverage-{session_id}"
         os.environ["DYNAPYT_COVERAGE"] = str(coverage_path)
+    elif "DYNAPYT_COVERAGE" in os.environ:
+        del os.environ["DYNAPYT_COVERAGE"]
 
     analyses_file = Path(gettempdir()) / f"dynapyt_analyses-{session_id}.txt"
     if analyses_file.exists():
@@ -87,13 +87,15 @@ def run_analysis(
             exec(script, globals_dict)
         elif entry.endswith(".py"):
             exec(open(entry_full_path).read(), globals_dict)
+    if RuntimeEngine._rt_engine is not None:
+        RuntimeEngine().__del__()
 
     # read all files in output directory and merge them
-    gather_output(output_dir)
+    # gather_output(output_dir)
 
     # read all files in coverage directory and merge them
-    if coverage:
-        gather_coverage(coverage_path)
+    # if coverage:
+    #     gather_coverage(coverage_path)
 
     return session_id
 
