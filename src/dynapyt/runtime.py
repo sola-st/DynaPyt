@@ -102,12 +102,11 @@ class RuntimeEngine:
             patterns = fltr.split(" -> ")[1].split(SEPERATOR)
             try:
                 if fltr.startswith("only ->") and any(
-                    # [getattr(arg, "__name__", None) in patterns for arg in sub_args]
-                    [arg.__name__ in patterns for arg in sub_args]
+                    [arg.__dict__.get("__name__", None) in patterns for arg in sub_args]
                 ):
                     return False
                 elif fltr.startswith("ignore ->") and any(
-                    [arg.__name__ in patterns for arg in sub_args]
+                    [arg.__dict__.get("__name__", None) in patterns for arg in sub_args]
                 ):
                     return True
             except AttributeError:
