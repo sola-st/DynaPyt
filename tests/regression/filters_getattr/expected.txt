@@ -1,0 +1,7 @@
+pree call of deferred_error
+pree call of ValueError
+pree call of new
+pree call of DeferredError
+pree call of print
+OK
+# Exception: Some error text

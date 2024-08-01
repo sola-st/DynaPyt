@@ -100,14 +100,18 @@ class RuntimeEngine:
             end = docs.find(END)
             fltr = docs[start + len(START) : end].strip()
             patterns = fltr.split(" -> ")[1].split(SEPERATOR)
-            if fltr.startswith("only ->") and any(
-                [getattr(arg, "__name__", None) in patterns for arg in sub_args]
-            ):
-                return False
-            elif fltr.startswith("ignore ->") and any(
-                [getattr(arg, "__name__", None) in patterns for arg in sub_args]
-            ):
-                return True
+            try:
+                if fltr.startswith("only ->") and any(
+                    # [getattr(arg, "__name__", None) in patterns for arg in sub_args]
+                    [arg.__name__ in patterns for arg in sub_args]
+                ):
+                    return False
+                elif fltr.startswith("ignore ->") and any(
+                    [arg.__name__ in patterns for arg in sub_args]
+                ):
+                    return True
+            except AttributeError:
+                pass
             docs = docs[end + len(END) :].lstrip()
         return False
 
@@ -609,6 +613,7 @@ class RuntimeEngine:
         t, v, stack_trace = exc_info()
         self.call_if_exists("runtime_event", "", -1)
         self.call_if_exists("uncaught_exception", exception, stack_trace)
+        self.end_execution()
         raise exception
 
     def _read_(self, dyn_ast, iid, var_arg):
