@@ -16,6 +16,18 @@ from ..utils.hooks import snake
 from .IIDs import IIDs
 from pathlib import Path
 
+site_sensitive_functions = [
+    "breakpoint",
+    "dir",
+    "eval",
+    "exec",
+    "globals",
+    "help",
+    "locals",
+    "super",
+    "vars",
+]
+
 
 class CodeInstrumenter(m.MatcherDecoratableTransformer):
     METADATA_DEPENDENCIES = (
@@ -137,13 +149,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def __wrap_in_lambda(self, original_node, updated_node):
         if len(m.findall(original_node, m.Await())) > 0:
             return updated_node
-        if m.matches(updated_node, m.Call(func=m.Name("super"), args=[])):
-            class_arg = cst.Arg(value=cst.Name(value=self.current_class[-1]))
-            function_arg = cst.Arg(
-                value=cst.Name(value=self.current_function[-1]["params"].value)
-            )
-            new_node = updated_node.with_changes(args=[class_arg, function_arg])
-            return cst.Lambda(params=cst.Parameters(params=[]), body=new_node)
+        used_calls = list(set(m.findall(updated_node, m.Call())))
         used_names = list(m.findall(original_node, m.Name()))
         unique_names = set()
         parameters = []
@@ -182,6 +188,20 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                         )
                     )
                     unique_names.add(n.value)
+        for c in used_calls:
+            if any(
+                [
+                    m.matches(c.func, m.Name(value=ssf))
+                    for ssf in site_sensitive_functions
+                ]
+            ):
+                parameters.append(
+                    cst.Param(
+                        name=c.func,
+                        default=c,
+                    )
+                )
+                updated_node = updated_node.deep_replace(c, c.func)
         if m.matches(updated_node, m.Tuple()) and (len(updated_node.lpar) == 0):
             lambda_expr = cst.Lambda(
                 params=cst.Parameters(params=parameters),
@@ -1403,17 +1423,6 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             )
         ):
             return updated_node
-        site_sensitive_functions = [
-            "breakpoint",
-            "dir",
-            "eval",
-            "exec",
-            "globals",
-            "help",
-            "locals",
-            "super",
-            "vars",
-        ]
         callee_name = cst.Attribute(
             value=cst.Name(value="_rt"), attr=cst.Name(value="_call_")
         )
@@ -1882,7 +1891,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             and "exit_with" not in self.selected_hooks
         ):
             return updated_node
-    
+
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))

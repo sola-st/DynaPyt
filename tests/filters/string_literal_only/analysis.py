@@ -7,7 +7,7 @@ class TestAnalysis(BaseAnalysis):
     def begin_execution(self) -> None:
         print("begin execution")
 
-    @only(patterns=['"abc"'])
+    @only(patterns=["'abc'", '"abc"', "abc"])
     def string(self, dyn_ast: str, iid: int, val: Any) -> Any:
         print(f'string literal "{val}"')
 

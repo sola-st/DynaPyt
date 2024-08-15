@@ -52,6 +52,8 @@ def correct_coverage(expected: str, actual: str) -> bool:
 
 def test_runner(directory_pair: Tuple[str, str], capsys):
     abs_dir, rel_dir = directory_pair
+    if (Path(abs_dir) / "skip.txt").exists():
+        pytest.skip(f"Skipping test {rel_dir}")
 
     exception = None
 

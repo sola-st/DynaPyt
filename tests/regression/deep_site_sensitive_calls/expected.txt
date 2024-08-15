@@ -1,0 +1,10 @@
+begin execution
+pre call of B
+pre call of __init__
+pre call of f
+pre call of f
+binary operation 1 Add 2 = 3
+pre call of len
+pre call of len
+binary operation 14 Add 14 = 28
+end execution

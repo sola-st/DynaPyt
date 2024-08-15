@@ -95,24 +95,50 @@ class RuntimeEngine:
             sub_args = args[2:]
         else:
             return False
+        sub_arg_names = []
+        for arg in sub_args:
+            if arg == () or arg == [] or arg == {}:
+                continue
+            if type(arg) == tuple and len(arg) == 1:
+                arg = arg[0]
+            try:
+                name = arg.__dict__.get("__name__", None)
+                if name is not None:
+                    sub_arg_names.append(name)
+                    continue
+                else:
+                    no_dict = True
+            except AttributeError:
+                no_dict = True
+            try:
+                sub_arg_names.append(arg.__name__)
+                continue
+            except AttributeError:
+                no_name = True
+            if no_dict and no_name:
+                sub_arg_names.append(str(arg))
+        if (
+            func.__name__ == "post_call"
+            and sub_args[0] == sub_args[1]
+            and type(sub_args[0]) == super
+        ):
+            sub_arg_names.append("super")
+        return_value = False
         while START in docs:
             start = docs.find(START)
             end = docs.find(END)
             fltr = docs[start + len(START) : end].strip()
             patterns = fltr.split(" -> ")[1].split(SEPERATOR)
-            try:
-                if fltr.startswith("only ->") and any(
-                    [arg.__dict__.get("__name__", None) in patterns for arg in sub_args]
-                ):
+            if fltr.startswith("only ->"):
+                return_value = True
+                if any([arg in patterns for arg in sub_arg_names]):
                     return False
-                elif fltr.startswith("ignore ->") and any(
-                    [arg.__dict__.get("__name__", None) in patterns for arg in sub_args]
-                ):
+            elif fltr.startswith("ignore ->"):
+                return_value = False
+                if any([arg in patterns for arg in sub_arg_names]):
                     return True
-            except AttributeError:
-                pass
             docs = docs[end + len(END) :].lstrip()
-        return False
+        return return_value
 
     def call_if_exists(self, f, *args):
         return_value = None
