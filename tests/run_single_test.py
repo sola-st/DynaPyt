@@ -92,12 +92,15 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
             elif "# DYNAPYT: Run as file" in src:
                 run_as_file = True
 
-        instrument_file(program_file, selected_hooks)
+        ret_value = instrument_file(program_file, selected_hooks)
 
     if exists(join(abs_dir, "__init__.py")) and not exists(
         join(abs_dir, "__init__.py.orig")
     ):
-        instrument_file(join(abs_dir, "__init__.py"), selected_hooks)
+        ret_value = instrument_file(join(abs_dir, "__init__.py"), selected_hooks)
+
+    if ret_value is not None and ret_value != 0:
+        pytest.fail(f"Error while instrumenting {rel_dir}")
 
     # analyze
     captured = capsys.readouterr()  # clear stdout
