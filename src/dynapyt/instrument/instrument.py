@@ -35,6 +35,10 @@ def instrument_code(src, file_path, iids, selected_hooks):
     except ParserSyntaxError:
         print(f"Syntax error in {file_path} -- skipping it")
         return None
+    except Exception as e:
+        print(f"Error in {file_path} -- skipping it")
+        print(e)
+        return None
 
 
 def instrument_file(file_path, selected_hooks):
@@ -43,15 +47,15 @@ def instrument_file(file_path, selected_hooks):
             src = file.read()
     except (UnicodeDecodeError, ValueError):
         print(f"Error reading {file_path} -- skipping it")
-        return
+        return 1
     if "DYNAPYT: DO NOT INSTRUMENT" in src:
         print(f"{file_path} is already instrumented -- skipping it")
-        return
+        return 0
     iids = IIDs(file_path)
 
     instrumented_code = instrument_code(src, file_path, iids, selected_hooks)
     if instrumented_code is None:
-        return
+        return 1
 
     copied_file_path = re.sub(r"\.py$", ".py.orig", file_path)
     copyfile(file_path, copied_file_path)
