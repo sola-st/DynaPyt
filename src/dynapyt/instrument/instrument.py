@@ -38,8 +38,6 @@ def instrument_code(src, file_path, iids, selected_hooks):
     except Exception as e:
         print(f"Error in {file_path} -- skipping it")
         print(e)
-        with open(file_path, "w") as file:
-            print(file.read())
         return None
 
 
