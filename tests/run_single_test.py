@@ -141,7 +141,7 @@ def test_runner(directory_pair: Tuple[str, str], capsys):
     output_res = correct_output(expected, actual, exception)
     if not output_res[0]:
         pytest.fail(
-            f"Output of {rel_dir} does not match expected output on line {output_res[1]}.\n--> Expected:\n{expected}\n--> Actual:\n{actual}"
+            f"Output of {rel_dir} does not match expected output on line {output_res[1]}.\n--> Expected:\n{expected}\n--> Actual:\n{actual}\n--> Exception: {exception}"
         )
 
     expected_coverage = join(abs_dir, "exp_coverage.json")

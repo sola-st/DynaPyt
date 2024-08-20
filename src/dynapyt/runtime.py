@@ -589,6 +589,8 @@ class RuntimeEngine:
                 raise AttributeError()
         else:
             val = getattr(base, attr)
+            if attr in ["__getattribute__", "__getattr__"]:
+                return val
         self.call_if_exists("memory_access", dyn_ast, iid, val)
         self.call_if_exists("read", dyn_ast, iid, val)
         result = self.call_if_exists("read_attribute", dyn_ast, iid, base, attr, val)
