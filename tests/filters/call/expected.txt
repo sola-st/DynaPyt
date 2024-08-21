@@ -2,4 +2,8 @@ begin execution
 pre call of foo
 hello world
 post call of foo
+6
+pre call of foo
+8
+post call of foo
 end execution
