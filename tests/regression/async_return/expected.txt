@@ -1,0 +1,9 @@
+begin execution
+function foo exited with result 0
+0
+function foo exited with result 1
+1
+function foo exited with result 2
+2
+function main exited with result None
+end execution
