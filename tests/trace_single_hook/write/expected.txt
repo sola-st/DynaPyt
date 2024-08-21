@@ -4,4 +4,6 @@ Writing test to [('b',)]
 Writing testtesttesttesttesttesttesttesttesttest to [('c',)]
 Writing testing to [('b',)]
 Writing 30 to [('a',)]
+Writing ('test',) to [('d',)]
+Writing ('test',) to [('e',)]
 end execution

@@ -1107,6 +1107,12 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             val_arg = cst.Arg(value=updated_node.value.value.item)
         elif m.matches(updated_node.value, m.Yield()):
             val_arg = cst.Arg(value=updated_node.value.value)
+        elif m.matches(updated_node.value, m.Tuple()):
+            val_arg = cst.Arg(
+                value=updated_node.value.with_changes(
+                    lpar=[cst.LeftParen()], rpar=[cst.RightParen()]
+                )
+            )
         else:
             val_arg = cst.Arg(value=updated_node.value)
         left_arg = cst.Arg(
@@ -1149,6 +1155,12 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         if m.matches(updated_node.value, m.Yield()):
             val_arg = cst.Arg(value=updated_node.value.value)
+        elif m.matches(updated_node.value, m.Tuple()):
+            val_arg = cst.Arg(
+                value=updated_node.value.with_changes(
+                    lpar=[cst.LeftParen()], rpar=[cst.RightParen()]
+                )
+            )
         else:
             val_arg = cst.Arg(value=updated_node.value)
         left_arg = cst.Arg(
