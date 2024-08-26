@@ -150,13 +150,7 @@ class RuntimeEngine:
             func = self.analysis_func(analysis, f)
             args_for_filter = []
             for arg in args[2:]:
-                if isinstance(arg, list):
-                    try:
-                        hash(tuple(arg))
-                        args_for_filter.append(tuple(arg))
-                    except:
-                        pass
-                elif isinstance(arg, dict):
+                if isinstance(arg, list) or isinstance(arg, dict):
                     pass
                 else:
                     try:
