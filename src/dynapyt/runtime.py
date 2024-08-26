@@ -13,6 +13,7 @@ import signal
 import json
 import sys
 import os
+from functools import cache
 from tempfile import gettempdir
 from .utils.hooks import snake, get_name
 from .instrument.IIDs import IIDs
@@ -87,14 +88,13 @@ class RuntimeEngine:
             if self.coverage_path.exists():
                 self.coverage_path.unlink()
 
+    @cache
     def filtered(self, func, f, args):
         docs = func.__doc__
         if docs is None or START not in docs:
             return False
-        if len(args) >= 2:
-            sub_args = args[2:]
-        else:
-            return False
+        if len(args) > 0:
+            sub_args = args
         sub_arg_names = []
         for arg in sub_args:
             if arg == () or arg == [] or arg == {}:
@@ -140,11 +140,33 @@ class RuntimeEngine:
             docs = docs[end + len(END) :].lstrip()
         return return_value
 
+    @cache
+    def analysis_func(self, analysis, f):
+        return getattr(analysis, f, None)
+
     def call_if_exists(self, f, *args):
         return_value = None
         for analysis in self.analyses:
-            func = getattr(analysis, f, None)
-            if func is not None and not self.filtered(func, f, args):
+            func = self.analysis_func(analysis, f)
+            args_for_filter = []
+            for arg in args[2:]:
+                if isinstance(arg, list):
+                    try:
+                        hash(tuple(arg))
+                        args_for_filter.append(tuple(arg))
+                    except:
+                        pass
+                elif isinstance(arg, dict):
+                    pass
+                else:
+                    try:
+                        hash(arg)
+                        args_for_filter.append(arg)
+                    except:
+                        pass
+            is_filtered = self.filtered(func, f, tuple(args_for_filter))
+
+            if func is not None and (len(args) < 2 or not is_filtered):
                 return_value = func(*args)
                 if self.covered is not None and len(args) >= 2:
                     r_file, iid = args[0], args[1]
