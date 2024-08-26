@@ -13,7 +13,7 @@ import signal
 import json
 import sys
 import os
-from functools import cache
+from functools import lru_cache
 from tempfile import gettempdir
 from .utils.hooks import snake, get_name
 from .instrument.IIDs import IIDs
@@ -88,7 +88,7 @@ class RuntimeEngine:
             if self.coverage_path.exists():
                 self.coverage_path.unlink()
 
-    @cache
+    @lru_cache(maxsize=128)
     def filtered(self, func, f, args):
         docs = func.__doc__
         if docs is None or START not in docs:
@@ -140,7 +140,7 @@ class RuntimeEngine:
             docs = docs[end + len(END) :].lstrip()
         return return_value
 
-    @cache
+    @lru_cache(maxsize=128)
     def analysis_func(self, analysis, f):
         return getattr(analysis, f, None)
 
