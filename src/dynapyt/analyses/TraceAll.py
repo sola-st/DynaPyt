@@ -864,7 +864,7 @@ class TraceAll(BaseAnalysis):
     # Function Call
 
     def pre_call(
-        self, dyn_ast: str, iid: int, function: Callable, pos_args: Tuple, kw_args: Dict
+        self, dyn_ast: str, iid: int, function: Callable, pos_args: List, kw_args: Dict
     ):
         """Hook called before a function call happens.
         This hook is not called for a set of special functions.
@@ -882,7 +882,7 @@ class TraceAll(BaseAnalysis):
         function : str
             Function which will be called.
 
-        pos_args : Tuple
+        pos_args : List
             The positional arguments passed to the function.
 
         kw_args : Dict

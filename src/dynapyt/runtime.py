@@ -446,8 +446,8 @@ class RuntimeEngine:
                     tmp.extend(list(a))
                 else:
                     kw_args = dict(kw_args, **a)
+            self.call_if_exists("pre_call", dyn_ast, iid, call, tmp, kw_args)
             pos_args = tuple(tmp)
-            self.call_if_exists("pre_call", dyn_ast, iid, call, pos_args, kw_args)
             result = call(*pos_args, **kw_args)
             new_res = self.call_if_exists(
                 "post_call", dyn_ast, iid, result, call, pos_args, kw_args

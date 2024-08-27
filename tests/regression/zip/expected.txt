@@ -1,0 +1,12 @@
+begin execution
+post call of zip
+post call of list
+[(1, 4), (2, 5), (3, 6)]
+post call of print
+post call of zip
+post call of zip
+(1, 2, 3)
+post call of print
+(4, 5, 6)
+post call of print
+end execution
