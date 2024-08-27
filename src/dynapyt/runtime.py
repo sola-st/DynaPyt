@@ -119,7 +119,7 @@ class RuntimeEngine:
                 sub_arg_names.append(str(arg))
         if (
             func.__name__ == "post_call"
-            and sub_args[0] == sub_args[1]
+            and len(sub_args) > 0
             and type(sub_args[0]) == super
         ):
             sub_arg_names.append("super")
