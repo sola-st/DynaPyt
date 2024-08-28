@@ -116,7 +116,10 @@ class RuntimeEngine:
             except AttributeError:
                 no_name = True
             if no_dict and no_name:
-                sub_arg_names.append(str(arg))
+                try:
+                    sub_arg_names.append(str(arg))
+                except:
+                    pass
         if (
             func.__name__ == "post_call"
             and len(sub_args) > 0
