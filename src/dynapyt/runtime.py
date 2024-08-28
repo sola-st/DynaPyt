@@ -97,7 +97,9 @@ class RuntimeEngine:
             sub_args = args
         sub_arg_names = []
         for arg in sub_args:
-            if arg == () or arg == [] or arg == {}:
+            if (
+                isinstance(arg, tuple) or isinstance(arg, list) or isinstance(arg, dict)
+            ) and len(arg) == 0:
                 continue
             if type(arg) == tuple and len(arg) == 1:
                 arg = arg[0]
