@@ -1187,7 +1187,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         if ("write" not in self.selected_hooks) and (
             snake(type(original_node.operator).__name__) not in self.selected_hooks
         ):
-            return updated_node
+            return updated_node.with_changes(target=original_node.target)
         aug_op = {
             "AddAssign": 0,
             "BitAndAssign": 1,
