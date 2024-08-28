@@ -1851,9 +1851,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         )
 
     def leave_For(self, original_node, updated_node):
-        if ("enter_for" not in self.selected_hooks) and (
-            "exit_for" not in self.selected_hooks
-        ):
+        if (
+            ("enter_for" not in self.selected_hooks)
+            and ("exit_for" not in self.selected_hooks)
+        ) or original_node.asynchronous is not None:  # TODO: Handle async for loops
             return updated_node
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))

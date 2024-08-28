@@ -1,0 +1,7 @@
+looping 0
+0
+looping 1
+1
+looping 2
+2
+looping
