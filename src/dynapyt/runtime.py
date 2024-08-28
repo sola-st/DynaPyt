@@ -95,6 +95,8 @@ class RuntimeEngine:
             return False
         if len(args) > 0:
             sub_args = args
+        else:
+            sub_args = []
         sub_arg_names = []
         for arg in sub_args:
             if (
