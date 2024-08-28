@@ -226,33 +226,36 @@ class RuntimeEngine:
             "binary_operation", dyn_ast, iid, operator[opr][:-6], left, right, None
         )
         self.call_if_exists(snake(operator[opr][:-6]), dyn_ast, iid, left, right, None)
-        eval_left = left()
-        if opr == 0:
-            new_val = eval_left + right
-        elif opr == 1:
-            new_val = eval_left & right
-        elif opr == 2:
-            new_val = eval_left | right
-        elif opr == 3:
-            new_val = eval_left ^ right
-        elif opr == 4:
-            new_val = eval_left / right
-        elif opr == 5:
-            new_val = eval_left // right
-        elif opr == 6:
-            new_val = eval_left << right
-        elif opr == 7:
-            new_val = eval_left @ right
-        elif opr == 8:
-            new_val = eval_left % right
-        elif opr == 9:
-            new_val = eval_left * right
-        elif opr == 10:
-            new_val = eval_left**right
-        elif opr == 11:
-            new_val = eval_left >> right
-        elif opr == 12:
-            new_val = eval_left - right
+        try:
+            eval_left = left()
+            if opr == 0:
+                new_val = eval_left + right
+            elif opr == 1:
+                new_val = eval_left & right
+            elif opr == 2:
+                new_val = eval_left | right
+            elif opr == 3:
+                new_val = eval_left ^ right
+            elif opr == 4:
+                new_val = eval_left / right
+            elif opr == 5:
+                new_val = eval_left // right
+            elif opr == 6:
+                new_val = eval_left << right
+            elif opr == 7:
+                new_val = eval_left @ right
+            elif opr == 8:
+                new_val = eval_left % right
+            elif opr == 9:
+                new_val = eval_left * right
+            elif opr == 10:
+                new_val = eval_left**right
+            elif opr == 11:
+                new_val = eval_left >> right
+            elif opr == 12:
+                new_val = eval_left - right
+        except:
+            new_val = None
         self.call_if_exists("memory_access", dyn_ast, iid, new_val)
         self.call_if_exists("write", dyn_ast, iid, [left], new_val)
         result_high = self.call_if_exists(
