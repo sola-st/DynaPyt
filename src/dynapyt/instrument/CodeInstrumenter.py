@@ -1894,7 +1894,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         if (
             "enter_for" not in self.selected_hooks
             and "exit_for" not in self.selected_hooks
-        ):
+        ) or original_node.asynchronous is not None:  # TODO: Handle async for loops
             return updated_node
         generator_name = cst.Attribute(
             value=cst.Name(value="_rt"), attr=cst.Name(value="_gen_")
