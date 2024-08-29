@@ -155,9 +155,11 @@ class RuntimeEngine:
         return_value = None
         for analysis in self.analyses:
             func = self.analysis_func(analysis, f)
+            if func is None:
+                continue
             args_for_filter = []
             for arg in args[2:]:
-                if isinstance(arg, list) or isinstance(arg, dict):
+                if type(arg) is list or type(arg) is dict:
                     pass
                 else:
                     try:
@@ -167,7 +169,7 @@ class RuntimeEngine:
                         pass
             is_filtered = self.filtered(func, f, tuple(args_for_filter))
 
-            if func is not None and (len(args) < 2 or not is_filtered):
+            if len(args) < 2 or not is_filtered:
                 return_value = func(*args)
                 if self.covered is not None and len(args) >= 2:
                     r_file, iid = args[0], args[1]
