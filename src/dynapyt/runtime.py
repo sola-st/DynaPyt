@@ -99,37 +99,14 @@ class RuntimeEngine:
             sub_args = []
         sub_arg_names = []
         for arg in sub_args:
-            if (
-                isinstance(arg, tuple) or isinstance(arg, list) or isinstance(arg, dict)
-            ) and len(arg) == 0:
-                continue
-            if type(arg) == tuple and len(arg) == 1:
-                arg = arg[0]
-            try:
-                name = arg.__dict__.get("__name__", None)
-                if name is not None:
-                    sub_arg_names.append(name)
-                    continue
-                else:
-                    no_dict = True
-            except AttributeError:
-                no_dict = True
-            try:
+            if type(arg) in [int, str, float, bool]:
+                sub_arg_names.append(str(arg))
+            elif (
+                type(arg) is type(print)
+                or type(arg) is type(snake)
+                or type(arg) is type(self.set_coverage)
+            ):
                 sub_arg_names.append(arg.__name__)
-                continue
-            except AttributeError:
-                no_name = True
-            if no_dict and no_name:
-                try:
-                    sub_arg_names.append(str(arg))
-                except:
-                    pass
-        if (
-            func.__name__ == "post_call"
-            and len(sub_args) > 0
-            and type(sub_args[0]) == super
-        ):
-            sub_arg_names.append("super")
         return_value = False
         while START in docs:
             start = docs.find(START)
