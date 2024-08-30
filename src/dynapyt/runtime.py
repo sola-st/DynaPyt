@@ -157,17 +157,20 @@ class RuntimeEngine:
             func = self.analysis_func(analysis, f)
             if func is None:
                 continue
-            args_for_filter = []
-            for arg in args[2:]:
-                if type(arg) is list or type(arg) is dict:
-                    pass
-                else:
-                    try:
-                        hash(arg)
-                        args_for_filter.append(arg)
-                    except:
+            if f.startswith("__") and f.endswith("__"):
+                is_filtered = False
+            else:
+                args_for_filter = []
+                for arg in args[2:]:
+                    if type(arg) is list or type(arg) is dict:
                         pass
-            is_filtered = self.filtered(func, f, tuple(args_for_filter))
+                    else:
+                        try:
+                            hash(arg)
+                            args_for_filter.append(arg)
+                        except:
+                            pass
+                is_filtered = self.filtered(func, f, tuple(args_for_filter))
 
             if len(args) < 2 or not is_filtered:
                 return_value = func(*args)
