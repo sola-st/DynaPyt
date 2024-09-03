@@ -146,7 +146,8 @@ def run_test_on_projects():
     else:
         print("Some tests failed")
 
-    return is_successful
+    if not is_successful:
+        raise ValueError("Some tests failed")
 
 
 if __name__ == "__main__":
