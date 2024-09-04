@@ -1,2 +1,1 @@
 execution_invariance_test/projects/simple-test simple_test
-end2end_tests/projects/simple-with-pytest simple_with_pytest

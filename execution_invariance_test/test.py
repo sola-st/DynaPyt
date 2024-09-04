@@ -95,7 +95,7 @@ def run_tests(projects, project_module_map):
                 break
             if test == invariance_test_node_id:
                 if (result == instrumented_test_result[test]):
-                    print(f"Test {test} results match for invariance test")
+                    print(f"Test {test} results are not expected to match for instrumented and uninstrumented code")
                     failed = True
                     break
                 else:
@@ -147,7 +147,7 @@ def run_test_on_projects():
         print("Some tests failed")
 
     if not is_successful:
-        raise ValueError("Some tests failed")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
