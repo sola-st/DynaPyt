@@ -57,3 +57,11 @@ dependencies = [
 [tool.hatch.envs.end2end.scripts]
 run = "bash end2end_tests/scripts/run_single_project.sh simple-with-pytest simple_with_pytest tests"
 cli = "bash end2end_tests/scripts/run_cli.sh simple-with-pytest simple_with_pytest \"pytest -n 6 tests\""
+
+[tool.hatch.envs.exec_invariance_test]
+dependencies = [
+    "pytest-json-report",
+]
+[tool.hatch.envs.exec_invariance_test.scripts]
+run = "bash execution_invariance_test/run_test.sh"
+
