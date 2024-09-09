@@ -52,7 +52,7 @@ class RuntimeEngine:
     def __del__(self):
         self.end_execution()
 
-    def end_execution(self):
+    def end_execution(self, *args):
         if self.end_execution_called:
             return
         self.end_execution_called = True
