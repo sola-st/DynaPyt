@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "simple-test"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Keerthi", email = "keerthivasudevan98@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://github.com/Keerthi/simple-test#readme"
+Issues = "https://github.com/Keerthi/simple-test/issues"
+Source = "https://github.com/Keerthi/simple-test"
+
+[tool.hatch.version]
+path = "src/simple_test/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/simple_test tests}"
+
+[tool.coverage.run]
+source_pkgs = ["simple_test", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/simple_test/__about__.py",
+]
+
+[tool.coverage.paths]
+simple_test = ["src/simple_test", "*/simple-test/src/simple_test"]
+tests = ["tests", "*/simple-test/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]

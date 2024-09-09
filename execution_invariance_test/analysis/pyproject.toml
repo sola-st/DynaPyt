@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "analysis"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Keerthi", email = "keerthivasudevan98@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://github.com/Keerthi/analysis#readme"
+Issues = "https://github.com/Keerthi/analysis/issues"
+Source = "https://github.com/Keerthi/analysis"
+
+[tool.hatch.version]
+path = "src/analysis/__about__.py"
+
+[tool.hatch.envs.default]
+dependencies = [
+  "pytest-json-report",
+]
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/analysis tests}"
+
+[tool.coverage.run]
+source_pkgs = ["analysis", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/analysis/__about__.py",
+]
+
+[tool.coverage.paths]
+analysis = ["src/analysis", "*/analysis/src/analysis"]
+tests = ["tests", "*/analysis/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
