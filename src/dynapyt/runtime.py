@@ -90,9 +90,6 @@ class RuntimeEngine:
 
     @lru_cache(maxsize=128)
     def filtered(self, func, f, args):
-        docs = func.__doc__
-        if docs is None or START not in docs:
-            return False
         if len(args) > 0:
             sub_args = args
         else:
@@ -135,14 +132,21 @@ class RuntimeEngine:
             if func is None:
                 continue
             print(f"Calling {f} of {analysis}")
-            if f.startswith("__") and f.endswith("__"):
+            docs = func.__doc__
+            if docs is None or START not in docs:
+                is_filtered = False
+            elif f.startswith("__") and f.endswith("__"):
                 is_filtered = False
             else:
                 args_for_filter = []
                 for arg in args[2:]:
                     if type(arg) is list or type(arg) is dict:
                         pass
-                    else:
+                    elif (
+                        type(arg) is type(print)
+                        or type(arg) is type(snake)
+                        or type(arg) is type(self.set_coverage)
+                    ):
                         try:
                             hash(arg)
                             args_for_filter.append(arg)
