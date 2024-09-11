@@ -134,7 +134,7 @@ class RuntimeEngine:
             func = self.analysis_func(analysis, f)
             if func is None:
                 continue
-            print(f"Calling {f} of {analysis} with {args}")
+            print(f"Calling {f} of {analysis}")
             if f.startswith("__") and f.endswith("__"):
                 is_filtered = False
             else:
