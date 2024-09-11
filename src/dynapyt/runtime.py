@@ -89,10 +89,7 @@ class RuntimeEngine:
                 self.coverage_path.unlink()
 
     @lru_cache(maxsize=128)
-    def filtered(self, func, f, args):
-        docs = func.__doc__
-        if docs is None or START not in docs:
-            return False
+    def filtered(self, docs, args):
         if len(args) > 0:
             sub_args = args
         else:
@@ -134,20 +131,27 @@ class RuntimeEngine:
             func = self.analysis_func(analysis, f)
             if func is None:
                 continue
-            if f.startswith("__") and f.endswith("__"):
+            docs = func.__doc__
+            if docs is None or START not in docs:
+                is_filtered = False
+            elif f.startswith("__") and f.endswith("__"):
                 is_filtered = False
             else:
                 args_for_filter = []
                 for arg in args[2:]:
                     if type(arg) is list or type(arg) is dict:
                         pass
-                    else:
+                    elif (
+                        type(arg) is type(print)
+                        or type(arg) is type(snake)
+                        or type(arg) is type(self.set_coverage)
+                    ):
                         try:
                             hash(arg)
                             args_for_filter.append(arg)
                         except:
                             pass
-                is_filtered = self.filtered(func, f, tuple(args_for_filter))
+                is_filtered = self.filtered(docs, tuple(args_for_filter))
 
             if len(args) < 2 or not is_filtered:
                 return_value = func(*args)
