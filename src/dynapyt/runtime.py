@@ -131,7 +131,6 @@ class RuntimeEngine:
             func = self.analysis_func(analysis, f)
             if func is None:
                 continue
-            print(f"Calling {f} of {analysis}")
             docs = func.__doc__
             if docs is None or START not in docs:
                 is_filtered = False
