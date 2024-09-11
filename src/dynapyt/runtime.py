@@ -89,7 +89,7 @@ class RuntimeEngine:
                 self.coverage_path.unlink()
 
     @lru_cache(maxsize=128)
-    def filtered(self, func, f, args):
+    def filtered(self, docs, args):
         if len(args) > 0:
             sub_args = args
         else:
@@ -152,7 +152,7 @@ class RuntimeEngine:
                             args_for_filter.append(arg)
                         except:
                             pass
-                is_filtered = self.filtered(func, f, tuple(args_for_filter))
+                is_filtered = self.filtered(docs, tuple(args_for_filter))
 
             if len(args) < 2 or not is_filtered:
                 return_value = func(*args)
