@@ -90,20 +90,6 @@ class RuntimeEngine:
 
     @lru_cache(maxsize=128)
     def filtered(self, docs, args):
-        if len(args) > 0:
-            sub_args = args
-        else:
-            sub_args = []
-        sub_arg_names = []
-        for arg in sub_args:
-            if type(arg) in [int, str, float, bool]:
-                sub_arg_names.append(str(arg))
-            elif (
-                type(arg) is type(print)
-                or type(arg) is type(snake)
-                or type(arg) is type(self.set_coverage)
-            ):
-                sub_arg_names.append(arg.__name__)
         return_value = False
         while START in docs:
             start = docs.find(START)
@@ -112,11 +98,11 @@ class RuntimeEngine:
             patterns = fltr.split(" -> ")[1].split(SEPERATOR)
             if fltr.startswith("only ->"):
                 return_value = True
-                if any([arg in patterns for arg in sub_arg_names]):
+                if any([arg in patterns for arg in args]):
                     return False
             elif fltr.startswith("ignore ->"):
                 return_value = False
-                if any([arg in patterns for arg in sub_arg_names]):
+                if any([arg in patterns for arg in args]):
                     return True
             docs = docs[end + len(END) :].lstrip()
         return return_value
@@ -139,16 +125,15 @@ class RuntimeEngine:
             else:
                 args_for_filter = []
                 for arg in args[2:]:
-                    if type(arg) is list or type(arg) is dict:
-                        pass
+                    if type(arg) in [int, str, float, bool]:
+                        args_for_filter.append(str(arg))
                     elif (
                         type(arg) is type(print)
                         or type(arg) is type(snake)
                         or type(arg) is type(self.set_coverage)
                     ):
                         try:
-                            hash(arg)
-                            args_for_filter.append(arg)
+                            args_for_filter.append(arg.__name__)
                         except:
                             pass
                 is_filtered = self.filtered(docs, tuple(args_for_filter))
