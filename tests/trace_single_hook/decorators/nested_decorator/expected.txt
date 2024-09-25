@@ -1,0 +1,12 @@
+begin execution
+enter decorator:  wrapper
+Decorator function two: before
+enter decorator:  wrapper
+Decorator function one: before
+Inside simple function
+Decorator function one: after
+exit decorator:  wrapper
+Decorator function two: after
+exit decorator:  wrapper
+2
+end execution

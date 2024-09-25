@@ -94,7 +94,9 @@
                 "_return": {},
                 "_yield": {},
                 "implicit_return": {}
-            }
+            },
+            "enter_decorator": {},
+            "exit_decorator": {}
         },
         "memory_access": {
             "read": {
