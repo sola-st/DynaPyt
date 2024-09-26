@@ -13,7 +13,7 @@ import signal
 import json
 import sys
 import os
-from functools import lru_cache
+from functools import lru_cache, wraps
 from tempfile import gettempdir
 from .utils.hooks import snake, get_name
 from .instrument.IIDs import IIDs
@@ -830,3 +830,29 @@ class RuntimeEngine:
         self.call_if_exists("runtime_event", dyn_ast, iid)
         self.call_if_exists("control_flow_event", dyn_ast, iid)
         self.call_if_exists("exit_with", dyn_ast, iid, is_suppressed, None)
+
+
+    def _enter_decorator_(self, dyn_ast, iid, decorator, args, kwargs):
+        self.call_if_exists("runtime_event", dyn_ast, iid)
+        self.call_if_exists("control_flow_event", dyn_ast, iid)
+        self.call_if_exists("enter_decorator", dyn_ast, iid, decorator, args, kwargs)
+
+    def _exit_decorator_(self, dyn_ast, iid, decorator, result, args, kwargs):
+        self.call_if_exists("runtime_event", dyn_ast, iid)
+        self.call_if_exists("control_flow_event", dyn_ast, iid)
+        result = self.call_if_exists("exit_decorator", dyn_ast, iid, decorator, result, args, kwargs)
+        return result
+
+    def dynapyt_decorator(self, iid_arg, ast_arg):
+        def dynapyt_decorator_wrapper(func):
+            @wraps(func)
+            def wrapper(*args, **kwargs):
+                self._enter_decorator_(ast_arg, iid_arg, func.__name__, args, kwargs)
+                result = func(*args, **kwargs)
+                r = self._exit_decorator_(ast_arg, iid_arg, func.__name__, result, args, kwargs)
+                if (r is not None):
+                    return r
+                return result
+    
+            return wrapper
+        return dynapyt_decorator_wrapper

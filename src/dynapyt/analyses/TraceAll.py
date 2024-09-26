@@ -1396,6 +1396,63 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "Exited with")
 
+    def enter_decorator(self, dyn_ast: str, iid: int, decorator_name, args, kwargs):
+        """Hook for entering a decorator.
+
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid : int
+            Unique ID of the syntax tree node.
+
+        decorator_name : str
+            The name of the decorator function.
+
+        args : List
+            The positional arguments passed to the decorator.
+
+        kwargs : Dict
+            The keyword arguments passed to the decorator.
+
+        """
+        self.log(iid, "Entered decorator", decorator_name)
+
+    def exit_decorator(self, dyn_ast: str, iid: int, decorator_name, result, args, kwargs) -> Any:
+        """Hook for exiting a decorator.
+
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid : int
+            Unique ID of the syntax tree node.
+
+        decorator_name : str
+            The name of the decorator function.
+
+        result : Any
+            The result of the decorator.
+
+        args : List
+            The positional arguments passed to the decorator.
+
+        kwargs : Dict
+            The keyword arguments passed to the decorator.
+
+        
+        Returns
+        -------
+        Any
+            If provided, overwrites the result returned by the function 
+
+        """
+        self.log(iid, "Exited decorator", decorator_name)
+
     # Top level
 
     def runtime_event(self, dyn_ast: str, iid: int) -> None:

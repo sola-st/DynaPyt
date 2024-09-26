@@ -1,0 +1,7 @@
+begin execution
+enter decorator:  wrapper
+Decorator function before
+Simple function
+Decorator function after
+exit decorator:  wrapper
+end execution

@@ -1,0 +1,9 @@
+begin execution
+enter decorator:  wrapper
+Decorator function before
+Number returned from function:  2
+Decorator function after
+exit decorator:  wrapper
+Number returned from exit_decorator:  10
+Number returned from decorated function:  10
+end execution
