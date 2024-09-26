@@ -1,12 +1,12 @@
 begin execution
-enter decorator:  wrapper
+enter decorator:  wrapper_two
 Decorator function two: before
-enter decorator:  wrapper
+enter decorator:  wrapper_one
 Decorator function one: before
 Inside simple function
 Decorator function one: after
-exit decorator:  wrapper
+exit decorator:  wrapper_one
 Decorator function two: after
-exit decorator:  wrapper
+exit decorator:  wrapper_two
 2
 end execution

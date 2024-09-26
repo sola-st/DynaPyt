@@ -1,0 +1,7 @@
+begin execution
+enter decorator:  my_context_manager
+exit decorator:  my_context_manager
+Entering context
+Inside context
+Exiting context
+end execution

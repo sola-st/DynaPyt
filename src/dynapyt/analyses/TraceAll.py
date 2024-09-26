@@ -1420,7 +1420,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "Entered decorator", decorator_name)
 
-    def exit_decorator(self, dyn_ast: str, iid: int, decorator_name, result, args, kwargs):
+    def exit_decorator(self, dyn_ast: str, iid: int, decorator_name, result, args, kwargs) -> Any:
         """Hook for exiting a decorator.
 
 
@@ -1443,6 +1443,12 @@ class TraceAll(BaseAnalysis):
 
         kwargs : Dict
             The keyword arguments passed to the decorator.
+
+        
+        Returns
+        -------
+        Any
+            If provided, overwrites the result returned by the function 
 
         """
         self.log(iid, "Exited decorator", decorator_name)
