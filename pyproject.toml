@@ -65,3 +65,11 @@ dependencies = [
 [tool.hatch.envs.exec_invariance_test.scripts]
 run = "bash execution_invariance_test/run_test.sh"
 
+[tool.black]
+extend-exclude = '''
+(
+    ^/tests/trace_single_hook/write/program.py
+    | ^/tests/regression/assert_no_space/program.py
+)
+'''
+
