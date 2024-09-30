@@ -1930,3 +1930,31 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         self.to_import.add("_enter_with_")
         call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, ctx_manager_arg])
         return updated_node.with_changes(item=call)
+
+
+    def leave_Decorator(self, original_node, updated_node):
+        print("decorator node: ", original_node)
+        if ("enter_decorator" not in self.selected_hooks) and (
+            "exit_decorator" not in self.selected_hooks
+        ):
+            return updated_node
+        
+        iid = self.__create_iid(original_node)
+        ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        dynapyt_decorator_attr = cst.Attribute(
+            value=cst.Name("_rt"), attr=cst.Name("dynapyt_decorator"),
+        )
+        dynapyt_decorator_call = cst.Call(
+            func=dynapyt_decorator_attr,
+            args=[ast_arg, iid_arg],
+        )
+        dynapyt_decorator = cst.Decorator(
+            decorator=dynapyt_decorator_call
+        )
+
+        self.to_import.add("dynapyt_decorator")
+
+        return cst.FlattenSentinel([dynapyt_decorator, updated_node])
+
+        

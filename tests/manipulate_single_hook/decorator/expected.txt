@@ -1,0 +1,39 @@
+begin execution
+runtime event
+control flow event
+runtime event
+runtime event
+control flow event
+runtime event
+runtime event
+control flow event
+runtime event
+control flow event
+enter decorator:  wrapper
+runtime event
+control flow event
+runtime event
+runtime event
+control flow event
+Decorator function before
+runtime event
+runtime event
+control flow event
+runtime event
+control flow event
+runtime event
+runtime event
+control flow event
+Simple function
+runtime event
+control flow event
+runtime event
+runtime event
+control flow event
+Decorator function after
+runtime event
+control flow event
+runtime event
+control flow event
+exit decorator:  wrapper
+end execution

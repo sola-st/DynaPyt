@@ -1,0 +1,10 @@
+begin execution
+enter decorator:  wrapper
+args:  ('foo', 'bar')
+Decorator function before
+Simple function
+parameter 1:  foo
+parameter 2:  bar
+Decorator function after
+exit decorator:  wrapper
+end execution
