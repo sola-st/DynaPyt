@@ -6,8 +6,12 @@ def decorator_function_one(func):
     return wrapper
 
 @decorator_function_one
-def simple_function():
-    print("Simple function")
+def return_number():
+    number = 2
+    print("Number returned from function: ", number)
+    return number
 
-simple_function()
+result = return_number()
+print("Number returned from decorated function: ", result)
+
 
