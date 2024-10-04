@@ -720,16 +720,30 @@ class RuntimeEngine:
         res = expr()
         return self._return_(dyn_ast, iid, iid, res)
 
-    def _break_(self, dyn_ast, iid):
+    def _break_(self, dyn_ast, iid, loop_iid, loop_type):
         self.call_if_exists("runtime_event", dyn_ast, iid)
         self.call_if_exists("control_flow_event", dyn_ast, iid)
-        result = self.call_if_exists("_break", dyn_ast, iid)
+        self.call_if_exists("exit_control_flow", dyn_ast, loop_iid)
+        if loop_type == 0:  # while
+            self.call_if_exists("exit_while", dyn_ast, loop_iid)
+        elif loop_type == 1:  # for
+            self.call_if_exists("exit_for", dyn_ast, loop_iid)
+        else:
+            raise Exception("Invalid loop type")
+        result = self.call_if_exists("_break", dyn_ast, iid, loop_iid)
         return result if result is not None else True
 
-    def _continue_(self, dyn_ast, iid):
+    def _continue_(self, dyn_ast, iid, loop_iid, loop_type):
         self.call_if_exists("runtime_event", dyn_ast, iid)
         self.call_if_exists("control_flow_event", dyn_ast, iid)
-        result = self.call_if_exists("_continue", dyn_ast, iid)
+        self.call_if_exists("exit_control_flow", dyn_ast, loop_iid)
+        if loop_type == 0:
+            self.call_if_exists("exit_while", dyn_ast, loop_iid)
+        elif loop_type == 1:
+            self.call_if_exists("exit_for", dyn_ast, loop_iid)
+        else:
+            raise Exception("Invalid loop type")
+        result = self.call_if_exists("_continue", dyn_ast, iid, loop_iid)
         return result if result is not None else True
 
     def _enter_if_(self, dyn_ast, iid, condition):
@@ -831,7 +845,6 @@ class RuntimeEngine:
         self.call_if_exists("control_flow_event", dyn_ast, iid)
         self.call_if_exists("exit_with", dyn_ast, iid, is_suppressed, None)
 
-
     def _enter_decorator_(self, dyn_ast, iid, decorator, args, kwargs):
         self.call_if_exists("runtime_event", dyn_ast, iid)
         self.call_if_exists("control_flow_event", dyn_ast, iid)
@@ -840,7 +853,9 @@ class RuntimeEngine:
     def _exit_decorator_(self, dyn_ast, iid, decorator, result, args, kwargs):
         self.call_if_exists("runtime_event", dyn_ast, iid)
         self.call_if_exists("control_flow_event", dyn_ast, iid)
-        result = self.call_if_exists("exit_decorator", dyn_ast, iid, decorator, result, args, kwargs)
+        result = self.call_if_exists(
+            "exit_decorator", dyn_ast, iid, decorator, result, args, kwargs
+        )
         return result
 
     def dynapyt_decorator(self, iid_arg, ast_arg):
@@ -849,10 +864,13 @@ class RuntimeEngine:
             def wrapper(*args, **kwargs):
                 self._enter_decorator_(ast_arg, iid_arg, func.__name__, args, kwargs)
                 result = func(*args, **kwargs)
-                r = self._exit_decorator_(ast_arg, iid_arg, func.__name__, result, args, kwargs)
-                if (r is not None):
+                r = self._exit_decorator_(
+                    ast_arg, iid_arg, func.__name__, result, args, kwargs
+                )
+                if r is not None:
                     return r
                 return result
-    
+
             return wrapper
+
         return dynapyt_decorator_wrapper

@@ -1123,7 +1123,7 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
 
         iid : int
-            Unique ID of the syntax tree node.
+            Unique ID of the syntax tree node for the control flow statement.
 
         """
         self.log(iid, "Control-flow exit")
@@ -1217,6 +1217,19 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "For exit")
 
+    def normal_exit_for(self, dyn_ast: str, iid: int) -> None:
+        """Hook for exiting a for loop without a break or continue statement.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid : int
+            Unique ID of the syntax tree node.
+        """
+        self.log(iid, "For exit normally")
+
     def enter_while(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
         """Hook for entering the next iteration of a while loop.
 
@@ -1257,8 +1270,8 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "While exit")
 
-    def _break(self, dyn_ast: str, iid: int) -> Optional[bool]:
-        """Hook for break statement.
+    def normal_exit_while(self, dyn_ast: str, iid: int) -> None:
+        """Hook for exiting a while loop without a break or continue statement.
 
 
         Parameters
@@ -1268,6 +1281,25 @@ class TraceAll(BaseAnalysis):
 
         iid : int
             Unique ID of the syntax tree node.
+
+
+        """
+        self.log(iid, "While exit normally")
+
+    def _break(self, dyn_ast: str, iid: int, loop_iid: int) -> Optional[bool]:
+        """Hook for break statement.
+
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+
+        iid : int
+            Unique ID of the syntax tree node at break.
+
+        loop_iid : int
+            Unique ID of the syntax tree node for the loop statement.
 
 
         Returns
@@ -1278,7 +1310,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "Break")
 
-    def _continue(self, dyn_ast: str, iid: int) -> Optional[bool]:
+    def _continue(self, dyn_ast: str, iid: int, loop_iid: int) -> Optional[bool]:
         """Hook for continue statement.
 
 
@@ -1288,7 +1320,10 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
 
         iid : int
-            Unique ID of the syntax tree node.
+            Unique ID of the syntax tree node of continue.
+
+        loop_iid : int
+            Unique ID of the syntax tree node for the loop statement.
 
 
         Returns
@@ -1420,7 +1455,9 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "Entered decorator", decorator_name)
 
-    def exit_decorator(self, dyn_ast: str, iid: int, decorator_name, result, args, kwargs) -> Any:
+    def exit_decorator(
+        self, dyn_ast: str, iid: int, decorator_name, result, args, kwargs
+    ) -> Any:
         """Hook for exiting a decorator.
 
 
@@ -1444,11 +1481,11 @@ class TraceAll(BaseAnalysis):
         kwargs : Dict
             The keyword arguments passed to the decorator.
 
-        
+
         Returns
         -------
         Any
-            If provided, overwrites the result returned by the function 
+            If provided, overwrites the result returned by the function
 
         """
         self.log(iid, "Exited decorator", decorator_name)

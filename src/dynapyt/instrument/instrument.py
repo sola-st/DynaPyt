@@ -1,5 +1,6 @@
 import argparse
 from multiprocessing import Pool
+import traceback
 import libcst as cst
 from libcst._exceptions import ParserSyntaxError
 from .CodeInstrumenter import CodeInstrumenter
@@ -23,9 +24,37 @@ def gather_files(files_arg):
     return files
 
 
+def canonical_ifs(node, child_dict):
+    new_body = (
+        cst.Break()
+        if cst.matchers.matches(node.body.body[0], cst.matchers.Break())
+        else cst.Continue()
+    )
+    return cst.If(
+        test=node.test,
+        body=cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[new_body])]),
+        orelse=node.orelse,
+        leading_lines=node.leading_lines,
+        whitespace_before_test=node.whitespace_before_test,
+        whitespace_after_test=node.whitespace_after_test,
+    )
+
+
 def instrument_code(src, file_path, iids, selected_hooks):
     try:
-        ast = cst.parse_module(src)
+        print("Before:")
+        print(src)
+        ast = cst.matchers.replace(
+            cst.parse_module(src),
+            cst.matchers.If(
+                body=cst.matchers.SimpleStatementSuite(
+                    body=[(cst.matchers.Break() | cst.matchers.Continue())]
+                )
+            ),
+            canonical_ifs,
+        )
+        print("After:")
+        print(ast.code)
         ast_wrapper = cst.metadata.MetadataWrapper(ast)
 
         instrumented_code = CodeInstrumenter(src, file_path, iids, selected_hooks)
@@ -38,6 +67,7 @@ def instrument_code(src, file_path, iids, selected_hooks):
     except Exception as e:
         print(f"Error in {file_path} -- skipping it")
         print(e)
+        print(traceback.format_exc())
         return None
 
 

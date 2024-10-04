@@ -38,4 +38,6 @@ enter control flow event with condition True
 while condition evaluates to True
 9
 enter control flow event with condition True
+done with control flow statement
+done with while statement
 end execution

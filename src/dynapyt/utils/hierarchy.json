@@ -75,8 +75,16 @@
             },
             "exit_control_flow": {
                 "exit_if": {},
-                "exit_for": {},
-                "exit_while": {}
+                "exit_for": {
+                    "_break": {},
+                    "_continue": {},
+                    "normal_exit_for": {}
+                },
+                "exit_while": {
+                    "_break": {},
+                    "_continue": {},
+                    "normal_exit_while": {}
+                }
             },
             "_assert": {},
             "_raise": {},
@@ -87,8 +95,6 @@
             "exception": {},
             "pre_call": {},
             "post_call": {},
-            "_break": {},
-            "_continue": {},
             "function_enter": {},
             "function_exit": {
                 "_return": {},

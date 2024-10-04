@@ -45,6 +45,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         self.file_path = str(Path(file_path).resolve())
         self.iids = iids
         self.name_stack = []
+        self.current_loop = []
         self.current_try = []
         self.current_class = []
         self.current_function = []
@@ -1674,53 +1675,6 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(body=new_body)
 
     # Control flow
-    def leave_IndentedBlock(self, original_node, updated_node):
-        if ("_break" not in self.selected_hooks) and (
-            "_continue" not in self.selected_hooks
-        ):
-            return updated_node
-        new_body = []
-        for i in updated_node.body:
-            if ("_break" in self.selected_hooks) and (
-                m.matches(i, m.SimpleStatementLine(body=[m.Break()]))
-            ):
-                callee_name = cst.Attribute(
-                    value=cst.Name(value="_rt"), attr=cst.Name(value="_break_")
-                )
-                self.to_import.add("_break_")
-                iid = self.__create_iid(original_node)
-                ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
-                iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-                call = cst.Call(func=callee_name, args=[ast_arg, iid_arg])
-                condition = cst.If(
-                    test=call,
-                    body=cst.IndentedBlock(
-                        body=[cst.SimpleStatementLine(body=[cst.Break()])]
-                    ),
-                )
-                new_body.append(condition)
-            elif ("_continue" in self.selected_hooks) and (
-                m.matches(i, m.SimpleStatementLine(body=[m.Continue()]))
-            ):
-                callee_name = cst.Attribute(
-                    value=cst.Name(value="_rt"), attr=cst.Name(value="_continue_")
-                )
-                self.to_import.add("_continue_")
-                iid = self.__create_iid(original_node)
-                ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
-                iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-                call = cst.Call(func=callee_name, args=[ast_arg, iid_arg])
-                condition = cst.If(
-                    test=call,
-                    body=cst.IndentedBlock(
-                        body=[cst.SimpleStatementLine(body=[cst.Continue()])]
-                    ),
-                )
-                new_body.append(condition)
-            else:
-                new_body.append(i)
-
-        return updated_node.with_changes(body=new_body)
 
     def leave_If(self, original_node, updated_node):
         if ("enter_if" not in self.selected_hooks) and (
@@ -1809,12 +1763,79 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         )
         return call
 
+    def leave_SimpleStatementLine(self, original_node, updated_node):
+        if "_break" in self.selected_hooks and m.matches(
+            updated_node, m.SimpleStatementLine(body=[m.Break()])
+        ):
+            return self.instrument_Break(original_node.body[0], updated_node.body[0])
+        elif "_continue" in self.selected_hooks and m.matches(
+            updated_node, m.SimpleStatementLine(body=[m.Continue()])
+        ):
+            return self.instrument_Continue(original_node.body[0], updated_node.body[0])
+        return updated_node
+
+    def instrument_Break(self, original_node, updated_node):
+        if "_break" not in self.selected_hooks:
+            return updated_node
+        self.to_import.add("_break_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_break_")
+        )
+        iid = self.__create_iid(original_node)
+        ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        ctrl_flow_iid_arg = cst.Arg(
+            value=cst.Integer(value=str(self.current_loop[-1][0]))
+        )
+        ctrl_flow_type_arg = cst.Arg(
+            value=cst.Integer(value=str(self.current_loop[-1][1]))
+        )
+        call = cst.Call(
+            func=callee_name,
+            args=[ast_arg, iid_arg, ctrl_flow_iid_arg, ctrl_flow_type_arg],
+        )
+        return cst.If(
+            test=call,
+            body=cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[cst.Break()])]),
+        )
+
+    def instrument_Continue(self, original_node, updated_node):
+        if "_continue" not in self.selected_hooks:
+            return updated_node
+        self.to_import.add("_continue_")
+        callee_name = cst.Attribute(
+            value=cst.Name(value="_rt"), attr=cst.Name(value="_continue_")
+        )
+        iid = self.__create_iid(original_node)
+        ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
+        iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
+        ctrl_flow_iid_arg = cst.Arg(
+            value=cst.Integer(value=str(self.current_loop[-1][0]))
+        )
+        ctrl_flow_type_arg = cst.Arg(
+            value=cst.Integer(value=str(self.current_loop[-1][1]))
+        )
+        call = cst.Call(
+            func=callee_name,
+            args=[ast_arg, iid_arg, ctrl_flow_iid_arg, ctrl_flow_type_arg],
+        )
+        return cst.If(
+            test=call,
+            body=cst.IndentedBlock(
+                body=[cst.SimpleStatementLine(body=[cst.Continue()])]
+            ),
+        )
+
+    def visit_While(self, node):
+        iid = self.__create_iid(node)
+        self.current_loop.append((iid, 0))  # 0 for while loop, 1 for for loop
+
     def leave_While(self, original_node, updated_node):
+        iid = self.current_loop.pop()[0]
         if ("enter_while" not in self.selected_hooks) and (
-            "exit_while" not in self.selected_hooks
+            "normal_exit_while" not in self.selected_hooks
         ):
             return updated_node
-        iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         if "enter_while" in self.selected_hooks:
@@ -1826,7 +1847,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             enter_call = cst.Call(func=enter_name, args=[ast_arg, iid_arg, enter_arg])
         else:
             enter_call = updated_node.test
-        if "exit_while" in self.selected_hooks:
+        if "normal_exit_while" in self.selected_hooks:
             end_name = cst.Attribute(
                 value=cst.Name(value="_rt"), attr=cst.Name(value="_exit_while_")
             )
@@ -1850,13 +1871,17 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
             orelse=else_part,
         )
 
+    def visit_For(self, node):
+        iid = self.__create_iid(node)
+        self.current_loop.append((iid, 1))  # 0 for while loop, 1 for for loop
+
     def leave_For(self, original_node, updated_node):
+        iid = self.current_loop.pop()[0]
         if (
             ("enter_for" not in self.selected_hooks)
-            and ("exit_for" not in self.selected_hooks)
+            and ("normal_exit_for" not in self.selected_hooks)
         ) or original_node.asynchronous is not None:  # TODO: Handle async for loops
             return updated_node
-        iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         if "enter_for" in self.selected_hooks:
@@ -1869,7 +1894,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 func=generator_name, args=[ast_arg, iid_arg, iter_arg]
             )
             else_part = updated_node.orelse
-        elif "exit_for" in self.selected_hooks:
+        elif "normal_exit_for" in self.selected_hooks:
             end_name = cst.Attribute(
                 value=cst.Name(value="_rt"), attr=cst.Name(value="_exit_for_")
             )
@@ -1893,7 +1918,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
     def leave_CompFor(self, original_node, updated_node):
         if (
             "enter_for" not in self.selected_hooks
-            and "exit_for" not in self.selected_hooks
+            and "normal_exit_for" not in self.selected_hooks
         ) or original_node.asynchronous is not None:  # TODO: Handle async for loops
             return updated_node
         generator_name = cst.Attribute(
@@ -1931,30 +1956,26 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         call = cst.Call(func=callee_name, args=[ast_arg, iid_arg, ctx_manager_arg])
         return updated_node.with_changes(item=call)
 
-
     def leave_Decorator(self, original_node, updated_node):
         print("decorator node: ", original_node)
         if ("enter_decorator" not in self.selected_hooks) and (
             "exit_decorator" not in self.selected_hooks
         ):
             return updated_node
-        
+
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
         dynapyt_decorator_attr = cst.Attribute(
-            value=cst.Name("_rt"), attr=cst.Name("dynapyt_decorator"),
+            value=cst.Name("_rt"),
+            attr=cst.Name("dynapyt_decorator"),
         )
         dynapyt_decorator_call = cst.Call(
             func=dynapyt_decorator_attr,
             args=[ast_arg, iid_arg],
         )
-        dynapyt_decorator = cst.Decorator(
-            decorator=dynapyt_decorator_call
-        )
+        dynapyt_decorator = cst.Decorator(decorator=dynapyt_decorator_call)
 
         self.to_import.add("dynapyt_decorator")
 
         return cst.FlattenSentinel([dynapyt_decorator, updated_node])
-
-        
