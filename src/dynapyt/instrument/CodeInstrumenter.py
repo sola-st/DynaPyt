@@ -628,7 +628,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return call
 
     def leave_ListComp(self, original_node, updated_node):
-        if "list" not in self.selected_hooks:
+        if "_list" not in self.selected_hooks:
             return updated_node
         callee_name = cst.Attribute(
             value=cst.Name(value="_rt"), attr=cst.Name(value="_list_")
