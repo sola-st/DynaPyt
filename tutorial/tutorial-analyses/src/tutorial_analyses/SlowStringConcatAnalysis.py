@@ -3,8 +3,8 @@ from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 
 
 class SlowStringConcatAnalysis(BaseAnalysis):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.in_loop = []
         self.concat_count = []
         self.threshold = 5

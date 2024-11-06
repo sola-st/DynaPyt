@@ -3,8 +3,8 @@ from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 
 
 class BranchCoverageAnalysis(BaseAnalysis):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.branches = {}
 
     def enter_control_flow(self, dyn_ast: str, iid: int, cond_value: bool):

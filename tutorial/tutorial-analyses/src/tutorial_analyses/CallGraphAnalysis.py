@@ -8,8 +8,8 @@ from inspect import getmodule
 
 
 class CallGraphAnalysis(BaseAnalysis):
-    def __init__(self):
-        super(CallGraphAnalysis, self).__init__()
+    def __init__(self, *args, **kwargs):
+        super(CallGraphAnalysis, self).__init__(*args, **kwargs)
         logging.basicConfig(filename="dynapyt.json", format="%(message)s", level=logging.INFO)
         self.graph = {}
 

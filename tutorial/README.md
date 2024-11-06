@@ -18,6 +18,8 @@ To isolate the packages that you install during this tutorial either [use Docker
 2. Build the image: `docker build -t dynapyt_tutorial .`
 3. Run bash in the container: `docker run -it dynapyt_tutorial /bin/bash`
 
+Note: Changing the code in your host machine does not change the code inside the container. So you either need to share the directory using `-v` option when running docker (`-v .:/dynapyt/`), or repeat steps 2 and 3 each time you modify or implement an analysis.
+
 ### Virtual Environment
 1. Install virtual environment: 
    - With pipx: `pipx install virtualenv`
