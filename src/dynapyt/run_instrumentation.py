@@ -1,13 +1,9 @@
 from typing import List, Set
 import argparse
-from os import walk
-from os import path
 from pathlib import Path
 import shutil
 from subprocess import run
 import time
-from multiprocessing import Pool
-from dynapyt.utils.hooks import get_hooks_from_analysis
 from dynapyt.instrument.instrument import instrument_files
 
 
@@ -19,7 +15,6 @@ def instrument_dir(
 ):
     start_time = time.time()
     start = directory
-    all_cmds = []
 
     if isinstance(analysis, str) and Path(analysis).exists():
         with open(analysis, "r") as f:

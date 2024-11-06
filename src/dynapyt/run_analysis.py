@@ -7,9 +7,7 @@ from os.path import abspath
 from tempfile import gettempdir
 import sys
 import uuid
-import json
 from pathlib import Path
-from .utils.runtimeUtils import gather_coverage, gather_output
 from .runtime import RuntimeEngine
 
 

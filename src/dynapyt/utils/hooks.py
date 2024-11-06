@@ -1,10 +1,6 @@
 from typing import Dict, List
 
-try:
-    import importlib.resources as pkg_resources
-except ImportError:
-    # Try backported to PY<37 `importlib_resources`.
-    import importlib_resources as pkg_resources
+import importlib.resources as pkg_resources
 import json
 import builtins
 import keyword
@@ -81,6 +77,6 @@ def get_hooks_from_analysis(classes: List[str]) -> Dict[str, Dict[str, List[str]
         raise e
     except ImportError as e:
         raise e
-    with pkg_resources.open_text("dynapyt.utils", "hierarchy.json") as f:
+    with pkg_resources.files("dynapyt.utils").joinpath("hierarchy.json").open("r") as f:
         hierarchy = json.load(f)
     return get_used_leaves(hierarchy, methods)

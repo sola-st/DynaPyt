@@ -134,12 +134,10 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         )
         return iid
 
-    def __create_import(self, names):
+    def __create_import(self):
         module_name = cst.Attribute(
             value=cst.Name(value="dynapyt"), attr=cst.Name(value="runtime")
         )
-        # imp_aliases = [cst.ImportAlias(name=cst.Name(value=name)) for name in names]
-        # imp = cst.ImportFrom(module=module_name, names=imp_aliases)
         imp = cst.ImportFrom(
             module=module_name,
             names=[cst.ImportAlias(name=cst.Name(value="RuntimeEngine"))],
@@ -266,7 +264,7 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 imports_index = i
 
         if len(import_names) > 0:
-            dynapyt_imports.append(self.__create_import(import_names))
+            dynapyt_imports.append(self.__create_import())
             dynapyt_imports.append(
                 cst.SimpleStatementLine(
                     body=[

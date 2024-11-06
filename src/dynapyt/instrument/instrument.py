@@ -42,8 +42,6 @@ def canonical_ifs(node, child_dict):
 
 def instrument_code(src, file_path, iids, selected_hooks):
     try:
-        print("Before:")
-        print(src)
         ast = cst.matchers.replace(
             cst.parse_module(src),
             cst.matchers.If(
@@ -53,8 +51,6 @@ def instrument_code(src, file_path, iids, selected_hooks):
             ),
             canonical_ifs,
         )
-        print("After:")
-        print(ast.code)
         ast_wrapper = cst.metadata.MetadataWrapper(ast)
 
         instrumented_code = CodeInstrumenter(src, file_path, iids, selected_hooks)

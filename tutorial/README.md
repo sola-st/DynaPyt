@@ -1,6 +1,6 @@
 # Tutorial
-This is the tutorial page for ASE 2023.
-Slides: [Google slides](https://docs.google.com/presentation/d/14eeGZm4gIznsqtAEYI5o5Ayyp2vRepdKzUTjFTksJaI/edit?usp=sharing)
+This is the tutorial page originally designed for ASE 2023. It might not be updated on every release, so please open an issue if something does not work.
+Original slides of the ASE 2023 tutorial: [Google slides](https://docs.google.com/presentation/d/14eeGZm4gIznsqtAEYI5o5Ayyp2vRepdKzUTjFTksJaI/edit?usp=sharing)
 
 Table of contents:
 - Task 0: [Setup](#setup)
