@@ -1955,7 +1955,6 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         return updated_node.with_changes(item=call)
 
     def leave_Decorator(self, original_node, updated_node):
-        print("decorator node: ", original_node)
         if ("enter_decorator" not in self.selected_hooks) and (
             "exit_decorator" not in self.selected_hooks
         ):
