@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Dynamic analysis framework for Python"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.6"
+requires-python = ">=3.10"
 authors = [
     { name = "Aryaz Eghbali", email = "aryaz.egh@gmail.com" },
     { name = "Michael Pradel", email = "michael@binaervarianz.de" },
