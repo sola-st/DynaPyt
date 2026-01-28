@@ -40,17 +40,18 @@ def canonical_ifs(node, child_dict):
     )
 
 
-def instrument_code(src, file_path, iids, selected_hooks):
+def instrument_code(src: str, file_path: str, iids: IIDs, selected_hooks: list[str]) -> str | None:
     try:
-        ast = cst.matchers.replace(
-            cst.parse_module(src),
-            cst.matchers.If(
-                body=cst.matchers.SimpleStatementSuite(
-                    body=[(cst.matchers.Break() | cst.matchers.Continue())]
-                )
-            ),
-            canonical_ifs,
-        )
+        # ast = cst.matchers.replace(
+        #     cst.parse_module(src),
+        #     cst.matchers.If(
+        #         body=cst.matchers.SimpleStatementSuite(
+        #             body=[(cst.matchers.Break() | cst.matchers.Continue())]
+        #         )
+        #     ),
+        #     canonical_ifs,
+        # )
+        ast = cst.parse_module(src)
         ast_wrapper = cst.metadata.MetadataWrapper(ast)
 
         instrumented_code = CodeInstrumenter(src, file_path, iids, selected_hooks)

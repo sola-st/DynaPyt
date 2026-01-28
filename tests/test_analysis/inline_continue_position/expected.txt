@@ -1,0 +1,14 @@
+begin execution
+Print at 1 located at 4
+0
+Print at 1 located at 4
+1
+Print at 1 located at 4
+3
+Print at 3 located at 8
+0
+Print at 3 located at 8
+1
+Print at 3 located at 8
+3
+end execution

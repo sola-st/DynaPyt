@@ -316,7 +316,13 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
 
     def leave_SimpleStatementSuite(self, original_node, updated_node):
         new_node = cst.IndentedBlock(
-            body=[cst.SimpleStatementLine(body=updated_node.body)]
+            body=[
+                (
+                    self.instrument_Continue(orig_statement, statement) if "_continue" in self.selected_hooks and m.matches(statement, m.Continue()) else 
+                    self.instrument_Break(orig_statement, statement) if "_break" in self.selected_hooks and m.matches(statement, m.Break()) else 
+                    cst.SimpleStatementLine(body=[statement])
+                ) for statement, orig_statement in zip(updated_node.body, original_node.body)
+            ]
         )
         return new_node
 
