@@ -2,7 +2,6 @@ from typing import List, Set
 import argparse
 from pathlib import Path
 import shutil
-from subprocess import run
 import time
 from dynapyt.instrument.instrument import instrument_files
 
@@ -30,12 +29,6 @@ def instrument_dir(
     files = [str(f.resolve()) for f in Path(start).rglob("*.py") if f not in exclude]
     instrument_files(files, analysis)
     print("#################### Instrumentation took " + str(time.time() - start_time))
-
-
-def process_files(cmd_list, file_path):
-    comp_proc = run(cmd_list)
-    if comp_proc.returncode != 0:
-        print("Error at", file_path)
 
 
 if __name__ == "__main__":

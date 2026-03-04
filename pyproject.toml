@@ -21,11 +21,15 @@ classifiers = [
 dependencies = [
     "libcst",
     "filelock",
+    "docker",
 ]
 
 [project.urls]
 "Bug Tracker" = "https://github.com/sola-st/DynaPyt/issues"
 Homepage = "https://github.com/sola-st/DynaPyt"
+
+[project.scripts]
+dynapyt = "dynapyt.cli:main"
 
 [tool.hatch.version]
 path = "src/dynapyt/__init__.py"
