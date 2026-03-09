@@ -33,17 +33,10 @@ def main():
     with tempfile.TemporaryDirectory() as temp_dir:
         temp_dir_path = Path(temp_dir)
         
-        shutil.copytree(
-            dynapyt_dir, 
-            temp_dir_path / "dynapyt",
-            ignore=shutil.ignore_patterns(".git", "__pycache__", "venv", ".venv", "env", ".env", "end2end_tests", "tutorial")
-        )
-        
         dockerfile_content = """
-FROM python:3.12-slim
+FROM python:3.13-slim
 RUN apt-get update && apt-get install -y gcc git
-COPY dynapyt /dynapyt
-RUN pip install /dynapyt
+RUN pip install git+https://github.com/sola-st/DynaPyt.git@main#egg=dynapyt
 """
         with open(temp_dir_path / "Dockerfile", "w") as f:
             f.write(dockerfile_content)
