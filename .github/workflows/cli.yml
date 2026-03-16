@@ -28,6 +28,7 @@ jobs:
           
       - name: Run CLI Test
         run: |
+          mkdir -p test_cli/output
           python -m dynapyt.cli \
             --project-root test_cli/test_project \
             --analysis test_cli/analysis/analysis.txt \
