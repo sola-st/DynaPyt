@@ -1,32 +1,9 @@
 import argparse
 import docker
-import os
-import shutil
 import tempfile
 from pathlib import Path
-import dynapyt
 
-def main():
-    parser = argparse.ArgumentParser(description="DynaPyt CLI")
-    parser.add_argument("--project-root", required=True, help="Path to the project root")
-    parser.add_argument("--analysis", required=True, help="Path to the analysis file")
-    parser.add_argument("--setup", required=False, default="", help="Setup script/command to run")
-    parser.add_argument("--output-dir", required=True, help="Output directory for analysis results")
-    parser.add_argument("run_command", nargs=argparse.REMAINDER, help="Command to run after instrumentation")
-    
-    args = parser.parse_args()
-    
-    project_root = Path(args.project_root).resolve()
-    analysis_file = Path(args.analysis).resolve()
-    output_dir = Path(args.output_dir).resolve()
-    
-    run_cmd_list = args.run_command
-    if run_cmd_list and run_cmd_list[0] == "--":
-        run_cmd_list = run_cmd_list[1:]
-    run_command = " ".join(run_cmd_list)
-
-    dynapyt_dir = Path(dynapyt.__file__).parent.parent.parent
-
+def instrument_and_run_analysis(project_root, analysis_file, output_dir, setup_cmd, run_command):
     client = docker.from_env()
 
     # Docker image build
@@ -55,7 +32,6 @@ RUN pip install git+https://github.com/sola-st/DynaPyt.git@main#egg=dynapyt
             return
 
 
-    setup_cmd = args.setup
     analysis_file_mnt = f"/analysis/{analysis_file.name}"
 
     print(f"\nRunning container for project {project_root}...")
@@ -111,6 +87,28 @@ cp /analysis/final_analysis.txt /tmp/dynapyt_analyses-1234-abcd.txt
             print(e.container.logs().decode("utf-8"))
         except docker.errors.NotFound:
             pass
+
+def main():
+    parser = argparse.ArgumentParser(description="DynaPyt CLI")
+    parser.add_argument("--project-root", required=True, help="Path to the project root")
+    parser.add_argument("--analysis", required=True, help="Path to the analysis file")
+    parser.add_argument("--setup", required=False, default="", help="Setup script/command to run")
+    parser.add_argument("--output-dir", required=True, help="Output directory for analysis results")
+    parser.add_argument("run_command", nargs=argparse.REMAINDER, help="Command to run after instrumentation")
+    
+    args = parser.parse_args()
+    
+    project_root = Path(args.project_root).resolve()
+    analysis_file = Path(args.analysis).resolve()
+    output_dir = Path(args.output_dir).resolve()
+    setup_cmd = args.setup
+
+    run_cmd_list = args.run_command
+    if run_cmd_list and run_cmd_list[0] == "--":
+        run_cmd_list = run_cmd_list[1:]
+    run_command = " ".join(run_cmd_list)
+
+    instrument_and_run_analysis(project_root, analysis_file, output_dir, setup_cmd, run_command)
 
 
 if __name__ == "__main__":
