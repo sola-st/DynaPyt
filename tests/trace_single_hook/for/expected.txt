@@ -1,0 +1,51 @@
+begin execution
+enter control flow event with condition True
+for loop next value 10
+10
+enter control flow event with condition True
+for loop next value 9
+9
+enter control flow event with condition True
+for loop next value 8
+8
+enter control flow event with condition True
+for loop next value 7
+7
+enter control flow event with condition True
+for loop next value 6
+6
+enter control flow event with condition True
+for loop next value 5
+5
+enter control flow event with condition True
+for loop next value 4
+4
+enter control flow event with condition True
+for loop next value 3
+3
+enter control flow event with condition True
+for loop next value 2
+2
+enter control flow event with condition True
+for loop next value 1
+1
+enter control flow event with condition True
+for loop next value 0
+0
+enter control flow event with condition False
+for loop next value
+done with control flow statement
+done with for statement
+done!
+enter control flow event with condition True
+for loop next value 10
+10
+enter control flow event with condition False
+done with control flow statement
+enter control flow event with condition True
+for loop next value 9
+9
+enter control flow event with condition True
+done with control flow statement
+done with for statement
+end execution

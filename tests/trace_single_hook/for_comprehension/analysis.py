@@ -1,4 +1,4 @@
-from typing import Optional, Iterable
+from typing import Optional, Iterable, Iterator
 from dynapyt.analyses.BaseAnalysis import BaseAnalysis
 
 
@@ -12,7 +12,7 @@ class TestAnalysis(BaseAnalysis):
         print(f"enter control flow event with condition {cond_value}")
 
     def enter_for(
-        self, dyn_ast: str, iid: int, next_value: bool, iterable: Iterable
+        self, dyn_ast: str, iid: int, next_value: bool, iterable: Iterable, iterator: Iterator
     ) -> Optional[bool]:
         print(f"for condition evaluates to {next_value}")
 

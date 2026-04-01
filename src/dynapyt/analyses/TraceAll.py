@@ -1,3 +1,4 @@
+from typing import Iterator
 import logging
 from types import TracebackType
 from typing import (
@@ -1169,7 +1170,7 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "If exit")
 
     def enter_for(
-        self, dyn_ast: str, iid: int, next_value: Any, iterable: Iterable
+        self, dyn_ast: str, iid: int, next_value: Any, iterable: Iterable, iterator: Iterator
     ) -> Optional[Any]:
         """Hook for entering a single iteration of a for loop.
 
@@ -1191,6 +1192,9 @@ class TraceAll(BaseAnalysis):
 
         iterable: Iterable
             Iterable used in the for loop.
+
+        iterator: Iterator
+            Iterator used in the for loop.
 
 
         Returns

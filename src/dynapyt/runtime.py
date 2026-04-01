@@ -781,13 +781,13 @@ class RuntimeEngine:
         self.call_if_exists("exit_control_flow", dyn_ast, iid)
         self.call_if_exists("exit_while", dyn_ast, iid)
 
-    def _enter_for_(self, dyn_ast, iid, next_val, iterable):
+    def _enter_for_(self, dyn_ast, iid, next_val, iterable, iterator):
         self.call_if_exists("runtime_event", dyn_ast, iid)
         self.call_if_exists("control_flow_event", dyn_ast, iid)
         result_high = self.call_if_exists(
             "enter_control_flow", dyn_ast, iid, not isinstance(next_val, StopIteration)
         )
-        result_low = self.call_if_exists("enter_for", dyn_ast, iid, next_val, iterable)
+        result_low = self.call_if_exists("enter_for", dyn_ast, iid, next_val, iterable, iterator)
         if result_low is not None:
             return result_low
         elif result_high is not None:
@@ -810,13 +810,13 @@ class RuntimeEngine:
         while True:
             try:
                 it = next(new_iter)
-                result = self._enter_for_(dyn_ast, iid, it, iterator)
+                result = self._enter_for_(dyn_ast, iid, it, iterator, new_iter)
                 if result is not None:
                     yield result
                 else:
                     yield it
             except StopIteration as e:
-                self._enter_for_(dyn_ast, iid, e, iterator)
+                self._enter_for_(dyn_ast, iid, e, iterator, new_iter)
                 self._exit_for_(dyn_ast, iid)
                 return
 
