@@ -37,7 +37,7 @@ class TraceAll(BaseAnalysis):
 
     # Literals
 
-    def integer(self, dyn_ast: str, iid: int, val: Any) -> Any:
+    def integer(self, dyn_ast: str, iid: int, val: int) -> Any:
         """Hook for integer literals.
 
         Parameters
@@ -48,7 +48,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        val : Any
+        val : int
             The value of the integer literal.
 
         Returns
@@ -59,7 +59,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "    Integer", "value:", val)
 
-    def _float(self, dyn_ast: str, iid: int, val: Any) -> Any:
+    def _float(self, dyn_ast: str, iid: int, val: float) -> Any:
         """Hook for floating point literals.
 
         Parameters
@@ -70,7 +70,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        val : Any
+        val : float
             The value of the floating point literal.
 
         Returns
@@ -81,7 +81,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "    Float", "value:", val)
 
-    def imaginary(self, dyn_ast: str, iid: int, val: Any) -> Any:
+    def imaginary(self, dyn_ast: str, iid: int, val: complex) -> Any:
         """Hook for imaginary number literals.
 
         Parameters
@@ -92,7 +92,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        val : Any
+        val : complex
             The value of the imaginary number literal.
 
 
@@ -103,7 +103,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "    Imaginary", "value:", val)
 
-    def string(self, dyn_ast: str, iid: int, val: Any) -> Any:
+    def string(self, dyn_ast: str, iid: int, val: str) -> Any:
         """Hook for string literals.
 
         Parameters
@@ -114,7 +114,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        val : Any
+        val : str
             The value of the string literal.
 
         Returns
@@ -124,7 +124,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "    String", "value:", val)
 
-    def boolean(self, dyn_ast: str, iid: int, val: Any) -> Any:
+    def boolean(self, dyn_ast: str, iid: int, val: bool) -> Any:
         """Hook for boolean literals.
 
         Parameters
@@ -135,7 +135,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        val : Any
+        val : bool
             The value of the boolean literal.
 
 
@@ -222,7 +222,7 @@ class TraceAll(BaseAnalysis):
         -------
         List
             If provided, overwrites the value of the list.
-        @public
+
         """
         self.log(iid, "List", value)
 
@@ -251,7 +251,7 @@ class TraceAll(BaseAnalysis):
         -------
         tuple
             If provided, overwrites the value of the tuple.
-        @public
+
         """
         self.log(iid, "Tuple", "items:", items)
 
@@ -280,7 +280,7 @@ class TraceAll(BaseAnalysis):
         -------
         set
             If provided, overwrites the value of the set.
-        @public
+
         """
         self.log(iid, "Set", "items:", items)
 
@@ -324,10 +324,17 @@ class TraceAll(BaseAnalysis):
             Unique ID of the syntax tree node.
 
         operator : str
-            The operator of the operation.
+            The operator of the operation. The value is the name of the operator, one of
+            - Binary operators:
+            Add, BitAnd, BitOr, BitXor, Divide, FloorDivide, LeftShift, MatrixMultiply, MatrixPower, Modulo, Multiply, 
+            Power, RightShift, Subtract, And, Or
+            -Unary operators:
+            Not, BitInvert, Minus, Plus
+            - Comparison operators:
+            Equal, GreaterThan, GreaterThanEqual, In, Is, LessThan, LessThanEqual, NotEqual, IsNot, NotIn
 
         operands : List[Any]
-            The operands of the operation.
+            The operands of the operation. Either [left, right] or [right].
 
         result : Any
             The result of the operation.
@@ -356,7 +363,10 @@ class TraceAll(BaseAnalysis):
             Unique ID of the syntax tree node.
 
         op : str
-            The operator of the operation.
+            The operator of the operation. One of:
+            Add, BitAnd, BitOr, BitXor, Divide, FloorDivide, LeftShift, MatrixMultiply, MatrixPower, Modulo, Multiply, 
+            Power, RightShift, Subtract, And, Or
+            
 
         left : Any
             The left operand of the operation.
@@ -432,11 +442,9 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def _and(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
-        """@public"""
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def _or(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
-        """@public"""
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def unary_operation(
@@ -454,7 +462,8 @@ class TraceAll(BaseAnalysis):
             Unique ID of the syntax tree node.
 
         opr : str
-            The operator of the operation.
+            The operator of the operation. One of:
+            Not, BitInvert, Minus, Plus
 
         arg : Any
             The operand of the operation.
@@ -478,7 +487,6 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Unary Operation", arg, "->", result)
 
     def _not(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
-        """@public"""
         self.log(iid, "Unary Operation", arg, "->", result)
 
     def plus(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
@@ -499,7 +507,8 @@ class TraceAll(BaseAnalysis):
             Unique ID of the syntax tree node.
 
         op : str
-            The operator of the operation.
+            The operator of the operation. One of:
+            Equal, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, NotEqual, In, Is, NotIn, IsNot
 
         left : Any
             The left operand of the operation.
@@ -533,11 +542,9 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Comparison", left, right, "->", result)
 
     def _in(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
-        """@public"""
         self.log(iid, "Comparison", left, right, "->", result)
 
     def _is(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
-        """@public"""
         self.log(iid, "Comparison", left, right, "->", result)
 
     def less_than(
@@ -723,7 +730,7 @@ class TraceAll(BaseAnalysis):
     def function_enter(
         self, dyn_ast: str, iid: int, args: List[Any], name: str, is_lambda: bool
     ) -> None:
-        """Hook for when an instrumented function is entered.
+        """Hook for when the body of an instrumented function is entered.
 
 
         Parameters
@@ -758,7 +765,7 @@ class TraceAll(BaseAnalysis):
     def function_exit(
         self, dyn_ast: str, function_iid: int, name: str, result: Any
     ) -> Any:
-        """Hook for exiting an instrumented function.
+        """Hook for when the body of an instrumented function is exited.
 
 
         Parameters
@@ -839,7 +846,7 @@ class TraceAll(BaseAnalysis):
     def implicit_return(
         self, dyn_ast: str, iid: int, function_iid: int, function_name: str, value: Any
     ) -> Any:
-        """Hook for exiting a function without a return or yield (by reaching the end of function body).
+        """Hook for exiting an instrumented function without a return or yield (by reaching the end of function body).
 
 
         Parameters
@@ -957,7 +964,10 @@ class TraceAll(BaseAnalysis):
             The left operand.
 
         op : str
-            The operator.
+            The operator. One of:
+            AddAssign, BitAndAssign, BitOrAssign, BitXorAssign, DivideAssign, 
+            FloorDivideAssign, LeftShiftAssign, MatrixMultiplyAssign, MatrixPowerAssign, 
+            ModuloAssign, MultiplyAssign, PowerAssign, RightShiftAssign, SubtractAssign
 
         right : Any
             The right operand.
@@ -1040,7 +1050,7 @@ class TraceAll(BaseAnalysis):
         -------
         Exception
             If provided, changes the exception raised.
-        @public
+
         """
         self.log(iid, "Exception raised", exc, "because of", cause)
 
@@ -1069,7 +1079,7 @@ class TraceAll(BaseAnalysis):
         -------
         bool
             If provided, changes the condition of assert.
-        @public
+
         """
         self.log(iid, "Asserting", condition, "with message", message)
 
@@ -1310,7 +1320,7 @@ class TraceAll(BaseAnalysis):
         -------
         bool
             If False, cancels the break.
-        @public
+
         """
         self.log(iid, "Break")
 
@@ -1334,7 +1344,7 @@ class TraceAll(BaseAnalysis):
         -------
         bool
             If False, cancels continue.
-        @public
+
         """
         self.log(iid, "Continue")
 
@@ -1408,7 +1418,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        func : ContextManager
+        ctx_manager : ContextManager
             The context manager.
 
         """
