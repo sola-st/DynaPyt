@@ -1,17 +1,7 @@
-from typing import Iterator
 import logging
 from types import TracebackType
-from typing import (
-    Any,
-    Callable,
-    ContextManager,
-    Dict,
-    Iterable,
-    List,
-    Optional,
-    Tuple,
-    Union,
-)
+from typing import Any
+from collections.abc import Callable, Iterable, Iterator
 import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
 from ..utils.nodeLocator import get_node_by_location
@@ -171,7 +161,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "Literal   ", "value:", val)
 
-    def dictionary(self, dyn_ast: str, iid: int, items: List[Any], value: Dict) -> Dict:
+    def dictionary(self, dyn_ast: str, iid: int, items: list, value: dict) -> dict:
         """Hook for a dictionary definition.
 
         E.g. `{'a': 1, 'b': 2}`
@@ -185,22 +175,22 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        items : List[Any]
+        items : list
             The lis of key-value pairs.
 
-        value : Dict
+        value : dict
             The dictionary itself.
 
 
         Returns
         -------
-        Dict
+        dict
             If provided, overwrites the value of the dictionary.
 
         """
         self.log(iid, "Dictionary", "items:", items)
 
-    def _list(self, dyn_ast: str, iid: int, value: List) -> List:
+    def _list(self, dyn_ast: str, iid: int, value: list) -> list:
         """Hook for a list definition.
 
         E.g. `[1, 2, 3]`
@@ -214,7 +204,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        value : List
+        value : list
             The list itself.
 
 
@@ -226,7 +216,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "List", value)
 
-    def _tuple(self, dyn_ast: str, iid: int, items: List[Any], value: tuple) -> tuple:
+    def _tuple(self, dyn_ast: str, iid: int, items: list, value: tuple) -> tuple:
         """Hook for a tuple.
 
         E.g. `(1, 2, 3)`
@@ -240,7 +230,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        items : List[Any]
+        items : list
             The lis of items in the tuple.
 
         value : tuple
@@ -255,7 +245,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "Tuple", "items:", items)
 
-    def _set(self, dyn_ast: str, iid: int, items: List[Any], value: set) -> set:
+    def _set(self, dyn_ast: str, iid: int, items: list, value: set) -> set:
         """Hook for a set.
 
         E.g. `{1, 2, 3}`
@@ -269,7 +259,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        items : List[Any]
+        items : list
             The lis of items in the set.
 
         value : set
@@ -310,7 +300,7 @@ class TraceAll(BaseAnalysis):
     # Operations
 
     def operation(
-        self, dyn_ast: str, iid: int, operator: str, operands: List[Any], result: Any
+        self, dyn_ast: str, iid: int, operator: str, operands: list, result: Any
     ) -> Any:
         """Hook for any operation.
 
@@ -333,7 +323,7 @@ class TraceAll(BaseAnalysis):
             - Comparison operators:
             Equal, GreaterThan, GreaterThanEqual, In, Is, LessThan, LessThanEqual, NotEqual, IsNot, NotIn
 
-        operands : List[Any]
+        operands : list
             The operands of the operation. Either [left, right] or [right].
 
         result : Any
@@ -601,7 +591,7 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "    Reading")
 
     def write(
-        self, dyn_ast: str, iid: int, old_vals: List[Callable], new_val: Any
+        self, dyn_ast: str, iid: int, old_vals: list[Callable], new_val: Any
     ) -> Any:
         """Hook for writes.
 
@@ -614,7 +604,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        old_vals : Any
+        old_vals : list[Callable]
             A list of old values before the write takes effect.
             It's a list to support multiple assignments.
             Each old value is wrapped into a lambda function, so that
@@ -633,8 +623,8 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "    Writing")
 
     def delete(
-        self, dyn_ast: str, iid: int, val: List[Tuple[Any, Any, bool]]
-    ) -> Optional[bool]:
+        self, dyn_ast: str, iid: int, val: list[tuple[Any, Any, bool]]
+    ) -> bool | None:
         """Hook for deletes.
 
 
@@ -646,15 +636,15 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        val : List[Tuple[Any, Any, bool]]
+        val : list[tuple[Any, Any, bool]]
             The list of values to be deleted. Each item in the list is a tuple of the form
             (base, offset, is_sub). `is_sub` is True if the value is a subscript, e.g. `a[b]`.
 
 
         Returns
         -------
-        Any
-            If True cancels the deletion.
+        bool | None
+            If True cancels the deletion. If set to anything else, the deletion is performed.
 
         """
         self.log(iid, "    Deleting")
@@ -693,7 +683,7 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Attribute", name)
 
     def read_subscript(
-        self, dyn_ast: str, iid: int, base: Any, sl: List[Union[int, Tuple]], val: Any
+        self, dyn_ast: str, iid: int, base: Any, sl: list[int | tuple], val: Any
     ) -> Any:
         """Hook for reading a subscript, also known as a slice.
 
@@ -710,7 +700,7 @@ class TraceAll(BaseAnalysis):
         base : Any
             The object to which the subscript is attached.
 
-        sl : List[Union[int, Tuple]]
+        sl : list[int | tuple]
             The subscript.
 
         val : Any
@@ -728,7 +718,7 @@ class TraceAll(BaseAnalysis):
     # Instrumented function
 
     def function_enter(
-        self, dyn_ast: str, iid: int, args: List[Any], name: str, is_lambda: bool
+        self, dyn_ast: str, iid: int, args: list, name: str, is_lambda: bool
     ) -> None:
         """Hook for when the body of an instrumented function is entered.
 
@@ -741,7 +731,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        args : List[Any]
+        args : list
             The arguments passed to the function.
 
         name:
@@ -813,7 +803,7 @@ class TraceAll(BaseAnalysis):
 
         value : Any
             The value returned.
-        @public
+
         """
         self.log(iid, "   Returning", value)
 
@@ -839,7 +829,7 @@ class TraceAll(BaseAnalysis):
 
         value : Any
             The value yielded.
-        @public
+
         """
         self.log(iid, "   Yielding", value)
 
@@ -872,7 +862,7 @@ class TraceAll(BaseAnalysis):
     # Function Call
 
     def pre_call(
-        self, dyn_ast: str, iid: int, function: Callable, pos_args: List, kw_args: Dict
+        self, dyn_ast: str, iid: int, function: Callable, pos_args: list, kw_args: dict
     ):
         """Hook called before a function call happens.
         This hook is not called for a set of special functions.
@@ -890,10 +880,10 @@ class TraceAll(BaseAnalysis):
         function : str
             Function which will be called.
 
-        pos_args : List
+        pos_args : list
             The positional arguments passed to the function.
 
-        kw_args : Dict
+        kw_args : dict
             The keyword arguments passed to the function.
 
         """
@@ -905,8 +895,8 @@ class TraceAll(BaseAnalysis):
         iid: int,
         result: Any,
         call: Callable,
-        pos_args: Tuple,
-        kw_args: Dict,
+        pos_args: tuple,
+        kw_args: dict,
     ) -> Any:
         """Hook called after a function call.
         Note: For a set of functions, that cannot be called from DynaPyt's runtime engine, the 'call' argument is not 'Callable', but is the resulting value.
@@ -922,16 +912,16 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        val : Any
+        result : Any
             The return value of the function.
 
         call: Callable
             The function which was called.
 
-        pos_args : Tuple
+        pos_args : tuple
             The positional arguments passed to the function.
 
-        kw_args : Dict
+        kw_args : dict
             The keyword arguments passed to the function.
 
 
@@ -1027,7 +1017,7 @@ class TraceAll(BaseAnalysis):
 
     def _raise(
         self, dyn_ast: str, iid: int, exc: Exception, cause: Any
-    ) -> Optional[Exception]:
+    ) -> Exception | None:
         """Hook for instrumented raise statement.
 
 
@@ -1056,7 +1046,7 @@ class TraceAll(BaseAnalysis):
 
     def _assert(
         self, dyn_ast: str, iid: int, condition: bool, message: str
-    ) -> Optional[bool]:
+    ) -> bool | None:
         """Hook for assert statement.
 
 
@@ -1100,7 +1090,7 @@ class TraceAll(BaseAnalysis):
 
     def enter_control_flow(
         self, dyn_ast: str, iid: int, cond_value: bool
-    ) -> Optional[bool]:
+    ) -> bool | None:
         """Hook called when entering a control flow branch.
 
 
@@ -1118,7 +1108,7 @@ class TraceAll(BaseAnalysis):
 
         Returns
         -------
-        bool
+        bool | None
             If provided, changes the condition of the control flow.
 
         """
@@ -1139,7 +1129,9 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "Control-flow exit")
 
-    def enter_if(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
+    def enter_if(
+        self, dyn_ast: str, iid: int, cond_value: bool
+    ) -> bool | None:
         """Hook called when entering if.
 
 
@@ -1157,13 +1149,13 @@ class TraceAll(BaseAnalysis):
 
         Returns
         -------
-        Optional[bool]
+        bool | None
             If provided, overwrites the condition (which may change the branch outcome).
 
         """
         self.log(iid, "   If", cond_value)
 
-    def exit_if(self, dyn_ast, iid):
+    def exit_if(self, dyn_ast: str, iid: int) -> None:
         """Hook for exiting if.
 
 
@@ -1181,7 +1173,7 @@ class TraceAll(BaseAnalysis):
 
     def enter_for(
         self, dyn_ast: str, iid: int, next_value: Any, iterable: Iterable, iterator: Iterator
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """Hook for entering a single iteration of a for loop.
 
 
@@ -1209,13 +1201,13 @@ class TraceAll(BaseAnalysis):
 
         Returns
         -------
-        Any
+        Any | None
             If provided, overwrites the value of the iterator.
 
         """
         self.log(iid, "   For", next_value)
 
-    def exit_for(self, dyn_ast, iid):
+    def exit_for(self, dyn_ast: str, iid: int) -> None:
         """Hook for exiting a for loop.
 
 
@@ -1244,7 +1236,9 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "For exit normally")
 
-    def enter_while(self, dyn_ast: str, iid: int, cond_value: bool) -> Optional[bool]:
+    def enter_while(
+        self, dyn_ast: str, iid: int, cond_value: bool
+    ) -> bool | None:
         """Hook for entering the next iteration of a while loop.
 
 
@@ -1262,13 +1256,13 @@ class TraceAll(BaseAnalysis):
 
         Returns
         -------
-        bool
+        bool | None
             If provided, overwrites the condition.
 
         """
         self.log(iid, "   While", cond_value)
 
-    def exit_while(self, dyn_ast, iid):
+    def exit_while(self, dyn_ast: str, iid: int) -> None:
         """Hook for exiting a while loop.
 
 
@@ -1300,7 +1294,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "While exit normally")
 
-    def _break(self, dyn_ast: str, iid: int, loop_iid: int) -> Optional[bool]:
+    def _break(self, dyn_ast: str, iid: int, loop_iid: int) -> bool | None:
         """Hook for break statement.
 
 
@@ -1318,13 +1312,13 @@ class TraceAll(BaseAnalysis):
 
         Returns
         -------
-        bool
+        bool | None
             If False, cancels the break.
 
         """
         self.log(iid, "Break")
 
-    def _continue(self, dyn_ast: str, iid: int, loop_iid: int) -> Optional[bool]:
+    def _continue(self, dyn_ast: str, iid: int, loop_iid: int) -> bool | None:
         """Hook for continue statement.
 
 
@@ -1342,7 +1336,7 @@ class TraceAll(BaseAnalysis):
 
         Returns
         -------
-        bool
+        bool | None
             If False, cancels continue.
 
         """
@@ -1378,8 +1372,8 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Clean exit try")
 
     def exception(
-        self, dyn_ast: str, iid: int, exceptions: List[Exception], caught: Exception
-    ) -> Optional[Exception]:
+        self, dyn_ast: str, iid: int, exceptions: list[Exception], caught: Exception
+    ) -> Exception | None:
         """Hook for entering an except block.
 
 
@@ -1391,7 +1385,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        exceptions : List[Exception]
+        exceptions : list[Exception]
             The exceptions to catch.
 
         caught : Exception
@@ -1400,13 +1394,13 @@ class TraceAll(BaseAnalysis):
 
         Returns
         -------
-        Exception
+        Exception | None
             If provided, overwrites the exception caught.
 
         """
         self.log(iid, "Caught", caught, "from", exceptions)
 
-    def enter_with(self, dyn_ast: str, iid: int, ctx_manager: ContextManager) -> None:
+    def enter_with(self, dyn_ast: str, iid: int, ctx_manager) -> None:
         """Hook for entering a with item.
 
 
@@ -1418,13 +1412,13 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        ctx_manager : ContextManager
+        ctx_manager
             The context manager.
 
         """
         self.log(iid, "Entered with")
 
-    def exit_with(self, dyn_ast: str, iid: int, is_suppressed: bool, exc_value):
+    def exit_with(self, dyn_ast: str, iid: int, is_suppressed: bool, exc_value: Any) -> None:
         """Hook for exiting a with item.
 
 
@@ -1445,7 +1439,7 @@ class TraceAll(BaseAnalysis):
         """
         self.log(iid, "Exited with")
 
-    def enter_decorator(self, dyn_ast: str, iid: int, decorator_name, args, kwargs):
+    def enter_decorator(self, dyn_ast: str, iid: int, decorator_name: str, args: list, kwargs: dict) -> None:
         """Hook for entering a decorator.
 
 
@@ -1460,17 +1454,17 @@ class TraceAll(BaseAnalysis):
         decorator_name : str
             The name of the decorator function.
 
-        args : List
+        args : list
             The positional arguments passed to the decorator.
 
-        kwargs : Dict
+        kwargs : dict
             The keyword arguments passed to the decorator.
 
         """
         self.log(iid, "Entered decorator", decorator_name)
 
     def exit_decorator(
-        self, dyn_ast: str, iid: int, decorator_name, result, args, kwargs
+        self, dyn_ast: str, iid: int, decorator_name: str, result: Any, args: list, kwargs: dict
     ) -> Any:
         """Hook for exiting a decorator.
 
@@ -1489,10 +1483,10 @@ class TraceAll(BaseAnalysis):
         result : Any
             The result of the decorator.
 
-        args : List
+        args : list
             The positional arguments passed to the decorator.
 
-        kwargs : Dict
+        kwargs : dict
             The keyword arguments passed to the decorator.
 
 
