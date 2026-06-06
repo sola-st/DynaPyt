@@ -483,7 +483,7 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Unary Operation", arg, "->", result)
 
     def comparison(
-        self, dyn_ast: str, iid: int, op: str, left: Any, right: Any, result: Any
+        self, dyn_ast: str, iid: int, left: Any, op: str, right: Any, result: Any
     ) -> Any:
         """Hook for the comparison operation.
 
@@ -496,12 +496,12 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
+        left : Any
+            The left operand of the operation.
+        
         op : str
             The operator of the operation. One of:
             Equal, GreaterThan, GreaterThanEqual, LessThan, LessThanEqual, NotEqual, In, Is, NotIn, IsNot
-
-        left : Any
-            The left operand of the operation.
 
         right : Any
             The right operand of the operation.
