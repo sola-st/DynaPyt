@@ -902,6 +902,7 @@ class TraceAll(BaseAnalysis):
         Note: For a set of functions, that cannot be called from DynaPyt's runtime engine, the 'call' argument is not 'Callable', but is the resulting value.
         These special functions are 'breakpoint', 'dir', 'eval', 'exec', 'globals', 'help', 'locals', 'super', 'vars'.
         To check for these cases, you can check 'result is call', and if it is True, then it is one of these special functions.
+        For these cases, the pos_args and kw_args are None.
 
 
         Parameters
@@ -916,13 +917,14 @@ class TraceAll(BaseAnalysis):
             The return value of the function.
 
         call: Callable
-            The function which was called.
+            The function which was called. This is not 'Callable' for a set of special functions.
+            See above.
 
-        pos_args : tuple
-            The positional arguments passed to the function.
+        pos_args : tuple | None
+            The positional arguments passed to the function. This is None for a set of special functions.
 
-        kw_args : dict
-            The keyword arguments passed to the function.
+        kw_args : dict | None
+            The keyword arguments passed to the function. This is None for a set of special functions.
 
 
         Returns
