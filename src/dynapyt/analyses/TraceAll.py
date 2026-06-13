@@ -1126,7 +1126,8 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
 
         iid : int
-            Unique ID of the syntax tree node for the control flow statement.
+            Unique ID of the syntax tree node for the control flow statement. 
+            Equal to the iid of enter_control_flow for the same control flow statement.
 
         """
         self.log(iid, "Control-flow exit")
@@ -1167,7 +1168,7 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
 
         iid : int
-            Unique ID of the syntax tree node.
+            Unique ID of the syntax tree node. Equal to the iid of enter_if for the same if statement.
 
 
         """
@@ -1219,7 +1220,7 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
 
         iid : int
-            Unique ID of the syntax tree node.
+            Unique ID of the syntax tree node. Equal to the iid of enter_for for the same for loop.
 
 
         """
@@ -1234,7 +1235,7 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
 
         iid : int
-            Unique ID of the syntax tree node.
+            Unique ID of the syntax tree node. Equal to the iid of enter_for for the same for loop.
         """
         self.log(iid, "For exit normally")
 
@@ -1274,7 +1275,7 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
 
         iid : int
-            Unique ID of the syntax tree node.
+            Unique ID of the syntax tree node. Equal to the iid of enter_while for the same while loop.
 
 
         """
@@ -1290,7 +1291,7 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
 
         iid : int
-            Unique ID of the syntax tree node.
+            Unique ID of the syntax tree node. Equal to the iid of enter_while for the same while loop.
 
 
         """
@@ -1369,7 +1370,7 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
 
         iid: int
-            Unique ID of the syntax tree node.
+            Unique ID of the syntax tree node. Equal to the iid of enter_try for the same try block.
         """
         self.log(iid, "Clean exit try")
 
@@ -1385,7 +1386,7 @@ class TraceAll(BaseAnalysis):
             The path to the original code. Can be used to extract the syntax tree.
 
         iid : int
-            Unique ID of the syntax tree node.
+            Unique ID of the syntax tree node. Equal to the iid of enter_try for the same try block.
 
         exceptions : list[Exception]
             The exceptions to catch.
