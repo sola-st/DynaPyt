@@ -1501,7 +1501,7 @@ class TraceAll(BaseAnalysis):
         iid : int
             Unique ID of the syntax tree node.
 
-        function : str
+        function : Callable
             Function which will be called.
 
         pos_args : list
@@ -1541,7 +1541,7 @@ class TraceAll(BaseAnalysis):
             The return value of the function.
 
         call: Callable
-            The function which was called. This is not 'Callable' for a set of special functions.
+            The function which was called. This is not a 'Callable' for 'breakpoint', 'dir', 'eval', 'exec', 'globals', 'help', 'locals', 'super', 'vars'.
             See above.
 
         pos_args : tuple | None
