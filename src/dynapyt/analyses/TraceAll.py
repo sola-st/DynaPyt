@@ -13,6 +13,13 @@ class TraceAll(BaseAnalysis):
     """
 
     def __init__(self, **kwargs) -> None:
+        """Initialize the TraceAll analysis.
+
+        Parameters
+        ----------
+        **kwargs : dict
+            Additional arguments passed to the base class initializer.
+        """
         super().__init__(**kwargs)
         root_logger = logging.getLogger()
         root_logger.setLevel(logging.INFO)
@@ -21,6 +28,17 @@ class TraceAll(BaseAnalysis):
         root_logger.addHandler(handler)
 
     def log(self, iid: int, *args, **kwargs):
+        """Log a message with a given instrumented ID (iid).
+
+        Parameters
+        ----------
+        iid : int
+            Unique ID of the syntax tree node.
+        *args : tuple
+            Positional arguments to be logged.
+        **kwargs : dict
+            Keyword arguments to be logged.
+        """
         args_str = " ".join([str(x) for x in args])
         kwargs_str = " ".join([f"{k}={v}" for k, v in kwargs.items()])
         logging.info(f"{iid}: {args_str} {kwargs_str}")
@@ -377,64 +395,364 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Binary Operation", left, op, right, "->", result)
 
     def add(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the addition (+) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def bit_and(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the bitwise AND (&) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def bit_or(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the bitwise OR (|) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def bit_xor(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the bitwise XOR (^) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def divide(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the division (/) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def floor_divide(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the floor division (//) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def left_shift(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the left shift (<<) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def right_shift(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the right shift (>>) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def matrix_multiply(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the matrix multiplication (@) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def modulo(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the modulo (%) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def multiply(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the multiplication (*) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def power(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the power (**) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def subtract(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the subtraction (-) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def _and(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the logical AND (and) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def _or(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the logical OR (or) binary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Binary Operation", left, right, "->", result)
 
     def unary_operation(
@@ -471,15 +789,87 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Unary Operation", arg, "->", result)
 
     def bit_invert(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
+        """Hook for the bitwise invert (~) unary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        arg : Any
+            The operand of the operation.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Unary Operation", arg, "->", result)
 
     def minus(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
+        """Hook for the arithmetic negation (-) unary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        arg : Any
+            The operand of the operation.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Unary Operation", arg, "->", result)
 
     def _not(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
+        """Hook for the logical negation (not) unary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        arg : Any
+            The operand of the operation.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Unary Operation", arg, "->", result)
 
     def plus(self, dyn_ast: str, iid: int, arg: Any, result: Any) -> Any:
+        """Hook for the arithmetic plus (+) unary operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        arg : Any
+            The operand of the operation.
+        result : Any
+            The result of the operation.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the operation.
+        """
         self.log(iid, "Unary Operation", arg, "->", result)
 
     def comparison(
@@ -519,43 +909,243 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Comparison", left, op, right, "->", result)
 
     def equal(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the equal (==) comparison operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the comparison.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the comparison.
+        """
         self.log(iid, "Comparison", left, right, "->", result)
 
     def greater_than(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the greater than (>) comparison operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the comparison.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the comparison.
+        """
         self.log(iid, "Comparison", left, right, "->", result)
 
     def greater_than_equal(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the greater than or equal (>=) comparison operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the comparison.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the comparison.
+        """
         self.log(iid, "Comparison", left, right, "->", result)
 
     def _in(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the membership (in) comparison operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the comparison.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the comparison.
+        """
         self.log(iid, "Comparison", left, right, "->", result)
 
     def _is(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the identity (is) comparison operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the comparison.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the comparison.
+        """
         self.log(iid, "Comparison", left, right, "->", result)
 
     def less_than(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the less than (<) comparison operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the comparison.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the comparison.
+        """
         self.log(iid, "Comparison", left, right, "->", result)
 
     def less_than_equal(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the less than or equal (<=) comparison operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the comparison.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the comparison.
+        """
         self.log(iid, "Comparison", left, right, "->", result)
 
     def not_equal(
         self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any
     ) -> Any:
+        """Hook for the not equal (!=) comparison operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the comparison.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the comparison.
+        """
         self.log(iid, "Comparison", left, right, "->", result)
 
     def is_not(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the identity negation (is not) comparison operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the comparison.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the comparison.
+        """
         self.log(iid, "Comparison", left, right, "->", result)
 
     def not_in(self, dyn_ast: str, iid: int, left: Any, right: Any, result: Any) -> Any:
+        """Hook for the membership negation (not in) comparison operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+        right : Any
+            The right operand.
+        result : Any
+            The result of the comparison.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result of the comparison.
+        """
         self.log(iid, "Comparison", left, right, "->", result)
 
     # Memory access
@@ -585,9 +1175,41 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Accessing")
 
     def read(self, dyn_ast: str, iid: int, val: Any) -> Any:
+        """Hook for general reads.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        val : Any
+            The value read.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the value read.
+        """
         self.log(iid, " Reading")
 
     def read_identifier(self, dyn_ast: str, iid: int, val: Any) -> Any:
+        """Hook for reading an identifier.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        val : Any
+            The value of the identifier.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the value of the identifier.
+        """
         self.log(iid, "    Reading")
 
     def write(
@@ -609,6 +1231,8 @@ class TraceAll(BaseAnalysis):
             It's a list to support multiple assignments.
             Each old value is wrapped into a lambda function, so that
             the analysis writer can decide if and when to evaluate it.
+            So to get the value of a single old value, use: `old_vals[i]()`
+            to evaluate the i-th old value.
 
         new_val : Any
             The value after the write takes effect.
@@ -954,6 +1578,8 @@ class TraceAll(BaseAnalysis):
 
         left : Any
             The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
 
         op : str
             The operator. One of:
@@ -977,44 +1603,304 @@ class TraceAll(BaseAnalysis):
         self.log(iid, "Augmented assignment", left, op, right)
 
     def add_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the addition augmented assignment (+=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def bit_and_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the bitwise AND augmented assignment (&=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def bit_or_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the bitwise OR augmented assignment (|=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def bit_xor_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the bitwise XOR augmented assignment (^=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def divide_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the division augmented assignment (/=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def floor_divide_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the floor division augmented assignment (//=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def left_shift_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the left shift augmented assignment (<<=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def matrix_multiply_assign(
         self, dyn_ast: str, iid: int, left: Any, right: Any
     ) -> Any:
+        """Hook for the matrix multiplication augmented assignment (@=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def modulo_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the modulo augmented assignment (%=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def multiply_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the multiplication augmented assignment (*=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def power_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the power augmented assignment (**=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def right_shift_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the right shift augmented assignment (>>=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def subtract_assign(self, dyn_ast: str, iid: int, left: Any, right: Any) -> Any:
+        """Hook for the subtraction augmented assignment (-=) operation.
+
+        Parameters
+        ----------
+        dyn_ast : str
+            The path to the original code. Can be used to extract the syntax tree.
+        iid : int
+            Unique ID of the syntax tree node.
+        left : Any
+            The left operand.
+            This is wrapped in a lambda function, so the analysis can decide if and when to evaluate it.
+            To get the value of the left operand, use `left()`.
+        right : Any
+            The right operand.
+
+        Returns
+        -------
+        Any
+            If provided, overwrites the result.
+        """
         self.log(iid, "Augmented assignment", left, right)
 
     def _raise(
