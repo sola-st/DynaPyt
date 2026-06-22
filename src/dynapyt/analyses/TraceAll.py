@@ -1506,6 +1506,9 @@ class TraceAll(BaseAnalysis):
 
         pos_args : list
             The positional arguments passed to the function.
+            Note that for bound methods (functions with `self` or `cls`) 
+            the first element is NOT the instance or class. Use `.__self__`
+            and `.__class__` attributes to get the instance or class.
 
         kw_args : dict
             The keyword arguments passed to the function.
@@ -1546,6 +1549,9 @@ class TraceAll(BaseAnalysis):
 
         pos_args : tuple | None
             The positional arguments passed to the function. This is None for a set of special functions.
+            Note that for bound methods (functions with `self` or `cls`) 
+            the first element is NOT the instance or class. Use `.__self__`
+            and `.__class__` attributes to get the instance or class.
 
         kw_args : dict | None
             The keyword arguments passed to the function. This is None for a set of special functions.
