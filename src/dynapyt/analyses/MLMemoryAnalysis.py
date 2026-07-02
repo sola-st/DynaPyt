@@ -12,7 +12,7 @@ class MLMemoryAnalysis(BaseAnalysis):
     
     def enter_control_flow(self, dyn_ast, iid, condition):
         self.last_opr = None
-        if (len(self.in_ctrl_flow) > 0) and (self.in_ctrl_flow[-1] != iid):
+        if not self.in_ctrl_flow or self.in_ctrl_flow[-1] != iid:
             self.in_ctrl_flow.append(iid)
     
     def exit_control_flow(self, dyn_ast, iid):
@@ -29,7 +29,7 @@ class MLMemoryAnalysis(BaseAnalysis):
         if (len(self.in_ctrl_flow) > 0) and right.requires_grad and (self.last_opr is not None):
             cur = (iid, self.in_ctrl_flow[-1])
             self.memory_leak[cur] += 1
-            if self.memory_leak[cur] > 3:
+            if self.memory_leak[cur] > self.threshold:
                 print('Memory issue detected')
                 exit(1)
         self.last_opr = None
