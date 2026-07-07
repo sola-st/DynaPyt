@@ -2,6 +2,7 @@ import libcst.matchers as m
 from .BaseAnalysis import BaseAnalysis
 from ..utils.nodeLocator import get_node_by_location
 from aiopg.connection import Cursor
+from typing import Callable
 
 class SimpleTaintAnalysis(BaseAnalysis):
     
