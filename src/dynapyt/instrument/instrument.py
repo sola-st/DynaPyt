@@ -2,6 +2,13 @@ import argparse
 from multiprocessing import Pool
 import traceback
 import libcst as cst
+from libcst.metadata import (
+    ParentNodeProvider,
+    PositionProvider,
+    ScopeProvider,
+    ExpressionContextProvider,
+    QualifiedNameProvider,
+)
 from libcst._exceptions import ParserSyntaxError
 from .CodeInstrumenter import CodeInstrumenter
 from .IIDs import IIDs
@@ -23,38 +30,22 @@ def gather_files(files_arg):
         files = files_arg
     return files
 
-
-def canonical_ifs(node, child_dict):
-    new_body = (
-        cst.Break()
-        if cst.matchers.matches(node.body.body[0], cst.matchers.Break())
-        else cst.Continue()
-    )
-    return cst.If(
-        test=node.test,
-        body=cst.IndentedBlock(body=[cst.SimpleStatementLine(body=[new_body])]),
-        orelse=node.orelse,
-        leading_lines=node.leading_lines,
-        whitespace_before_test=node.whitespace_before_test,
-        whitespace_after_test=node.whitespace_after_test,
-    )
+def metadata_providers_based_on_hooks(selected_hooks: list[str]) -> list[type]:
+    metadata_providers = [PositionProvider, ScopeProvider, ExpressionContextProvider, QualifiedNameProvider]
+    if "_tuple" in selected_hooks or "read_attribute" in selected_hooks or "read_subscript" in selected_hooks:
+        metadata_providers.append(ParentNodeProvider)
+    return metadata_providers
 
 
 def instrument_code(src: str, file_path: str, iids: IIDs, selected_hooks: list[str]) -> str | None:
     try:
-        # ast = cst.matchers.replace(
-        #     cst.parse_module(src),
-        #     cst.matchers.If(
-        #         body=cst.matchers.SimpleStatementSuite(
-        #             body=[(cst.matchers.Break() | cst.matchers.Continue())]
-        #         )
-        #     ),
-        #     canonical_ifs,
-        # )
         ast = cst.parse_module(src)
         ast_wrapper = cst.metadata.MetadataWrapper(ast)
+        useful_metadata_providers = metadata_providers_based_on_hooks(selected_hooks)
+        class LeanCodeInstrumenter(CodeInstrumenter):
+            METADATA_DEPENDENCIES = tuple(useful_metadata_providers)
 
-        instrumented_code = CodeInstrumenter(src, file_path, iids, selected_hooks)
+        instrumented_code = LeanCodeInstrumenter(src, file_path, iids, selected_hooks)
         instrumented_ast = ast_wrapper.visit(instrumented_code)
 
         return "# DYNAPYT: DO NOT INSTRUMENT\n\n" + instrumented_ast.code

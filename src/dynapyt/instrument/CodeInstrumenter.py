@@ -30,13 +30,13 @@ site_sensitive_functions = [
 
 
 class CodeInstrumenter(m.MatcherDecoratableTransformer):
-    METADATA_DEPENDENCIES = (
-        ParentNodeProvider,
-        PositionProvider,
-        ScopeProvider,
-        ExpressionContextProvider,
-        QualifiedNameProvider,
-    )
+    # METADATA_DEPENDENCIES = (
+    #     ParentNodeProvider,
+    #     PositionProvider,
+    #     ScopeProvider,
+    #     ExpressionContextProvider,
+    #     QualifiedNameProvider,
+    # )
 
     # Internal
     def __init__(self, src, file_path, iids: IIDs, selected_hooks):
@@ -157,27 +157,28 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         except KeyError:
             my_scope = None
         if isinstance(my_scope, ClassScope):
+            orig_pos = self.get_metadata(PositionProvider, original_node)
             for n in used_names:
                 try:
-                    name_source = self.get_metadata(QualifiedNameProvider, n)
+                    name_source = next(iter(self.get_metadata(QualifiedNameProvider, n)))
                     n_scope = self.get_metadata(ScopeProvider, n)
                     defined_earlier = False
                     for item in n_scope[n.value]:
                         if not hasattr(item, "node"):
                             continue
                         temp_pos = self.get_metadata(PositionProvider, item.node)
-                        orig_pos = self.get_metadata(PositionProvider, original_node)
                         if temp_pos.start.line < orig_pos.start.line:
                             defined_earlier = True
                             break
                 except KeyError:
-                    name_source = []
+                    name_source = None
                     n_scope = None
+                    continue
                 if (
                     (n.value not in unique_names)
                     and (my_scope == n_scope)
-                    and (len(list(name_source)) > 0)
-                    and (list(name_source)[0].source == QualifiedNameSource.LOCAL)
+                    and (name_source)
+                    and (name_source.source == QualifiedNameSource.LOCAL)
                     and (defined_earlier)
                 ):
                     parameters.append(
@@ -378,15 +379,18 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         ) or not self.__selected_by_decorators("read_identifier", original_node):
             return updated_node
         try:
+            name_source = next(iter(self.get_metadata(QualifiedNameProvider, original_node)), None)
+        except KeyError:
+            name_source = None
+        if not name_source:
+            return updated_node
+        try:
             context = self.get_metadata(ExpressionContextProvider, original_node)
-            name_source = self.get_metadata(QualifiedNameProvider, original_node)
         except KeyError:
             context = -1
-            name_source = []
-        if len(list(name_source)) == 0:
             return updated_node
         if (context == ExpressionContext.LOAD) and (
-            list(name_source)[0].source == QualifiedNameSource.LOCAL
+            name_source.source == QualifiedNameSource.LOCAL
         ):
             callee_name = cst.Attribute(
                 value=cst.Name(value="_rt"), attr=cst.Name(value="_read_")
@@ -1460,66 +1464,6 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
         iid = self.__create_iid(original_node)
         ast_arg = cst.Arg(value=cst.Name("_dynapyt_ast_"))
         iid_arg = cst.Arg(value=cst.Integer(value=str(iid)))
-        positional_args = cst.Arg(
-            value=cst.List(
-                elements=[
-                    (
-                        cst.Element(
-                            value=cst.Tuple(
-                                elements=[
-                                    cst.Element(
-                                        value=cst.SimpleString(
-                                            value=self.__as_string(a.star)
-                                        )
-                                    ),
-                                    cst.Element(
-                                        value=a.with_changes(
-                                            comma=cst.MaybeSentinel.DEFAULT, star=""
-                                        )
-                                    ),
-                                ]
-                            )
-                        )
-                        if not m.matches(a.value, m.GeneratorExp())
-                        else cst.Element(
-                            value=cst.Tuple(
-                                elements=[
-                                    cst.Element(
-                                        value=cst.SimpleString(
-                                            value=self.__as_string(a.star)
-                                        )
-                                    ),
-                                    cst.Element(
-                                        value=a.with_changes(
-                                            comma=cst.MaybeSentinel.DEFAULT,
-                                            star="",
-                                            value=a.value.with_changes(
-                                                lpar=[cst.LeftParen()],
-                                                rpar=[cst.RightParen()],
-                                            ),
-                                        )
-                                    ),
-                                ]
-                            )
-                        )
-                    )
-                    for a in updated_node.args
-                    if a.keyword is None
-                ]
-            )
-        )
-        keyword_args = cst.Arg(
-            value=cst.Dict(
-                elements=[
-                    cst.DictElement(
-                        key=cst.SimpleString(value=self.__as_string(a.keyword.value)),
-                        value=a.value,
-                    )
-                    for a in updated_node.args
-                    if a.keyword is not None
-                ]
-            )
-        )
         try:
             name_source = self.get_metadata(QualifiedNameProvider, original_node)
         except KeyError:
@@ -1548,6 +1492,66 @@ class CodeInstrumenter(m.MatcherDecoratableTransformer):
                 rpar=original_node.rpar,
             )
         else:
+            positional_args = cst.Arg(
+                value=cst.List(
+                    elements=[
+                        (
+                            cst.Element(
+                                value=cst.Tuple(
+                                    elements=[
+                                        cst.Element(
+                                            value=cst.SimpleString(
+                                                value=self.__as_string(a.star)
+                                            )
+                                        ),
+                                        cst.Element(
+                                            value=a.with_changes(
+                                                comma=cst.MaybeSentinel.DEFAULT, star=""
+                                            )
+                                        ),
+                                    ]
+                                )
+                            )
+                            if not m.matches(a.value, m.GeneratorExp())
+                            else cst.Element(
+                                value=cst.Tuple(
+                                    elements=[
+                                        cst.Element(
+                                            value=cst.SimpleString(
+                                                value=self.__as_string(a.star)
+                                            )
+                                        ),
+                                        cst.Element(
+                                            value=a.with_changes(
+                                                comma=cst.MaybeSentinel.DEFAULT,
+                                                star="",
+                                                value=a.value.with_changes(
+                                                    lpar=[cst.LeftParen()],
+                                                    rpar=[cst.RightParen()],
+                                                ),
+                                            )
+                                        ),
+                                    ]
+                                )
+                            )
+                        )
+                        for a in updated_node.args
+                        if a.keyword is None
+                    ]
+                )
+            )
+            keyword_args = cst.Arg(
+                value=cst.Dict(
+                    elements=[
+                        cst.DictElement(
+                            key=cst.SimpleString(value=self.__as_string(a.keyword.value)),
+                            value=a.value,
+                        )
+                        for a in updated_node.args
+                        if a.keyword is not None
+                    ]
+                )
+            )
             call_arg = cst.Arg(value=updated_node.func)
             only_post = cst.Arg(value=cst.Name("False"))
             call = cst.Call(
